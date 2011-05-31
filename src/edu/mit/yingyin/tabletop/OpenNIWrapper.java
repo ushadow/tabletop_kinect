@@ -40,12 +40,11 @@ public class OpenNIWrapper {
   }
   
   public void getDepthMap() {
-    getDepthMap(ctrlBlock, depthBuf, DEPTH_WIDTH, DEPTH_HEIGHT);
+    getDepthMap(ctrlBlock, depthBuf);
   }
   
   private native boolean initFromXmlFile(IntBuffer ctrlBlock, 
                                          String configFile); 
   private native boolean waitAnyUpdateAll(IntBuffer ctrlBlock);
-  private native void getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf,
-                                  int width, int height);
+  private native void getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
 }
