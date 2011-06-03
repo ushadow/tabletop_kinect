@@ -9,7 +9,6 @@ import java.nio.ShortBuffer;
 
 import edu.mit.yingyin.gui.ImageViewer;
 import edu.mit.yingyin.tabletop.HandProcessor.DebugFrame;
-import edu.mit.yingyin.tabletop.HandProcessor.DebugImage;
 
 public class MainDriver {
   private class Controller extends WindowAdapter {
@@ -34,9 +33,6 @@ public class MainDriver {
                                             BufferedImage.TYPE_INT_RGB);
     
     DebugFrame debugFrame = new DebugFrame(depthWidth, depthHeight);
-    viewer = new ImageViewer("Depth Map", 
-                             new Dimension(depthWidth, depthHeight));
-    viewer.addWindowListener(new Controller());
     
     while (running) {
       openni.waitAnyUpdateAll();
@@ -50,7 +46,7 @@ public class MainDriver {
 //          dstArray[index] = (char)depthArray.get(index) * 256 / 
 //                            maxDepth & 0x000000ff;
 //      }
-      //viewer.show(debugImage.draw(processor.getContours()));
+      debugFrame.show(processor.getContours());
     }
     openni.cleanUp();
     viewer.dispose();
