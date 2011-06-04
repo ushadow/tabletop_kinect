@@ -1,77 +1,71 @@
 package edu.mit.yingyin.tabletop;
 
-import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16U;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.opencv_core.cvClearMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_POLY_APPROX_DP;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RETR_EXTERNAL;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvApproxPoly;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexHull2;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvEndFindContours;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSubstituteContour;
 
-import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-
-import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
-import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import com.googlecode.javacpp.Loader;
-import com.googlecode.javacv.*;
-import com.googlecode.javacv.cpp.*;
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
-import static com.googlecode.javacv.cpp.opencv_calib3d.*;
-import static com.googlecode.javacv.cpp.opencv_objdetect.*;
+import com.googlecode.javacv.cpp.opencv_core.CvContour;
+import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
+import com.googlecode.javacv.cpp.opencv_core.CvSeq;
+import com.googlecode.javacv.cpp.opencv_core.IplImage;
+import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
 public class HandProcessor {
-  static public class DebugFrame{
-    private IplImage image;
-    private CanvasFrame frame = new CanvasFrame("Debug Frame");
-    
-    public DebugFrame(int width, int height) {
-      image = IplImage.create(width, height, IPL_DEPTH_16U, 1);
-    }
-    
-    public void show(CvSeq contours) {
-      cvZero(image);
-      for (CvSeq c = contours; c != null; c = contours.h_next()){
-        cvDrawContours(image, c, CvScalar.WHITE, CvScalar.BLACK, -1, CV_FILLED, 
-                       8);
-      }
-      frame.showImage(image);
-    }
-  }
-  
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   private static final int MAX_DEPTH = 1600;
   
   private int[] bgDepthMap;
-  private IplImage depthImage;
   private CvMemStorage tempMem;
-  private CvSeq contours;
+  private IplImage tempImage;
   
   public HandProcessor(int width, int height) {
-    depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     tempMem = cvCreateMemStorage(0);
+    tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
-  public void processData(int[] depthMap) {
+  public void processData(ProcessPacket packet) {
+    int[] depthRawData = packet.depthRawData;
+    IplImage depthImage = packet.depthImage;
     if (bgDepthMap == null) {
-      bgDepthMap = depthMap.clone();
+      bgDepthMap = packet.depthRawData.clone();
     }
     
     ByteBuffer ib = depthImage.getByteBuffer();
-    for (int i = 0; i < depthMap.length; i++) {
-      if (bgDepthMap[i] - depthMap[i] < 5)
+    for (int i = 0; i < depthRawData.length; i++) {
+      if (bgDepthMap[i] - depthRawData[i] < 5)
         ib.put(i, (byte)0);
-      else ib.put(i, (byte)((char)depthMap[i] * 255 / MAX_DEPTH));
+      else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }
     
-    findConnectedComponents(depthImage, 1, 4);
+    packet.contours = findConnectedComponents(depthImage, 0, 4);
   }
   
-  public void findConnectedComponents(IplImage mask, int poly1_hull0, 
+  public CvSeq findConnectedComponents(IplImage mask, int poly1_hull0, 
                                       float perimScale) {
     cvMorphologyEx(mask, mask, null, null, CV_MOP_OPEN, CVCLOSE_ITR);
     cvClearMemStorage(tempMem);
-    CvContourScanner scanner = cvStartFindContours(mask, tempMem, 
+
+    cvCopy(mask, tempImage);
+    
+    CvContourScanner scanner = cvStartFindContours(tempImage, tempMem, 
         Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, 
         CV_CHAIN_APPROX_SIMPLE);
     CvSeq c;
@@ -93,10 +87,14 @@ public class HandProcessor {
         numCont++;
       } 
     }
-    contours = cvEndFindContours(scanner);
     System.out.println("Number of contours = " + numCont);
+    return cvEndFindContours(scanner);
   }
   
-  public CvSeq getContours() {  return contours; }
+  public void cleanUp() {
+    cvClearMemStorage(tempMem);
+    tempImage.release();
+    System.out.println("HandProcessor cleaned up.");
+  }
   
 }

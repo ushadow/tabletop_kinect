@@ -1,14 +1,12 @@
 package edu.mit.yingyin.tabletop;
 
-import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.nio.ShortBuffer;
+import java.lang.reflect.InvocationTargetException;
 
-import edu.mit.yingyin.gui.ImageViewer;
-import edu.mit.yingyin.tabletop.HandProcessor.DebugFrame;
+import javax.swing.SwingUtilities;
+
+import edu.mit.yingyin.tabletop.ProcessPacket.DebugFrame;
 
 public class MainDriver {
   private class Controller extends WindowAdapter {
@@ -17,43 +15,45 @@ public class MainDriver {
     }
   }
   private OpenNIWrapper openni;
-  private ImageViewer viewer;
   private boolean running = true;
+  private DebugFrame debugFrame;
+  private int depthWidth, depthHeight;
+  private ProcessPacket packet;
   
-  public MainDriver() {
+  public MainDriver() throws InterruptedException, InvocationTargetException {
     System.out.println("java.library.paht = " + 
                        System.getProperty("java.library.path"));
     openni = new OpenNIWrapper();
     openni.initFromXmlFile("config/config.xml");
-    int depthWidth = openni.getDepthWidth();
-    int depthHeight = openni.getDepthHeight();
+    depthWidth = openni.getDepthWidth();
+    depthHeight = openni.getDepthHeight();
     HandProcessor processor = new HandProcessor(depthWidth, depthHeight);
-    int[] depthMap = new int[depthWidth * depthHeight];
-    BufferedImage image = new BufferedImage(depthWidth, depthHeight, 
-                                            BufferedImage.TYPE_INT_RGB);
+    packet = new ProcessPacket(depthWidth, depthHeight);
     
-    DebugFrame debugFrame = new DebugFrame(depthWidth, depthHeight);
+    debugFrame = new DebugFrame(depthWidth, depthHeight);
     
-    while (running) {
+    while (debugFrame.isVisible()) {
       openni.waitAnyUpdateAll();
-      openni.getDepthMap(depthMap);
-      processor.processData(depthMap);
-//      int[] dstArray = 
-//          ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-//      index = 0;
-//      for (int h = 0; h < depthHeight; h++) {
-//        for (int w = 0; w < depthWidth; w++, index++) 
-//          dstArray[index] = (char)depthArray.get(index) * 256 / 
-//                            maxDepth & 0x000000ff;
-//      }
-      debugFrame.show(processor.getContours());
+      openni.getDepthMap(packet.depthRawData);
+      processor.processData(packet);
+      debugFrame.show(packet);
     }
     openni.cleanUp();
-    viewer.dispose();
+    processor.cleanUp();
+    packet.deallocate();
+    debugFrame.dispose();
     System.exit(0);
   }
   
   public static void main(String[] args) {
-    new MainDriver();
+    try {
+      new MainDriver();
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 }
