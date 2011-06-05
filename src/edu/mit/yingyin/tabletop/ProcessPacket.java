@@ -7,12 +7,18 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvDrawContours;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 
-import java.nio.IntBuffer;
-
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
+
+import com.googlecode.javacpp.Loader;
+import com.googlecode.javacv.*;
+import com.googlecode.javacv.cpp.*;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_calib3d.*;
+import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
 public class ProcessPacket {
   static public class DebugFrame extends CanvasFrame {
@@ -31,9 +37,8 @@ public class ProcessPacket {
         cvDrawContours(canvasImage, c, CvScalar.WHITE, CvScalar.WHITE, -1, 
                        CV_FILLED, 8);
         for (int i = 0; i < c.total(); i++) {
-          IntBuffer ib = cvGetSeqElem(c, i).asByteBuffer(c.elem_size()).
-                         asIntBuffer();
-          System.out.println("(" + ib.get(0) + ", " + ib.get(1) + ")");
+          CvPoint p = new CvPoint(cvGetSeqElem(c, i));
+          cvCircle(canvasImage, p, 5, CvScalar.WHITE, 1, 8, 0);
         }
       }
       showImage(canvasImage);
