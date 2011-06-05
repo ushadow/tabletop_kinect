@@ -2,9 +2,12 @@ package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_FILLED;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
-import static com.googlecode.javacv.cpp.opencv_core.cvDrawContours;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvClearSeq;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvDrawContours;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+
+import java.nio.IntBuffer;
 
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -27,6 +30,11 @@ public class ProcessPacket {
       for (CvSeq c = packet.contours; c != null && !c.isNull(); c = c.h_next()){
         cvDrawContours(canvasImage, c, CvScalar.WHITE, CvScalar.WHITE, -1, 
                        CV_FILLED, 8);
+        for (int i = 0; i < c.total(); i++) {
+          IntBuffer ib = cvGetSeqElem(c, i).asByteBuffer(c.elem_size()).
+                         asIntBuffer();
+          System.out.println("(" + ib.get(0) + ", " + ib.get(1) + ")");
+        }
       }
       showImage(canvasImage);
     }

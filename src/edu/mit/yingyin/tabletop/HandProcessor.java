@@ -55,11 +55,21 @@ public class HandProcessor {
       else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }
     
-    packet.contours = findConnectedComponents(depthImage, 0, 4);
+    packet.contours = findConnectedComponents(depthImage, 1, 4);
   }
   
+  /**
+   * Cleans up the foreground segmentation mask.
+   * @param mask a grayscale (8-bit depth) "raw" mask image that will be cleaned
+   *             up.
+   * @param poly1_hull0 if 1, approximates connected component by polygon, or
+   *                    else convex hull.
+   * @param perimScale len = (image.width + image.height) / perimScale. If 
+   *                   contour length < len, delete that contour.
+   * @return a sequence of contours
+   */
   public CvSeq findConnectedComponents(IplImage mask, int poly1_hull0, 
-                                      float perimScale) {
+                                       float perimScale) {
     cvMorphologyEx(mask, mask, null, null, CV_MOP_OPEN, CVCLOSE_ITR);
     cvClearMemStorage(tempMem);
 
@@ -81,13 +91,13 @@ public class HandProcessor {
           cNew = cvApproxPoly(c, Loader.sizeof(CvContour.class), tempMem,
               CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
         } else {
+          // returnPoints = 1
           cNew = cvConvexHull2(c, tempMem, CV_CLOCKWISE, 1);
         }
         cvSubstituteContour(scanner, cNew);
         numCont++;
       } 
     }
-    System.out.println("Number of contours = " + numCont);
     return cvEndFindContours(scanner);
   }
   
