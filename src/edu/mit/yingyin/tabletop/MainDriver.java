@@ -1,27 +1,30 @@
 package edu.mit.yingyin.tabletop;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.lang.reflect.InvocationTargetException;
-
-import javax.swing.SwingUtilities;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import edu.mit.yingyin.tabletop.ProcessPacket.DebugFrame;
 
 public class MainDriver {
-  private class Controller extends WindowAdapter {
-    public void windowClosing(WindowEvent e) {
-      running = false;
+  private class KeyController extends KeyAdapter {
+    public void keyPressed(KeyEvent ke) {
+      switch (ke.getKeyChar()) {
+      case 'p':
+        pause = !pause;
+        break;
+      default: 
+        break;
+      }
     }
   }
   private OpenNIWrapper openni;
-  private boolean running = true;
   private DebugFrame debugFrame;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
+  boolean pause = false;
   
-  public MainDriver() throws InterruptedException, InvocationTargetException {
-    System.out.println("java.library.paht = " + 
+  public MainDriver() {
+    System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
     openni = new OpenNIWrapper();
     openni.initFromXmlFile("config/config.xml");
@@ -31,8 +34,11 @@ public class MainDriver {
     packet = new ProcessPacket(depthWidth, depthHeight);
     
     debugFrame = new DebugFrame(depthWidth, depthHeight);
+    debugFrame.addKeyListener(new KeyController());
     
     while (debugFrame.isVisible()) {
+      if (pause == true)
+        continue;
       openni.waitAnyUpdateAll();
       openni.getDepthMap(packet.depthRawData);
       processor.processData(packet);
@@ -40,20 +46,12 @@ public class MainDriver {
     }
     openni.cleanUp();
     processor.cleanUp();
-    packet.deallocate();
-    debugFrame.dispose();
+    packet.cleanUp();
+    debugFrame.cleanUp();
     System.exit(0);
   }
   
   public static void main(String[] args) {
-    try {
       new MainDriver();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
 }
