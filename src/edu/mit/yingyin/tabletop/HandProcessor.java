@@ -100,12 +100,16 @@ public class HandProcessor {
       if (len > q) {
         CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
             packet.tempMem, CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
-        packet.approxPoly.add(approxPoly);
+        int[] ptsArray = new int[approxPoly.total() * 2];
+        PointerPointer pp = new PointerPointer(ptsArray);
+        cvCvtSeqToArray(approxPoly, pp.get(), CV_WHOLE_SEQ);
+        packet.approxPoly.add(ptsArray);
         // returnPoints = 0: returns pointers to the points in the contour
-        CvSeq  hull = cvConvexHull2(approxPoly, packet.tempMem, CV_CLOCKWISE, 0);
-          packet.hulls.add(hull);
-          packet.convexityDefects.add(
-              cvConvexityDefects(approxPoly, hull, packet.tempMem));
+        CvSeq  hull = cvConvexHull2(approxPoly, packet.tempMem, CV_CLOCKWISE, 
+                                    0);
+        packet.hulls.add(hull);
+        packet.convexityDefects.add(
+            cvConvexityDefects(approxPoly, hull, packet.tempMem));
       } 
     }
   }
@@ -113,6 +117,7 @@ public class HandProcessor {
   public void findFingerTips(ProcessPacket packet) {
     packet.fingerTips.clear();
     for(int i = 0; i < packet.hulls.size(); i++) {
+     
       CvRect rect = cvBoundingRect(packet.approxPoly.get(i), 0); 
       int cutoff = rect.y() + rect.height() - 50;
       CvSeq hull = packet.hulls.get(i);
