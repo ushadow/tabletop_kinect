@@ -1,15 +1,12 @@
 package edu.mit.yingyin.tabletop;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_FILLED;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvClearSeq;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvDrawContours;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,22 +38,21 @@ public class ProcessPacket {
     
     public void show(ProcessPacket packet) {
       cvCopy(packet.morphedImage, canvasImage);
-      for (CvSeq c : packet.convexityDefects){
-//        cvDrawContours(canvasImage, c, CvScalar.WHITE, CvScalar.WHITE, -1, 
+      for (CvSeq contour = packet.contours; 
+           contour != null && !contour.isNull(); contour = contour.h_next()){
+//        cvDrawContours(canvasImage, contour, CvScalar.WHITE, CvScalar.WHITE, -1, 
 //                       CV_FILLED, 8);
-        for (int i = 0; i < c.total(); i++) {
-          CvConvexityDefect defect = new CvConvexityDefect(cvGetSeqElem(c, i));
-          int[] pts = new int[6];
-          pts[0] = defect.start().x();
-          pts[1] = defect.start().y();
-          pts[2] = defect.end().x();
-          pts[3] = defect.end().y();
-          pts[4] = defect.depth_point().x();
-          pts[5] = defect.depth_point().y();
-          CvPoint cvPoints = new CvPoint(pts, 0, 6);
-          if (defect.depth() > 3) {
-            cvFillConvexPoly(canvasImage, cvPoints, 3, CvScalar.WHITE, 8, 0);
-          }
+        CvRect rect = cvBoundingRect(contour, 0);
+        cvRectangle(canvasImage, new CvPoint(rect.x(), rect.y()), 
+            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
+            CvScalar.WHITE, 1, 8, 0);
+       
+      }
+      for (CvSeq hull : packet.hulls) {
+        for (int i =0; i < hull.total(); i++) {
+          PointerPointer pp = new PointerPointer(cvGetSeqElem(hull, i));
+          CvPoint p = new CvPoint(pp.get());
+          cvCircle(canvasImage, p, 5, CvScalar.WHITE, 1, 8, 0);
         }
       }
       showImage(canvasImage);

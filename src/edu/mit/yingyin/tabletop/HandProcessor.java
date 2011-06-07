@@ -102,7 +102,7 @@ public class HandProcessor {
           cNew = cvApproxPoly(c, Loader.sizeof(CvContour.class), packet.tempMem,
               CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
         } else {
-          // returnPoints = 1
+          // returnPoints = 0: returns pointers to the points in the contour
           cNew = cvConvexHull2(c, packet.tempMem, CV_CLOCKWISE, 0);
           packet.hulls.add(cNew);
           packet.convexityDefects.add(
