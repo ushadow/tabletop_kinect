@@ -4,6 +4,7 @@ import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvClearMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
@@ -22,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.googlecode.javacpp.Loader;
+import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -64,6 +66,7 @@ public class HandProcessor {
     }
     
     findConnectedComponents(packet, 0, 4);
+    findFingerTips(packet);
   }
   
   /**
@@ -79,6 +82,7 @@ public class HandProcessor {
   public void findConnectedComponents(ProcessPacket packet, int poly1_hull0, 
                                        float perimScale) {
     packet.hulls.clear();
+    packet.approxPoly.clear();
     packet.convexityDefects.clear();
     cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
                    CV_MOP_OPEN, CVCLOSE_ITR);
@@ -89,32 +93,36 @@ public class HandProcessor {
         Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, 
         CV_CHAIN_APPROX_SIMPLE);
     CvSeq c;
-    int numCont = 0;
     double q = (packet.morphedImage.height() + packet.morphedImage.width()) / 
                perimScale;
     while( (c = cvFindNextContour(scanner)) != null ) {
       double len = cvContourPerimeter(c);
-      if (len < q) {
-        cvSubstituteContour(scanner, null);
-      } else {
-        CvSeq cNew;
-        if (poly1_hull0 == 1) {
-          cNew = cvApproxPoly(c, Loader.sizeof(CvContour.class), packet.tempMem,
-              CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
-        } else {
-          // returnPoints = 0: returns pointers to the points in the contour
-          cNew = cvConvexHull2(c, packet.tempMem, CV_CLOCKWISE, 0);
-          packet.hulls.add(cNew);
+      if (len > q) {
+        CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
+            packet.tempMem, CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
+        packet.approxPoly.add(approxPoly);
+        // returnPoints = 0: returns pointers to the points in the contour
+        CvSeq  hull = cvConvexHull2(approxPoly, packet.tempMem, CV_CLOCKWISE, 0);
+          packet.hulls.add(hull);
           packet.convexityDefects.add(
-              cvConvexityDefects(c, cNew, packet.tempMem));
-        }
-        numCont++;
+              cvConvexityDefects(approxPoly, hull, packet.tempMem));
       } 
     }
-    packet.contours = cvEndFindContours(scanner);
   }
   
   public void findFingerTips(ProcessPacket packet) {
+    packet.fingerTips.clear();
+    for(int i = 0; i < packet.hulls.size(); i++) {
+      CvRect rect = cvBoundingRect(packet.approxPoly.get(i), 0); 
+      int cutoff = rect.y() + rect.height() - 50;
+      CvSeq hull = packet.hulls.get(i);
+      for (int j = 0; j < hull.total(); j++) {
+        PointerPointer pp = new PointerPointer(cvGetSeqElem(hull, j));
+        CvPoint p = new CvPoint(pp.get());
+        if (p.y() >= cutoff)
+          packet.fingerTips.add(p);
+      }
+    }
   }
   
   public void cleanUp() {

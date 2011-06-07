@@ -7,6 +7,8 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,19 +29,30 @@ import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
 public class ProcessPacket {
   static public class DebugFrame extends CanvasFrame {
+    private class KeyController extends KeyAdapter {
+      public void keyPressed(KeyEvent ke) {
+        switch (ke.getKeyChar()) {
+        case 'h':
+          showConvexHull = !showConvexHull;
+          break;
+        default: 
+          break;
+        }
+      }
+    }
     private static final long serialVersionUID = 1L;
     private IplImage canvasImage;
-    
+    private boolean showConvexHull = false;
     public DebugFrame(int width, int height) {
       super("Debug Frame");
       setCanvasSize(width, height);
       canvasImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+      addKeyListener(new KeyController());
     }
     
     public void show(ProcessPacket packet) {
       cvCopy(packet.morphedImage, canvasImage);
-      for (CvSeq contour = packet.contours; 
-           contour != null && !contour.isNull(); contour = contour.h_next()){
+      for (CvSeq contour : packet.approxPoly){
 //        cvDrawContours(canvasImage, contour, CvScalar.WHITE, CvScalar.WHITE, -1, 
 //                       CV_FILLED, 8);
         CvRect rect = cvBoundingRect(contour, 0);
@@ -48,12 +61,8 @@ public class ProcessPacket {
             CvScalar.WHITE, 1, 8, 0);
        
       }
-      for (CvSeq hull : packet.hulls) {
-        for (int i =0; i < hull.total(); i++) {
-          PointerPointer pp = new PointerPointer(cvGetSeqElem(hull, i));
-          CvPoint p = new CvPoint(pp.get());
+      for (CvPoint p : packet.fingerTips) {
           cvCircle(canvasImage, p, 5, CvScalar.WHITE, 1, 8, 0);
-        }
       }
       showImage(canvasImage);
     }
@@ -73,9 +82,10 @@ public class ProcessPacket {
   public IplImage depthImage;
   public IplImage morphedImage;
   public CvMemStorage tempMem;
-  public CvSeq contours;
+  public List<CvSeq> approxPoly = new ArrayList<CvSeq>();
   public List<CvSeq> hulls = new ArrayList<CvSeq>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
+  public List<CvPoint> fingerTips = new ArrayList<CvPoint>();
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
@@ -86,8 +96,7 @@ public class ProcessPacket {
   
   public void cleanUp() {
     depthImage.release();
+    morphedImage.release();
     cvReleaseMemStorage(tempMem);
-    if (contours != null && !contours.isNull())
-      cvClearSeq(contours);
   }
 }
