@@ -82,7 +82,7 @@ public class ProcessPacket {
   public IplImage depthImage;
   public IplImage morphedImage;
   public CvMemStorage tempMem;
-  public List<int[]> approxPoly = new ArrayList<int[]>();
+  public List<CvSeq> approxPoly = new ArrayList<CvSeq>();
   public List<CvSeq> hulls = new ArrayList<CvSeq>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<CvPoint> fingerTips = new ArrayList<CvPoint>();
