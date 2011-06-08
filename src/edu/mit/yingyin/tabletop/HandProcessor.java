@@ -20,9 +20,13 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvSubstituteContour;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.Iterator;
 
+import com.googlecode.javacpp.IntPointer;
 import com.googlecode.javacpp.Loader;
+import com.googlecode.javacpp.Pointer;
 import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
@@ -100,10 +104,14 @@ public class HandProcessor {
       if (len > q) {
         CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
             packet.tempMem, CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
-        packet.approxPoly.add(approxPoly);
+        CvPoint approxPolyPts = new CvPoint(approxPoly.total());
+        cvCvtSeqToArray(approxPoly, approxPolyPts, CV_WHOLE_SEQ);
+        CvMat approxPolyMat = cvMat(1, approxPoly.total(), CV_32SC2, 
+                                    approxPolyPts);
+        packet.approxPoly.add(approxPolyMat);
         // returnPoints = 0: returns pointers to the points in the contour
-        CvSeq  hull = cvConvexHull2(approxPoly, packet.tempMem, CV_CLOCKWISE, 
-                              0);
+        CvMat hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
+        cvConvexHull2(approxPolyMat, hull, CV_CLOCKWISE, 0);
         packet.hulls.add(hull);
         packet.convexityDefects.add(
             cvConvexityDefects(approxPoly, hull, packet.tempMem));
@@ -114,14 +122,16 @@ public class HandProcessor {
   public void findFingerTips(ProcessPacket packet) {
     packet.fingerTips.clear();
     for(int i = 0; i < packet.hulls.size(); i++) {
-      CvRect rect = cvBoundingRect(packet.approxPoly.get(i), 0); 
+      CvMat approxPoly = packet.approxPoly.get(i);
+      CvRect rect = cvBoundingRect(approxPoly, 0); 
       int cutoff = rect.y() + rect.height() - 50;
-      CvSeq hull = packet.hulls.get(i);
-      for (int j = 0; j < hull.total(); j++) {
-        PointerPointer pp = new PointerPointer(cvGetSeqElem(hull, j));
-        CvPoint p = new CvPoint(pp.get());
-        if (p.y() >= cutoff)
-          packet.fingerTips.add(p);
+      CvMat hull = packet.hulls.get(i);
+      for (int j = 0; j < hull.length(); j++) {
+        int index = (int)hull.get(j);
+        int x = (int)approxPoly.get(index * 2);
+        int y = (int)approxPoly.get(index * 2 + 1);
+        if (y >= cutoff)
+          packet.fingerTips.add(new CvPoint(x, y));
       }
     }
   }

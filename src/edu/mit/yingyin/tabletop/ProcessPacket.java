@@ -52,7 +52,7 @@ public class ProcessPacket {
     
     public void show(ProcessPacket packet) {
       cvCopy(packet.morphedImage, canvasImage);
-      for (CvSeq contour : packet.approxPoly){
+      for (CvMat contour : packet.approxPoly){
 //        cvDrawContours(canvasImage, contour, CvScalar.WHITE, CvScalar.WHITE, -1, 
 //                       CV_FILLED, 8);
         CvRect rect = cvBoundingRect(contour, 0);
@@ -82,8 +82,8 @@ public class ProcessPacket {
   public IplImage depthImage;
   public IplImage morphedImage;
   public CvMemStorage tempMem;
-  public List<CvSeq> approxPoly = new ArrayList<CvSeq>();
-  public List<CvSeq> hulls = new ArrayList<CvSeq>();
+  public List<CvMat> approxPoly = new ArrayList<CvMat>();
+  public List<CvMat> hulls = new ArrayList<CvMat>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<CvPoint> fingerTips = new ArrayList<CvPoint>();
   
