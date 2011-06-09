@@ -70,7 +70,7 @@ public class HandProcessor {
     
     ByteBuffer ib = depthImage.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      if (bgDepthMap[i] - depthRawData[i] < 5)
+      if (bgDepthMap[i] - depthRawData[i] < 3)
         ib.put(i, (byte)0);
       else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }

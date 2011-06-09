@@ -60,8 +60,6 @@ public class ProcessPacket {
       cvCopy(packet.depthImage, canvasImage);
       
       for (CvMat contour : packet.approxPolys){
-//        cvDrawContours(canvasImage, contour, CvScalar.WHITE, CvScalar.WHITE, -1, 
-//                       CV_FILLED, 8);
         CvRect rect = cvBoundingRect(contour, 0);
         cvRectangle(canvasImage, new CvPoint(rect.x(), rect.y()), 
             new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
@@ -72,6 +70,9 @@ public class ProcessPacket {
         for (Point p : list) {
           cvCircle(canvasImage, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 5, 8, 0);
       }
+      
+      for (CvSeq seq : packet.convexityDefects) 
+        CvUtil.drawConvexityDefects(seq, canvasImage);
       
       frames[0].showImage(canvasImage);
       ByteBuffer ib = canvasImage.getByteBuffer();
