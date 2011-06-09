@@ -3,7 +3,7 @@ package edu.mit.yingyin.tabletop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import edu.mit.yingyin.tabletop.ProcessPacket.DebugFrame;
+import edu.mit.yingyin.tabletop.ProcessPacket.DebugFrames;
 
 public class MainDriver {
   private class KeyController extends KeyAdapter {
@@ -18,7 +18,7 @@ public class MainDriver {
     }
   }
   private OpenNIWrapper openni;
-  private DebugFrame debugFrame;
+  private DebugFrames debugFrames;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   boolean pause = false;
@@ -33,21 +33,21 @@ public class MainDriver {
     HandProcessor processor = new HandProcessor(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
     
-    debugFrame = new DebugFrame(depthWidth, depthHeight);
-    debugFrame.addKeyListener(new KeyController());
+    debugFrames = new DebugFrames(depthWidth, depthHeight);
+    debugFrames.addKeyListener(new KeyController());
     
-    while (debugFrame.isVisible()) {
+    while (debugFrames.isVisible()) {
       if (pause == true)
         continue;
       openni.waitAnyUpdateAll();
       openni.getDepthMap(packet.depthRawData);
       processor.processData(packet);
-      debugFrame.show(packet);
+      debugFrames.show(packet);
     }
     openni.cleanUp();
     processor.cleanUp();
     packet.cleanUp();
-    debugFrame.cleanUp();
+    debugFrames.cleanUp();
     System.exit(0);
   }
   

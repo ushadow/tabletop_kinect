@@ -19,10 +19,13 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvSubstituteContour;
 
+import java.awt.Point;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import com.googlecode.javacpp.IntPointer;
 import com.googlecode.javacpp.Loader;
@@ -37,6 +40,8 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.*;
 import com.googlecode.javacv.cpp.*;
+
+import edu.mit.yingyin.util.Geometry;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_calib3d.*;
@@ -55,7 +60,8 @@ public class HandProcessor {
   }
   
   public void processData(ProcessPacket packet) {
-    cvClearMemStorage(packet.tempMem);
+    packet.clear();
+    
     int[] depthRawData = packet.depthRawData;
     IplImage depthImage = packet.depthImage;
     if (bgDepthMap == null) {
@@ -69,7 +75,7 @@ public class HandProcessor {
       else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }
     
-    findConnectedComponents(packet, 0, 4);
+    findConnectedComponents(packet, 4);
     findFingerTips(packet);
   }
   
@@ -83,11 +89,8 @@ public class HandProcessor {
    *                   contour length < len, delete that contour.
    * @return a sequence of contours
    */
-  public void findConnectedComponents(ProcessPacket packet, int poly1_hull0, 
-                                       float perimScale) {
-    packet.hulls.clear();
-    packet.approxPoly.clear();
-    packet.convexityDefects.clear();
+  public void findConnectedComponents(ProcessPacket packet, float perimScale) {
+   
     cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
                    CV_MOP_OPEN, CVCLOSE_ITR);
 
@@ -108,31 +111,41 @@ public class HandProcessor {
         cvCvtSeqToArray(approxPoly, approxPolyPts, CV_WHOLE_SEQ);
         CvMat approxPolyMat = cvMat(1, approxPoly.total(), CV_32SC2, 
                                     approxPolyPts);
-        packet.approxPoly.add(approxPolyMat);
+        packet.approxPolys.add(approxPolyMat);
         // returnPoints = 0: returns pointers to the points in the contour
         CvMat hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
         cvConvexHull2(approxPolyMat, hull, CV_CLOCKWISE, 0);
         packet.hulls.add(hull);
         packet.convexityDefects.add(
-            cvConvexityDefects(approxPoly, hull, packet.tempMem));
+            cvConvexityDefects(approxPolyMat, hull, packet.tempMem));
       } 
     }
   }
   
   public void findFingerTips(ProcessPacket packet) {
-    packet.fingerTips.clear();
     for(int i = 0; i < packet.hulls.size(); i++) {
-      CvMat approxPoly = packet.approxPoly.get(i);
+      List<Point> fingerTips = new ArrayList<Point>();
+      CvMat approxPoly = packet.approxPolys.get(i);
       CvRect rect = cvBoundingRect(approxPoly, 0); 
       int cutoff = rect.y() + rect.height() - 50;
       CvMat hull = packet.hulls.get(i);
+      int numPolyPts = approxPoly.length();
       for (int j = 0; j < hull.length(); j++) {
-        int index = (int)hull.get(j);
-        int x = (int)approxPoly.get(index * 2);
-        int y = (int)approxPoly.get(index * 2 + 1);
-        if (y >= cutoff)
-          packet.fingerTips.add(new CvPoint(x, y));
+        int idx = (int)hull.get(j);
+        int pdx = (idx - 1 + numPolyPts) % numPolyPts;
+        int sdx = (idx + 1) % numPolyPts;
+        Point C = new Point((int)approxPoly.get(idx * 2), 
+                            (int)approxPoly.get(idx * 2 + 1));
+        Point A = new Point((int)approxPoly.get(pdx * 2), 
+                            (int)approxPoly.get(pdx * 2 + 1));
+        Point B = new Point((int)approxPoly.get(sdx * 2),
+                            (int)approxPoly.get(sdx * 2 + 1));
+        
+        float angle = (float)Geometry.getAngleC(A, B, C);
+        if (angle < 1.6 && C.y >= cutoff)
+          fingerTips.add(C);
       }
+      packet.fingerTips.add(fingerTips);
     }
   }
   
