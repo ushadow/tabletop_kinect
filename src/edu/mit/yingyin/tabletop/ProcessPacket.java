@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import rywang.viewer.FPSCounter;
+
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -34,7 +36,7 @@ public class ProcessPacket {
       public void keyPressed(KeyEvent ke) {
         switch (ke.getKeyChar()) {
         case 'h':
-          showConvexHull = !showConvexHull;
+          showConvexityDefects = !showConvexityDefects;
           break;
         default: 
           break;
@@ -43,11 +45,13 @@ public class ProcessPacket {
     }
     private static final long serialVersionUID = 1L;
     private IplImage canvasImage;
-    private boolean showConvexHull = false;
+    private boolean showConvexityDefects = false;
     private CanvasFrame[] frames = new CanvasFrame[2];
+    private FPSCounter fpsCounter;
     
     public DebugFrames(int width, int height) {
       frames[0] = new CanvasFrame("Processed");
+      fpsCounter = new FPSCounter("Processed", frames[0]);
       frames[1] = new CanvasFrame("Depth");
       for (CanvasFrame frame : frames)
         frame.setCanvasSize(width, height);
@@ -71,8 +75,10 @@ public class ProcessPacket {
           cvCircle(canvasImage, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 5, 8, 0);
       }
       
-      for (CvSeq seq : packet.convexityDefects) 
-        CvUtil.drawConvexityDefects(seq, canvasImage);
+      if (showConvexityDefects) {
+        for (CvSeq seq : packet.convexityDefects) 
+          CvUtil.drawConvexityDefects(seq, canvasImage);
+      }
       
       frames[0].showImage(canvasImage);
       ByteBuffer ib = canvasImage.getByteBuffer();
@@ -80,6 +86,7 @@ public class ProcessPacket {
         ib.put(i, (byte)((char)(1600 - packet.depthRawData[i]) * 255 / 1600));
       }
       frames[1].showImage(canvasImage);
+      fpsCounter.computeFPS();
     }
     
     public void cleanUp() {
