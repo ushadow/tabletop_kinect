@@ -1,10 +1,7 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
-import static com.googlecode.javacv.cpp.opencv_core.cvClearMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
@@ -13,26 +10,17 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RETR_EXTERNAL;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvApproxPoly;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexHull2;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvEndFindContours;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvSubstituteContour;
 
 import java.awt.Point;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
-import com.googlecode.javacpp.IntPointer;
 import com.googlecode.javacpp.Loader;
-import com.googlecode.javacpp.Pointer;
-import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
-import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
@@ -51,6 +39,7 @@ public class HandProcessor {
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   private static final int MAX_DEPTH = 1600;
+  private static final int HAND_YCUTOFF = 50;
   
   private int[] bgDepthMap;
   private IplImage tempImage;
@@ -123,11 +112,11 @@ public class HandProcessor {
   }
   
   public void findFingerTips(ProcessPacket packet) {
-    for(int i = 0; i < packet.hulls.size(); i++) {
+    for (int i = 0; i < packet.hulls.size(); i++) {
       List<Point> fingerTips = new ArrayList<Point>();
       CvMat approxPoly = packet.approxPolys.get(i);
       CvRect rect = cvBoundingRect(approxPoly, 0); 
-      int cutoff = rect.y() + rect.height() - 50;
+      int cutoff = rect.y() + rect.height() - HAND_YCUTOFF;
       CvMat hull = packet.hulls.get(i);
       int numPolyPts = approxPoly.length();
       for (int j = 0; j < hull.length(); j++) {

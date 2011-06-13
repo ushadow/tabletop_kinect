@@ -35,8 +35,11 @@ public class ProcessPacket {
     private class KeyController extends KeyAdapter {
       public void keyPressed(KeyEvent ke) {
         switch (ke.getKeyChar()) {
-        case 'h':
+        case 'd':
           showConvexityDefects = !showConvexityDefects;
+          break;
+        case 'h':
+          showHull = !showHull;
           break;
         default: 
           break;
@@ -46,6 +49,7 @@ public class ProcessPacket {
     private static final long serialVersionUID = 1L;
     private IplImage canvasImage;
     private boolean showConvexityDefects = false;
+    private boolean showHull = false;
     private CanvasFrame[] frames = new CanvasFrame[2];
     private FPSCounter fpsCounter;
     
@@ -72,12 +76,20 @@ public class ProcessPacket {
       
       for (List<Point> list : packet.fingerTips)
         for (Point p : list) {
-          cvCircle(canvasImage, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 5, 8, 0);
+          cvCircle(canvasImage, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 5, 8, 
+                   0);
       }
       
       if (showConvexityDefects) {
         for (CvSeq seq : packet.convexityDefects) 
           CvUtil.drawConvexityDefects(seq, canvasImage);
+      }
+      
+      if (showHull) {
+        for (int i = 0; i < packet.hulls.size(); i++) {
+          CvUtil.drawHullCorners(packet.hulls.get(i),packet.approxPolys.get(i), 
+                                 canvasImage);
+        }
       }
       
       frames[0].showImage(canvasImage);

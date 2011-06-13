@@ -1,9 +1,13 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 
+import java.awt.Point;
+
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -31,6 +35,16 @@ public class CvUtil {
                          y(defect.depth_point().y());
       points.position(2).x(defect.end().x()).y(defect.end().y());
       cvFillConvexPoly(image, points.position(0), 3, CvScalar.WHITE, CV_AA, 0);
+    }
+  }
+  
+  public static void drawHullCorners(CvMat hullIndices, CvMat points, 
+                                     IplImage image) {
+    for (int i = 0; i < hullIndices.length(); i++) {
+      int idx = (int)hullIndices.get(i);
+      Point p = new Point((int)points.get(idx * points.channels()),
+                          (int)points.get(idx * points.channels() + 1));
+      cvCircle(image, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 1, 8, 0);
     }
   }
 }
