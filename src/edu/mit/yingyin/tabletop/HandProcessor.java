@@ -29,6 +29,8 @@ import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.*;
 import com.googlecode.javacv.cpp.*;
 
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures.ValConfiPair;
 import edu.mit.yingyin.util.Geometry;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
@@ -40,15 +42,24 @@ public class HandProcessor {
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   private static final int MAX_DEPTH = 1600;
   private static final int HAND_YCUTOFF = 50;
+  private static final int FOREGROUND_THRESH = 3;
+  private static final int PERIM_SCALE = 4;
+  private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
+  private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
   
   private int[] bgDepthMap;
   private IplImage tempImage;
+  private List<ForelimbFeatures> prevForelimbsFeatures = 
+      new ArrayList<ProcessPacket.ForelimbFeatures>();
   
   public HandProcessor(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
   public void processData(ProcessPacket packet) {
+    prevForelimbsFeatures.clear();
+    for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
+      prevForelimbsFeatures.add(new ForelimbFeatures(forelimb));
     packet.clear();
     
     int[] depthRawData = packet.depthRawData;
@@ -59,13 +70,14 @@ public class HandProcessor {
     
     ByteBuffer ib = depthImage.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      if (bgDepthMap[i] - depthRawData[i] < 3)
+      if (bgDepthMap[i] - depthRawData[i] < FOREGROUND_THRESH)
         ib.put(i, (byte)0);
       else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }
     
-    findConnectedComponents(packet, 4);
-    findFingerTips(packet);
+    findConnectedComponents(packet, PERIM_SCALE);
+    processForelimbFeatures(packet);
+    temporalSmooth(packet);
   }
   
   /**
@@ -80,6 +92,9 @@ public class HandProcessor {
    */
   public void findConnectedComponents(ProcessPacket packet, float perimScale) {
    
+    // Cleans up the background subtracted image.
+    // The default 3x3 kernel with the anchor at the the center is used.
+    // The opening operator involves erosion followed by dilation.
     cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
                    CV_MOP_OPEN, CVCLOSE_ITR);
 
@@ -101,8 +116,8 @@ public class HandProcessor {
         CvMat approxPolyMat = cvMat(1, approxPoly.total(), CV_32SC2, 
                                     approxPolyPts);
         packet.approxPolys.add(approxPolyMat);
-        // returnPoints = 0: returns pointers to the points in the contour
         CvMat hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
+        // returnPoints = 0: returns pointers to the points in the contour
         cvConvexHull2(approxPolyMat, hull, CV_CLOCKWISE, 0);
         packet.hulls.add(hull);
         packet.convexityDefects.add(
@@ -111,14 +126,18 @@ public class HandProcessor {
     }
   }
   
-  public void findFingerTips(ProcessPacket packet) {
+  public void processForelimbFeatures(ProcessPacket packet) {
     for (int i = 0; i < packet.hulls.size(); i++) {
-      List<Point> fingerTips = new ArrayList<Point>();
+      ForelimbFeatures forelimb = new ForelimbFeatures();
+      List<ValConfiPair<Point>> fingerTips = 
+          new ArrayList<ValConfiPair<Point>>();
+      
+      CvMat hull = packet.hulls.get(i);
       CvMat approxPoly = packet.approxPolys.get(i);
       CvRect rect = cvBoundingRect(approxPoly, 0); 
       int cutoff = rect.y() + rect.height() - HAND_YCUTOFF;
-      CvMat hull = packet.hulls.get(i);
       int numPolyPts = approxPoly.length();
+
       for (int j = 0; j < hull.length(); j++) {
         int idx = (int)hull.get(j);
         int pdx = (idx - 1 + numPolyPts) % numPolyPts;
@@ -131,11 +150,40 @@ public class HandProcessor {
                             (int)approxPoly.get(sdx * 2 + 1));
         
         float angle = (float)Geometry.getAngleC(A, B, C);
-        if (angle < 1.6 && C.y >= cutoff)
-          fingerTips.add(C);
+        if (angle < FINGERTIP_ANGLE_THRESH && C.y >= cutoff) {
+          fingerTips.add(new ValConfiPair<Point>(C, 1));
+        }
       }
-      packet.fingerTips.add(fingerTips);
+      forelimb.fingertips = fingerTips;
+
+      forelimb.center = new Point(rect.x() + rect.width() / 2, 
+          rect.y() + rect.height() / 2);
+      
+      packet.foreLimbsFeatures.add(forelimb);
     }
+  }
+  
+  /**
+   * Exponentially weighted moving average filter, i.e. low pass filter.
+   * @param packet
+   */
+  public void temporalSmooth(ProcessPacket packet) {
+    for (ForelimbFeatures forelimb : packet.foreLimbsFeatures) 
+      for (ForelimbFeatures prevForelimb : prevForelimbsFeatures) {
+        if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
+          for (ValConfiPair<Point> fingertip : forelimb.fingertips) { 
+            fingertip.confidence *= TEMPORAL_FILTER_PARAM;
+            for (ValConfiPair<Point> prevFingertip : prevForelimb.fingertips) {
+              if (fingertip.value.distanceSq(prevFingertip.value) < 64) {
+                fingertip.confidence += (1 - TEMPORAL_FILTER_PARAM) *
+                                        prevFingertip.confidence;
+                break;
+              }
+            }
+          }
+          break;
+        }
+      }
   }
   
   public void cleanUp() {

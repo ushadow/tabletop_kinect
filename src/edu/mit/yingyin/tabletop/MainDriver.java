@@ -3,8 +3,6 @@ package edu.mit.yingyin.tabletop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import edu.mit.yingyin.tabletop.ProcessPacket.DebugFrames;
-
 public class MainDriver {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {

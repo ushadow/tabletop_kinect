@@ -30,97 +30,38 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_calib3d.*;
 import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
+/**
+ * ProcessPacket contains the data related to the current frame.
+ * @author yingyin
+ *
+ */
 public class ProcessPacket {
-  static public class DebugFrames {
-    private class KeyController extends KeyAdapter {
-      public void keyPressed(KeyEvent ke) {
-        switch (ke.getKeyChar()) {
-        case 'd':
-          showConvexityDefects = !showConvexityDefects;
-          break;
-        case 'h':
-          showHull = !showHull;
-          break;
-        default: 
-          break;
-        }
+  static public class ForelimbFeatures {
+    static public class ValConfiPair<T> {
+      public T value;
+      public float confidence;
+      
+      public ValConfiPair(T v, float c) {
+        value = v;
+        confidence = c;
       }
-    }
-    private static final long serialVersionUID = 1L;
-    private IplImage canvasImage;
-    private boolean showConvexityDefects = false;
-    private boolean showHull = false;
-    private CanvasFrame[] frames = new CanvasFrame[2];
-    private FPSCounter fpsCounter;
-    
-    public DebugFrames(int width, int height) {
-      frames[0] = new CanvasFrame("Processed");
-      fpsCounter = new FPSCounter("Processed", frames[0]);
-      frames[1] = new CanvasFrame("Depth");
-      for (CanvasFrame frame : frames)
-        frame.setCanvasSize(width, height);
-      canvasImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-      frames[0].addKeyListener(new KeyController());
-      CanvasFrame.tile(frames);
     }
     
-    public void show(ProcessPacket packet) {
-      cvCopy(packet.depthImage, canvasImage);
-      
-      for (CvMat contour : packet.approxPolys){
-        CvRect rect = cvBoundingRect(contour, 0);
-        cvRectangle(canvasImage, new CvPoint(rect.x(), rect.y()), 
-            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
-            CvScalar.WHITE, 1, 8, 0);
-      }
-      
-      for (List<Point> list : packet.fingerTips)
-        for (Point p : list) {
-          cvCircle(canvasImage, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 5, 8, 
-                   0);
-      }
-      
-      if (showConvexityDefects) {
-        for (CvSeq seq : packet.convexityDefects) 
-          CvUtil.drawConvexityDefects(seq, canvasImage);
-      }
-      
-      if (showHull) {
-        for (int i = 0; i < packet.hulls.size(); i++) {
-          CvUtil.drawHullCorners(packet.hulls.get(i),packet.approxPolys.get(i), 
-                                 canvasImage);
-        }
-      }
-      
-      frames[0].showImage(canvasImage);
-      ByteBuffer ib = canvasImage.getByteBuffer();
-      for (int i = 0; i < packet.depthRawData.length; i++) {
-        ib.put(i, (byte)((char)(1600 - packet.depthRawData[i]) * 255 / 1600));
-      }
-      frames[1].showImage(canvasImage);
-      fpsCounter.computeFPS();
-    }
+    public List<ValConfiPair<Point>> fingertips = 
+        new ArrayList<ValConfiPair<Point>>();
+    public Point center;
     
-    public void cleanUp() {
-      canvasImage.release();
-      for (CanvasFrame frame : frames)
-        frame.dispose();
-      System.out.println("DebugFrame cleaned up.");
-    }
+    public ForelimbFeatures() {}
     
-    public void addKeyListener(KeyListener kl) {
-      for (CanvasFrame frame : frames)
-        frame.addKeyListener(kl);
+    public ForelimbFeatures(ForelimbFeatures other) {
+      center = new Point(other.center);
+      for (ValConfiPair<Point> p: other.fingertips) {
+        fingertips.add(new ValConfiPair<Point>(
+            new Point(p.value), p.confidence));
+      }
     }
-    
-    public boolean isVisible() {
-      boolean isVisible = true;
-      for (CanvasFrame frame : frames)
-        isVisible = isVisible && frame.isVisible();
-      return isVisible;
-    }
-  }    
-
+  }
+  
   public int[] depthRawData;
   public IplImage depthImage;
   public IplImage morphedImage;
@@ -128,7 +69,8 @@ public class ProcessPacket {
   public List<CvMat> approxPolys = new ArrayList<CvMat>();
   public List<CvMat> hulls = new ArrayList<CvMat>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
-  public List<List<Point>> fingerTips = new ArrayList<List<Point>>();
+  public List<ForelimbFeatures> foreLimbsFeatures = 
+      new ArrayList<ForelimbFeatures>();
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
@@ -154,7 +96,7 @@ public class ProcessPacket {
         cvReleaseMat(m);
     hulls.clear();
     convexityDefects.clear();
-    fingerTips.clear();
+    foreLimbsFeatures.clear();
     cvClearMemStorage(tempMem);
   }
 }
