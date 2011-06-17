@@ -68,8 +68,7 @@ public class DebugFrames {
     else
       cvCopy(packet.depthImage, canvasImage);
     
-    for (CvMat contour : packet.approxPolys){
-      CvRect rect = cvBoundingRect(contour, 0);
+    for (CvRect rect : packet.boundingBoxes){
       cvRectangle(canvasImage, new CvPoint(rect.x(), rect.y()), 
           new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
           CvScalar.WHITE, 1, 8, 0);

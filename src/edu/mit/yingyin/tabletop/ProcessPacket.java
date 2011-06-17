@@ -68,6 +68,7 @@ public class ProcessPacket {
   public CvMemStorage tempMem;
   public List<CvMat> approxPolys = new ArrayList<CvMat>();
   public List<CvMat> hulls = new ArrayList<CvMat>();
+  public List<CvRect> boundingBoxes = new ArrayList<CvRect>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<ForelimbFeatures> foreLimbsFeatures = 
       new ArrayList<ForelimbFeatures>();
@@ -97,6 +98,7 @@ public class ProcessPacket {
     hulls.clear();
     convexityDefects.clear();
     foreLimbsFeatures.clear();
+    boundingBoxes.clear();
     cvClearMemStorage(tempMem);
   }
 }

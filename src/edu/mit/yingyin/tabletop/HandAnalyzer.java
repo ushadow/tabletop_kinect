@@ -82,9 +82,13 @@ public class HandAnalyzer {
     
     ByteBuffer ib = depthImage.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      if (bgDepthMap[i] - depthRawData[i] < FOREGROUND_THRESH)
+      if (bgDepthMap[i] - depthRawData[i] < FOREGROUND_THRESH) {
         ib.put(i, (byte)0);
-      else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
+      } else {
+        int depth = depthRawData[i];
+        depth = depth > MAX_DEPTH ? MAX_DEPTH : depth;
+        ib.put(i, (byte)(depth * 255 / MAX_DEPTH));
+      }
     }
     // Cleans up the background subtracted image.
     // The default 3x3 kernel with the anchor at the the center is used.
@@ -119,6 +123,7 @@ public class HandAnalyzer {
         CvMat approxPolyMat = cvMat(1, approxPoly.total(), CV_32SC2, 
                                     approxPolyPts);
         packet.approxPolys.add(approxPolyMat);
+        packet.boundingBoxes.add(cvBoundingRect(approxPolyMat, 0));
         CvMat hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
         // returnPoints = 0: returns pointers to the points in the contour
         cvConvexHull2(approxPolyMat, hull, CV_CLOCKWISE, 0);
@@ -129,8 +134,15 @@ public class HandAnalyzer {
     }
   }
   
-  private void thinningHands(ProcessPacket pacekt) {
-    
+  private void thinningHands(ProcessPacket packet) {
+    ByteBuffer bb = packet.morphedImage.getByteBuffer();
+    for (CvRect rect : packet.boundingBoxes) {
+      byte[][] pixels = new byte[rect.height()][rect.width()];
+      for (int dy = 0; dy < rect.height(); dy++) {
+        int offset = (rect.y() + dy) * packet.morphedImage.width() + rect.x();
+        bb.get(pixels[dy], offset, rect.width());
+      }
+    }
   }
   
   private void findForelimbFeatures(ProcessPacket packet) {
@@ -141,7 +153,7 @@ public class HandAnalyzer {
       
       CvMat hull = packet.hulls.get(i);
       CvMat approxPoly = packet.approxPolys.get(i);
-      CvRect rect = cvBoundingRect(approxPoly, 0); 
+      CvRect rect = packet.boundingBoxes.get(i);
       int cutoff = rect.y() + rect.height() - HAND_YCUTOFF;
       int numPolyPts = approxPoly.length();
 
