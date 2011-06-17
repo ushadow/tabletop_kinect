@@ -95,10 +95,7 @@ public class HandAnalyzer {
   
   /**
    * Cleans up the foreground segmentation mask.
-   * @param mask a grayscale (8-bit depth) "raw" mask image that will be cleaned
-   *             up.
-   * @param poly1_hull0 if 1, approximates connected component by polygon, or
-   *                    else convex hull.
+   * @param packet ProcessPacket containing the data necessary for the analysis.
    * @param perimScale len = (image.width + image.height) / perimScale. If 
    *                   contour length < len, delete that contour.
    * @return a sequence of contours
@@ -130,6 +127,10 @@ public class HandAnalyzer {
             cvConvexityDefects(approxPolyMat, hull, packet.tempMem));
       } 
     }
+  }
+  
+  private void thinningHands(ProcessPacket pacekt) {
+    
   }
   
   private void findForelimbFeatures(ProcessPacket packet) {
