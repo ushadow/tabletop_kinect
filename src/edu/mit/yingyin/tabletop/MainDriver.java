@@ -28,7 +28,7 @@ public class MainDriver {
     openni.initFromXmlFile("config/config.xml");
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    HandProcessor processor = new HandProcessor(depthWidth, depthHeight);
+    HandAnalyzer processor = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
     
     debugFrames = new DebugFrames(depthWidth, depthHeight);
@@ -39,7 +39,7 @@ public class MainDriver {
         continue;
       openni.waitAnyUpdateAll();
       openni.getDepthMap(packet.depthRawData);
-      processor.processData(packet);
+      processor.analyzeData(packet);
       debugFrames.show(packet);
     }
     openni.cleanUp();

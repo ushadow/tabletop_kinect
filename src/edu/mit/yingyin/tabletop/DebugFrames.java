@@ -77,7 +77,6 @@ public class DebugFrames {
     
     for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
       for (ValConfiPair<Point> p : forelimb.fingertips) {
-        System.out.println(p.confidence);
         if (p.confidence > 0.5)
           cvCircle(canvasImage, new CvPoint(p.value.x, p.value.y), 4, 
                    CvScalar.WHITE, 5, 8, 0);

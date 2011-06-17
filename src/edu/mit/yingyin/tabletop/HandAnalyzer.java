@@ -37,7 +37,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_calib3d.*;
 import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
-public class HandProcessor {
+public class HandAnalyzer {
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   private static final int MAX_DEPTH = 1600;
@@ -52,16 +52,28 @@ public class HandProcessor {
   private List<ForelimbFeatures> prevForelimbsFeatures = 
       new ArrayList<ProcessPacket.ForelimbFeatures>();
   
-  public HandProcessor(int width, int height) {
+  public HandAnalyzer(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
-  public void processData(ProcessPacket packet) {
+  public void analyzeData(ProcessPacket packet) {
     prevForelimbsFeatures.clear();
     for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
       prevForelimbsFeatures.add(new ForelimbFeatures(forelimb));
     packet.clear();
     
+    subtractBackground(packet);
+    findConnectedComponents(packet, PERIM_SCALE);
+    findForelimbFeatures(packet);
+    temporalSmooth(packet);
+  }
+  
+  public void cleanUp() {
+    tempImage.release();
+    System.out.println("HandProcessor cleaned up.");
+  } 
+  
+  private void subtractBackground(ProcessPacket packet) {
     int[] depthRawData = packet.depthRawData;
     IplImage depthImage = packet.depthImage;
     if (bgDepthMap == null) {
@@ -74,10 +86,11 @@ public class HandProcessor {
         ib.put(i, (byte)0);
       else ib.put(i, (byte)((char)depthRawData[i] * 255 / MAX_DEPTH));
     }
-    
-    findConnectedComponents(packet, PERIM_SCALE);
-    processForelimbFeatures(packet);
-    temporalSmooth(packet);
+    // Cleans up the background subtracted image.
+    // The default 3x3 kernel with the anchor at the the center is used.
+    // The opening operator involves erosion followed by dilation.
+    cvMorphologyEx(depthImage, packet.morphedImage, null, null, 
+        CV_MOP_OPEN, CVCLOSE_ITR);
   }
   
   /**
@@ -90,14 +103,7 @@ public class HandProcessor {
    *                   contour length < len, delete that contour.
    * @return a sequence of contours
    */
-  public void findConnectedComponents(ProcessPacket packet, float perimScale) {
-   
-    // Cleans up the background subtracted image.
-    // The default 3x3 kernel with the anchor at the the center is used.
-    // The opening operator involves erosion followed by dilation.
-    cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
-                   CV_MOP_OPEN, CVCLOSE_ITR);
-
+  private void findConnectedComponents(ProcessPacket packet, float perimScale) {
     cvCopy(packet.morphedImage, tempImage);
     
     CvContourScanner scanner = cvStartFindContours(tempImage, packet.tempMem, 
@@ -126,7 +132,7 @@ public class HandProcessor {
     }
   }
   
-  public void processForelimbFeatures(ProcessPacket packet) {
+  private void findForelimbFeatures(ProcessPacket packet) {
     for (int i = 0; i < packet.hulls.size(); i++) {
       ForelimbFeatures forelimb = new ForelimbFeatures();
       List<ValConfiPair<Point>> fingerTips = 
@@ -167,7 +173,7 @@ public class HandProcessor {
    * Exponentially weighted moving average filter, i.e. low pass filter.
    * @param packet
    */
-  public void temporalSmooth(ProcessPacket packet) {
+  private void temporalSmooth(ProcessPacket packet) {
     for (ForelimbFeatures forelimb : packet.foreLimbsFeatures) 
       for (ForelimbFeatures prevForelimb : prevForelimbsFeatures) {
         if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
@@ -185,10 +191,4 @@ public class HandProcessor {
         }
       }
   }
-  
-  public void cleanUp() {
-    tempImage.release();
-    System.out.println("HandProcessor cleaned up.");
-  }
-  
 }
