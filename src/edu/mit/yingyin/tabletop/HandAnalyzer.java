@@ -15,6 +15,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,16 +42,19 @@ import static com.googlecode.javacv.cpp.opencv_calib3d.*;
 import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
 public class HandAnalyzer {
+  public static final int MAX_DEPTH = 1600;
+  public static final int HAND_YCUTOFF = 50;
+
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
-  private static final int MAX_DEPTH = 1600;
-  private static final int HAND_YCUTOFF = 50;
   private static final int FOREGROUND_THRESH = 3;
   private static final int PERIM_SCALE = 4;
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
   private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
   private static int[] THINNING_KERNEL_DIAG = {2, 0, 0, 1, 1, 0, 2, 1, 2};
+  private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
+  private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
   
   private int[] bgDepthMap;
   private IplImage tempImage;
@@ -143,30 +147,40 @@ public class HandAnalyzer {
   private void thinningHands(ProcessPacket packet) {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
     for (CvRect rect : packet.boundingBoxes) {
-      byte[][] pixels = new byte[rect.height()][rect.width()];
-      for (int dy = 0; dy < rect.height(); dy++) 
-        for (int dx = 0; dx < rect. width(); dx++) {
-          int index = (rect.y() + dy) * packet.morphedImage.width() + rect.x() + 
-                      dx;
-          if (bb.get(index) == 0)
-            pixels[dy][dx] = BinaryFast.background;
-          else pixels[dy][dx] = BinaryFast.foreground;
+      if (rect.height() > HAND_YCUTOFF) {
+        Rectangle handRect = new Rectangle(rect.x(), 
+            rect.y() + rect.height() - HAND_YCUTOFF, rect.width(), HAND_YCUTOFF);
+        byte[][] pixels = new byte[handRect.height][handRect.width];
+        for (int dy = 0; dy < handRect.height; dy++) 
+          for (int dx = 0; dx < handRect. width; dx++) {
+            int index = (handRect.y + dy) * packet.morphedImage.width() + 
+                        handRect.x + dx;
+            if (bb.get(index) == 0)
+              pixels[dy][dx] = BinaryFast.background;
+            else pixels[dy][dx] = BinaryFast.foreground;
+          }
+        BinaryFast bf = new BinaryFast(pixels, handRect.width, handRect.height);
+        for (int i = 0; i < 20; i++) {
+          ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
+          ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_DIAG);
+          Matrix.rot90(THINNING_KERNEL_ORTH, 3);
+          Matrix.rot90(THINNING_KERNEL_DIAG, 3);
         }
-      BinaryFast bf = new BinaryFast(pixels, rect.width(), rect.height());
-      for (int i = 0; i < 16; i++) {
-        ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
-        ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_DIAG);
-        Matrix.rot90(THINNING_KERNEL_ORTH, 3);
-        Matrix.rot90(THINNING_KERNEL_DIAG, 3);
+        for (int i = 0; i < 8; i++) {
+          ThinningTransform.thinBinaryOnce(bf, PRUNING_KERNEL1);
+          ThinningTransform.thinBinaryOnce(bf, PRUNING_KERNEL2);
+          Matrix.rot90(PRUNING_KERNEL1, 3);
+          Matrix.rot90(PRUNING_KERNEL2, 3);
+        }
+        for (int dy = 0; dy < handRect.height; dy++) 
+          for (int dx = 0; dx < handRect. width; dx++) {
+            int index = (handRect.y + dy) * packet.morphedImage.width() + 
+                        handRect.x + dx;
+            if (pixels[dy][dx] == BinaryFast.background)
+              bb.put(index, (byte)0);
+            else bb.put(index, (byte)255);
+          }
       }
-      for (int dy = 0; dy < rect.height(); dy++) 
-        for (int dx = 0; dx < rect. width(); dx++) {
-          int index = (rect.y() + dy) * packet.morphedImage.width() + rect.x() + 
-                      dx;
-          if (pixels[dy][dx] == BinaryFast.background)
-            bb.put(index, (byte)0);
-          else bb.put(index, (byte)255);
-        }
     }
   }
   

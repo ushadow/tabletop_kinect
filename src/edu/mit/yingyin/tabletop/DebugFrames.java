@@ -4,7 +4,6 @@ import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvBoundingRect;
 
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
@@ -15,7 +14,6 @@ import java.nio.ByteBuffer;
 import rywang.viewer.FPSCounter;
 
 import com.googlecode.javacv.CanvasFrame;
-import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -29,8 +27,14 @@ public class DebugFrames {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyChar()) {
+      case 'b':
+        showBoundingBox = !showBoundingBox;
+        break;
       case 'd':
         showConvexityDefects = !showConvexityDefects;
+        break;
+      case 'f':
+        showFingertip = !showFingertip;
         break;
       case 'h':
         showHull = !showHull;
@@ -45,11 +49,14 @@ public class DebugFrames {
   }
   private static final long serialVersionUID = 1L;
   private IplImage canvasImage;
-  private boolean showConvexityDefects = false;
-  private boolean showHull = false;
-  private boolean showMorphed = false;
   private CanvasFrame[] frames = new CanvasFrame[2];
   private FPSCounter fpsCounter;
+ 
+  private boolean showConvexityDefects = false;
+  private boolean showHull = false;
+  private boolean showMorphed = true;
+  private boolean showFingertip = true;
+  private boolean showBoundingBox = true;
   
   public DebugFrames(int width, int height) {
     frames[0] = new CanvasFrame("Processed");
@@ -68,18 +75,22 @@ public class DebugFrames {
     else
       cvCopy(packet.depthImage, canvasImage);
     
-    for (CvRect rect : packet.boundingBoxes){
-      cvRectangle(canvasImage, new CvPoint(rect.x(), rect.y()), 
-          new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
-          CvScalar.WHITE, 1, 8, 0);
-    }
+    if (showBoundingBox)
+      for (CvRect rect : packet.boundingBoxes){
+        cvRectangle(canvasImage, 
+            new CvPoint(rect.x(), 
+                        rect.y() + rect.height() - HandAnalyzer.HAND_YCUTOFF), 
+            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
+            CvScalar.WHITE, 1, 8, 0);
+      }
     
-    for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
-      for (ValConfiPair<Point> p : forelimb.fingertips) {
-        if (p.confidence > 0.5)
-          cvCircle(canvasImage, new CvPoint(p.value.x, p.value.y), 4, 
-                   CvScalar.WHITE, 5, 8, 0);
-    }
+    if (showFingertip)
+      for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
+        for (ValConfiPair<Point> p : forelimb.fingertips) {
+          if (p.confidence > 0.5)
+            cvCircle(canvasImage, new CvPoint(p.value.x, p.value.y), 4, 
+                     CvScalar.WHITE, 5, 8, 0);
+      }
     
     if (showConvexityDefects) {
       for (CvSeq seq : packet.convexityDefects) 
@@ -96,7 +107,8 @@ public class DebugFrames {
     frames[0].showImage(canvasImage);
     ByteBuffer ib = canvasImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) {
-      ib.put(i, (byte)((char)(1600 - packet.depthRawData[i]) * 255 / 1600));
+      ib.put(i, (byte)((HandAnalyzer.MAX_DEPTH - packet.depthRawData[i]) *
+                       255 / HandAnalyzer.MAX_DEPTH));
     }
     frames[1].showImage(canvasImage);
     fpsCounter.computeFPS();
