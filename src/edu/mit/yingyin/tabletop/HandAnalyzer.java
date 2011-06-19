@@ -29,9 +29,12 @@ import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.*;
 import com.googlecode.javacv.cpp.*;
 
+import edu.mit.yingyin.image.BinaryFast;
+import edu.mit.yingyin.image.ThinningTransform;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures.ValConfiPair;
 import edu.mit.yingyin.util.Geometry;
+import edu.mit.yingyin.util.Matrix;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_calib3d.*;
@@ -46,6 +49,8 @@ public class HandAnalyzer {
   private static final int PERIM_SCALE = 4;
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
+  private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
+  private static int[] THINNING_KERNEL_DIAG = {2, 0, 0, 1, 1, 0, 2, 1, 2};
   
   private int[] bgDepthMap;
   private IplImage tempImage;
@@ -64,6 +69,7 @@ public class HandAnalyzer {
     
     subtractBackground(packet);
     findConnectedComponents(packet, PERIM_SCALE);
+    thinningHands(packet);
     findForelimbFeatures(packet);
     temporalSmooth(packet);
   }
@@ -138,10 +144,29 @@ public class HandAnalyzer {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
     for (CvRect rect : packet.boundingBoxes) {
       byte[][] pixels = new byte[rect.height()][rect.width()];
-      for (int dy = 0; dy < rect.height(); dy++) {
-        int offset = (rect.y() + dy) * packet.morphedImage.width() + rect.x();
-        bb.get(pixels[dy], offset, rect.width());
+      for (int dy = 0; dy < rect.height(); dy++) 
+        for (int dx = 0; dx < rect. width(); dx++) {
+          int index = (rect.y() + dy) * packet.morphedImage.width() + rect.x() + 
+                      dx;
+          if (bb.get(index) == 0)
+            pixels[dy][dx] = BinaryFast.background;
+          else pixels[dy][dx] = BinaryFast.foreground;
+        }
+      BinaryFast bf = new BinaryFast(pixels, rect.width(), rect.height());
+      for (int i = 0; i < 16; i++) {
+        ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
+        ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_DIAG);
+        Matrix.rot90(THINNING_KERNEL_ORTH, 3);
+        Matrix.rot90(THINNING_KERNEL_DIAG, 3);
       }
+      for (int dy = 0; dy < rect.height(); dy++) 
+        for (int dx = 0; dx < rect. width(); dx++) {
+          int index = (rect.y() + dy) * packet.morphedImage.width() + rect.x() + 
+                      dx;
+          if (pixels[dy][dx] == BinaryFast.background)
+            bb.put(index, (byte)0);
+          else bb.put(index, (byte)255);
+        }
     }
   }
   
