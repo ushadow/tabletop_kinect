@@ -34,11 +34,15 @@ public class MainDriver {
     debugFrames = new DebugFrames(depthWidth, depthHeight);
     debugFrames.addKeyListener(new KeyController());
     
+    Table table = new Table();
+    
     while (debugFrames.isVisible()) {
       if (pause == true)
         continue;
       openni.waitAnyUpdateAll();
       openni.getDepthMap(packet.depthRawData);
+      if (!table.isInitialized())
+        table.init(packet.depthRawData, depthWidth, depthHeight);
       processor.analyzeData(packet);
       debugFrames.show(packet);
     }

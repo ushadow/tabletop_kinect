@@ -5,11 +5,12 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
 
-import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.nio.ByteBuffer;
+
+import javax.vecmath.Point3f;
 
 import rywang.viewer.FPSCounter;
 
@@ -20,8 +21,8 @@ import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures.ValConfiPair;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 
 public class DebugFrames {
   private class KeyController extends KeyAdapter {
@@ -85,11 +86,11 @@ public class DebugFrames {
       }
     
     if (showFingertip)
-      for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
-        for (ValConfiPair<Point> p : forelimb.fingertips) {
+      for (ForelimbModel forelimb : packet.foreLimbsFeatures)
+        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
-            cvCircle(canvasImage, new CvPoint(p.value.x, p.value.y), 4, 
-                     CvScalar.WHITE, 5, 8, 0);
+            cvCircle(canvasImage, new CvPoint((int)p.value.x, (int)p.value.y), 
+                     4, CvScalar.WHITE, 5, 8, 0);
       }
     
     if (showConvexityDefects) {

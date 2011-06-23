@@ -15,5 +15,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/usr/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/java_util/lib/vecmath.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

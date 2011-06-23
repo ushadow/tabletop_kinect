@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.vecmath.Point3f;
+
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -32,8 +34,8 @@ import com.googlecode.javacv.cpp.*;
 
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures.ValConfiPair;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 import static com.googlecode.javacv.cpp.opencv_core.*;
@@ -58,8 +60,8 @@ public class HandAnalyzer {
   
   private int[] bgDepthMap;
   private IplImage tempImage;
-  private List<ForelimbFeatures> prevForelimbsFeatures = 
-      new ArrayList<ProcessPacket.ForelimbFeatures>();
+  private List<ForelimbModel> prevForelimbsFeatures = 
+      new ArrayList<ProcessPacket.ForelimbModel>();
   
   public HandAnalyzer(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
@@ -67,8 +69,8 @@ public class HandAnalyzer {
   
   public void analyzeData(ProcessPacket packet) {
     prevForelimbsFeatures.clear();
-    for (ForelimbFeatures forelimb : packet.foreLimbsFeatures)
-      prevForelimbsFeatures.add(new ForelimbFeatures(forelimb));
+    for (ForelimbModel forelimb : packet.foreLimbsFeatures)
+      prevForelimbsFeatures.add(new ForelimbModel(forelimb));
     packet.clear();
     
     subtractBackground(packet);
@@ -149,7 +151,8 @@ public class HandAnalyzer {
     for (CvRect rect : packet.boundingBoxes) {
       if (rect.height() > HAND_YCUTOFF) {
         Rectangle handRect = new Rectangle(rect.x(), 
-            rect.y() + rect.height() - HAND_YCUTOFF, rect.width(), HAND_YCUTOFF);
+            rect.y() + rect.height() - HAND_YCUTOFF, 
+            rect.width(), HAND_YCUTOFF);
         byte[][] pixels = new byte[handRect.height][handRect.width];
         for (int dy = 0; dy < handRect.height; dy++) 
           for (int dx = 0; dx < handRect. width; dx++) {
@@ -186,9 +189,9 @@ public class HandAnalyzer {
   
   private void findForelimbFeatures(ProcessPacket packet) {
     for (int i = 0; i < packet.hulls.size(); i++) {
-      ForelimbFeatures forelimb = new ForelimbFeatures();
-      List<ValConfiPair<Point>> fingerTips = 
-          new ArrayList<ValConfiPair<Point>>();
+      ForelimbModel forelimb = new ForelimbModel();
+      List<ValConfiPair<Point3f>> fingerTips = 
+          new ArrayList<ValConfiPair<Point3f>>();
       
       CvMat hull = packet.hulls.get(i);
       CvMat approxPoly = packet.approxPolys.get(i);
@@ -209,7 +212,9 @@ public class HandAnalyzer {
         
         float angle = (float)Geometry.getAngleC(A, B, C);
         if (angle < FINGERTIP_ANGLE_THRESH && C.y >= cutoff) {
-          fingerTips.add(new ValConfiPair<Point>(C, 1));
+          float z = packet.depthRawData[C.y * packet.depthImage.width() + C.x];
+          fingerTips.add(new ValConfiPair<Point3f>(
+              new Point3f(C.x, C.y, z), 1));
         }
       }
       forelimb.fingertips = fingerTips;
@@ -226,15 +231,15 @@ public class HandAnalyzer {
    * @param packet
    */
   private void temporalSmooth(ProcessPacket packet) {
-    for (ForelimbFeatures forelimb : packet.foreLimbsFeatures) 
-      for (ForelimbFeatures prevForelimb : prevForelimbsFeatures) {
+    for (ForelimbModel forelimb : packet.foreLimbsFeatures) 
+      for (ForelimbModel prevForelimb : prevForelimbsFeatures) {
         if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
-          for (ValConfiPair<Point> fingertip : forelimb.fingertips) { 
+          for (ValConfiPair<Point3f> fingertip : forelimb.fingertips) { 
             fingertip.confidence *= TEMPORAL_FILTER_PARAM;
-            for (ValConfiPair<Point> prevFingertip : prevForelimb.fingertips) {
-              if (fingertip.value.distanceSq(prevFingertip.value) < 64) {
+            for (ValConfiPair<Point3f> prevTip : prevForelimb.fingertips) {
+              if (fingertip.value.distanceSquared(prevTip.value) < 64) {
                 fingertip.confidence += (1 - TEMPORAL_FILTER_PARAM) *
-                                        prevFingertip.confidence;
+                                        prevTip.confidence;
                 break;
               }
             }

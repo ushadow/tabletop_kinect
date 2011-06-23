@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.vecmath.Point3f;
+
 import rywang.viewer.FPSCounter;
 
 import com.googlecode.javacv.CanvasFrame;
@@ -36,7 +38,7 @@ import static com.googlecode.javacv.cpp.opencv_objdetect.*;
  *
  */
 public class ProcessPacket {
-  static public class ForelimbFeatures {
+  static public class ForelimbModel {
     static public class ValConfiPair<T> {
       public T value;
       public float confidence;
@@ -47,17 +49,17 @@ public class ProcessPacket {
       }
     }
     
-    public List<ValConfiPair<Point>> fingertips = 
-        new ArrayList<ValConfiPair<Point>>();
+    public List<ValConfiPair<Point3f>> fingertips = 
+        new ArrayList<ValConfiPair<Point3f>>();
     public Point center;
     
-    public ForelimbFeatures() {}
+    public ForelimbModel() {}
     
-    public ForelimbFeatures(ForelimbFeatures other) {
+    public ForelimbModel(ForelimbModel other) {
       center = new Point(other.center);
-      for (ValConfiPair<Point> p: other.fingertips) {
-        fingertips.add(new ValConfiPair<Point>(
-            new Point(p.value), p.confidence));
+      for (ValConfiPair<Point3f> p: other.fingertips) {
+        fingertips.add(new ValConfiPair<Point3f>(
+            new Point3f(p.value), p.confidence));
       }
     }
   }
@@ -70,8 +72,8 @@ public class ProcessPacket {
   public List<CvMat> hulls = new ArrayList<CvMat>();
   public List<CvRect> boundingBoxes = new ArrayList<CvRect>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
-  public List<ForelimbFeatures> foreLimbsFeatures = 
-      new ArrayList<ForelimbFeatures>();
+  public List<ForelimbModel> foreLimbsFeatures = 
+      new ArrayList<ForelimbModel>();
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
