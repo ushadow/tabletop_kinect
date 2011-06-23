@@ -48,6 +48,7 @@ public class DebugFrames {
       }
     }
   }
+  
   private static final long serialVersionUID = 1L;
   private IplImage canvasImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
@@ -56,7 +57,7 @@ public class DebugFrames {
   private boolean showConvexityDefects = false;
   private boolean showHull = false;
   private boolean showMorphed = true;
-  private boolean showFingertip = true;
+  private boolean showFingertip = false;
   private boolean showBoundingBox = true;
   
   public DebugFrames(int width, int height) {
@@ -113,6 +114,11 @@ public class DebugFrames {
     }
     frames[1].showImage(canvasImage);
     fpsCounter.computeFPS();
+  }
+  
+  public void drawCircle(int x, int y) {
+    cvCircle(canvasImage, new CvPoint(x, y), 4, CvScalar.WHITE, 5, 8, 0);
+    frames[1].showImage(canvasImage);
   }
   
   public void cleanUp() {

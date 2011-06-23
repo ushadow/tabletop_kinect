@@ -20,7 +20,7 @@ public class Tracker {
   
   private Table table;
   private List<TrackerListener> listeners = 
-    new ArrayList<TrackerListener>();
+      new ArrayList<TrackerListener>();
   
   public Tracker(Table table) { this.table = table; }
   
@@ -28,7 +28,7 @@ public class Tracker {
     for (ForelimbModel forelimb : forelimbs) 
       for (ValConfiPair<Point3f> tip : forelimb.fingertips)
         if (Math.abs(tip.value.z - 
-            table.getHeight((int)tip.value.x, (int)tip.value.y)) <= 3) {
+            table.getHeight((int)tip.value.x, (int)tip.value.y)) <= 5) {
           for (TrackerListener l : listeners)
             l.fingerPressed(new FingerEvent((int)tip.value.x, 
                                             (int)tip.value.y));

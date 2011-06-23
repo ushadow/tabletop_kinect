@@ -4,7 +4,7 @@ public class Table {
   private int[] depthMap;
   private int width, height;
   
-  public boolean isInitialized() { return depthMap == null; }
+  public boolean isInitialized() { return depthMap != null; }
   
   public void init(int[] depthMap, int width, int height) {
     this.depthMap = depthMap.clone();

@@ -1,6 +1,12 @@
 package edu.mit.yingyin.tabletop;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.vecmath.Point3d;
+import javax.vecmath.Point3f;
 
 import rywang.util.DirectBufferUtils;
 
@@ -65,9 +71,22 @@ public class OpenNIWrapper {
     cleanUp(ctrlBlock);
   }
   
+  public List<Point3f> converDepthProjectiveToWorld(List<Point3f> points) {
+    FloatBuffer fb = DirectBufferUtils.allocateFloatBuffer(3 * points.size());
+    List<Point3f> converted = new ArrayList<Point3f>(points.size());
+    float[] pointArray = new float[3];
+    for (int i = 0; i < points.size(); i++) {
+      fb.get(pointArray, i * 3, 3);
+      converted.add(new Point3f(pointArray));
+    }
+    return converted;
+  }
+  
   private native boolean initFromXmlFile(IntBuffer ctrlBlock, 
                                          String configFile); 
   private native boolean waitAnyUpdateAll(IntBuffer ctrlBlock);
   private native void getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
   private native void cleanUp(IntBuffer ctrlBlock); 
+  private native void convertDepthProjectiveToWorld(IntBuffer ctrlBlock, 
+                                                    FloatBuffer points);
 }

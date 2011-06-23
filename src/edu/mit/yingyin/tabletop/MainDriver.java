@@ -3,6 +3,9 @@ package edu.mit.yingyin.tabletop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
+import edu.mit.yingyin.tabletop.Tracker.TrackerListener;
+
 public class MainDriver {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
@@ -15,6 +18,14 @@ public class MainDriver {
       }
     }
   }
+  
+  private class TrackerController implements TrackerListener {
+    @Override
+    public void fingerPressed(FingerEvent fe) {
+      debugFrames.drawCircle(fe.x, fe.y);
+    }
+  }
+  
   private OpenNIWrapper openni;
   private DebugFrames debugFrames;
   private int depthWidth, depthHeight;
@@ -28,13 +39,15 @@ public class MainDriver {
     openni.initFromXmlFile("config/config.xml");
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    HandAnalyzer processor = new HandAnalyzer(depthWidth, depthHeight);
+    HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
     
     debugFrames = new DebugFrames(depthWidth, depthHeight);
     debugFrames.addKeyListener(new KeyController());
     
     Table table = new Table();
+    Tracker tracker = new Tracker(table);
+    tracker.addListener(new TrackerController());
     
     while (debugFrames.isVisible()) {
       if (pause == true)
@@ -43,11 +56,12 @@ public class MainDriver {
       openni.getDepthMap(packet.depthRawData);
       if (!table.isInitialized())
         table.init(packet.depthRawData, depthWidth, depthHeight);
-      processor.analyzeData(packet);
+      analyzer.analyzeData(packet);
       debugFrames.show(packet);
+      tracker.update(packet.foreLimbsFeatures);
     }
     openni.cleanUp();
-    processor.cleanUp();
+    analyzer.cleanUp();
     packet.cleanUp();
     debugFrames.cleanUp();
     System.exit(0);
