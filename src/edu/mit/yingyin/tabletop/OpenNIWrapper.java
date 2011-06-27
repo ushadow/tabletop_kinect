@@ -37,6 +37,14 @@ public class OpenNIWrapper {
     openniWrapper.cleanUp();
   }
   
+  public static void loadFile(String fileName, int[] depthArray) {
+    IntBuffer buffer = DirectBufferUtils.allocateIntBuffer(depthArray.length);
+    loadFile(fileName, buffer, depthArray.length);
+  }
+  
+  private static native void loadFile(String fileName, IntBuffer buffer, 
+                                      int size);
+  
   private IntBuffer ctrlBlock;
   private IntBuffer depthBuf;
   
