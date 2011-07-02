@@ -5,7 +5,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 
 import rywang.util.DirectBufferUtils;
@@ -40,6 +39,7 @@ public class OpenNIWrapper {
   public static void loadFile(String fileName, int[] depthArray) {
     IntBuffer buffer = DirectBufferUtils.allocateIntBuffer(depthArray.length);
     loadFile(fileName, buffer, depthArray.length);
+    buffer.get(depthArray);
   }
   
   private static native void loadFile(String fileName, IntBuffer buffer, 
