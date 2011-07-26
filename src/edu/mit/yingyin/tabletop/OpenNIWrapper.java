@@ -1,5 +1,7 @@
 package edu.mit.yingyin.tabletop;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferUShort;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -34,6 +36,34 @@ public class OpenNIWrapper {
       System.out.println();
     }
     openniWrapper.cleanUp();
+  }
+  
+  static public BufferedImage rawDepthToBufferedImage(String fileName) {
+    BufferedImage image = new BufferedImage(DEPTH_WIDTH, DEPTH_HEIGHT, 
+        BufferedImage.TYPE_USHORT_GRAY);
+    short[] depthArray = ((DataBufferUShort)image.getRaster().getDataBuffer()).
+        getData();
+    int totalPixels = DEPTH_WIDTH * DEPTH_HEIGHT;
+    int[] intArray = new int[totalPixels];
+    OpenNIWrapper.loadFile(fileName, intArray);
+    int max = 0;
+    int min = 65535;
+    for (int i = 0; i < totalPixels; i++) {
+      int value = intArray[i];
+      if (value != 0 ) { 
+        max = Math.max(max, value);
+        min = Math.min(min, value);
+      }
+    }
+    System.out.println("OpenNIWrapper#rawDepthToBufferedImage: " +
+    		"max depth = " + max + " min depth = " + min);
+    for (int i = 0; i < totalPixels; i++) {
+      int value = intArray[i];
+      
+      depthArray[i] = value == 0 ? 0 : 
+          (short)((intArray[i] - min) * 65535 / (max - min));
+    }
+    return image;
   }
   
   public static void loadFile(String fileName, int[] depthArray) {

@@ -1,8 +1,14 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.app;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import edu.mit.yingyin.tabletop.DebugFrames;
+import edu.mit.yingyin.tabletop.HandAnalyzer;
+import edu.mit.yingyin.tabletop.OpenNIWrapper;
+import edu.mit.yingyin.tabletop.ProcessPacket;
+import edu.mit.yingyin.tabletop.Table;
+import edu.mit.yingyin.tabletop.Tracker;
 import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
 import edu.mit.yingyin.tabletop.Tracker.TrackerListener;
 
