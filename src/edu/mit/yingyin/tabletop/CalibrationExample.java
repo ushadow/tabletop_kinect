@@ -58,14 +58,11 @@ public class CalibrationExample {
     cvUndistortPoints(src, dst, intrinsicMatrixMat, distortionCoeffsMat, null, 
         null);
     System.out.println("undistorted: (" + dst.get(0) + ", " + dst.get(1) + ")");
-    float cameraX = ((float)dst.get(0) - INTRINSIC_MATRIX[0][2]) / 
-        INTRINSIC_MATRIX[0][0];
-    float cameraY = ((float)dst.get(1) - INTRINSIC_MATRIX[1][2]) / 
-        INTRINSIC_MATRIX[1][1];
+    
     CvMat v = CvMat.create(3, 1, CV_32FC1);
     CvMat result = CvMat.create(3, 1, CV_32FC1);
-    v.put(0, cameraX);
-    v.put(1, cameraY);
+    v.put(0, dst.get(0));
+    v.put(1, dst.get(1));
     v.put(2, 1);
     cvGEMM(rotationMat, v, 1, null, 0, result, 0);
     float cameraZ = (float)(-translationMat.get(2) / result.get(2));
