@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.vecmath.Point2f;
@@ -9,6 +8,7 @@ import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_32FC2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvRodrigues2;
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
 import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
 import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
@@ -30,6 +30,7 @@ public class CalibrationExample {
   private CvMat translationMat = CvMat.create(3, 1, CV_32FC1);
   private CvMat intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
   private CvMat distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
+  private CvMat homograhy;
   
   /**
    * Constructs a CalibrationExample from corresponding object points and image
@@ -122,8 +123,14 @@ public class CalibrationExample {
   public void release() {
     rotationMat.release();
     translationMat.release();
-    intrinsicMatrixMat.release();
-    distortionCoeffsMat.release();
+    if (intrinsicMatrixMat != null)
+      intrinsicMatrixMat.release();
+    
+    if (distortionCoeffsMat != null)
+      distortionCoeffsMat.release();
+    
+    if (homograhy != null)
+      homograhy.release();
   }
   
   public String toString() {
@@ -148,6 +155,13 @@ public class CalibrationExample {
    */
   private void findExtrinsicCameraParams(List<Point2f> objectPoints,
       List<Point2f> imagePoints) {
+    
+    if (intrinsicMatrixMat == null)
+      intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
+    
+    if (distortionCoeffsMat == null)
+      distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
+    
     CvMat objectPointsMat = CvMat.create(objectPoints.size(), 3, CV_32FC1);
     CvMat imagePointsMat = CvMat.create(imagePoints.size(), 2, CV_32FC1);
     CvMat rodrigues = CvMat.create(3, 1, CV_32FC1);
@@ -167,5 +181,24 @@ public class CalibrationExample {
     objectPointsMat.release();
     imagePointsMat.release();
     rodrigues.release();
+  }
+  
+  private void findHomography(List<Point2f> objectPoints,
+      List<Point2f> imagePoints) {
+    if (homograhy == null)
+      homograhy = CvMat.create(3, 3, CV_32FC1);
+    
+    CvMat objectPointsMat = CvMat.create(objectPoints.size(), 2, CV_32FC1);
+    CvMat imagePointsMat = CvMat.create(imagePoints.size(), 2, CV_32FC1);
+    
+    for (int i = 0; i < objectPoints.size(); i++) {
+      objectPointsMat.put(i, 0, objectPoints.get(i).x);
+      objectPointsMat.put(i, 1, objectPoints.get(i).y);
+      
+      imagePointsMat.put(i, 0, imagePoints.get(i).x);
+      imagePointsMat.put(i, 1, imagePoints.get(i).y);
+    }
+    
+    cvFindHomography(imagePointsMat, objectPointsMat, homograhy);
   }
 }
