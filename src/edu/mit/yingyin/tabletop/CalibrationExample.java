@@ -11,6 +11,7 @@ import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraPara
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvRodrigues2;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
 import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
+import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
@@ -49,41 +50,63 @@ public class CalibrationExample {
     findExtrinsicCameraParams(objectPoints, imagePoints);
   }
   
+  /**
+   * Transforms image coordinates to display coordinates P_d.
+   * 
+   * @param imagePoint 2D point in image coordinates.
+   * @return 2D point in display coordinates.
+   */
   public Point2f imageToDisplayCoords(Point2f imagePoint) {
-    System.out.println("image coords: " + imagePoint);
-    CvMat src = CvMat.create(1, 1, CV_32FC2);
-    CvMat dst = CvMat.create(1, 1, CV_32FC2);
-    src.put(0, imagePoint.x);
-    src.put(1, imagePoint.y);
-    cvUndistortPoints(src, dst, intrinsicMatrixMat, distortionCoeffsMat, null, 
-        null);
-    System.out.println("undistorted: (" + dst.get(0) + ", " + dst.get(1) + ")");
+    CvMat imageCoords = CvMat.create(1, 1, CV_32FC2);
+    CvMat undistorted = CvMat.create(1, 1, CV_32FC2);
+    imageCoords.put(0, imagePoint.x);
+    imageCoords.put(1, imagePoint.y);
+    cvUndistortPoints(imageCoords, undistorted, intrinsicMatrixMat, 
+        distortionCoeffsMat, null, null);
     
-    CvMat v = CvMat.create(3, 1, CV_32FC1);
-    CvMat result = CvMat.create(3, 1, CV_32FC1);
-    v.put(0, dst.get(0));
-    v.put(1, dst.get(1));
-    v.put(2, 1);
-    cvGEMM(rotationMat, v, 1, null, 0, result, 0);
-    float cameraZ = (float)(-translationMat.get(2) / result.get(2));
-    src.release();
-    dst.release();
-    v.release();
+    // P_cn = [X_c / Z_c, Y_c / Z_c, 1]
+    // P_c = Z_c * P_cn
+    CvMat normalizedCameraCoords = CvMat.create(3, 1, CV_32FC1);
+    normalizedCameraCoords.put(0, undistorted.get(0));
+    normalizedCameraCoords.put(1, undistorted.get(1));
+    normalizedCameraCoords.put(2, 1);
+
+    // P_c = R * P_d + T
+    // P_d = R^-1 * (P_c - T) = Z_c * (R^-1 * P_cn) - R^-1 * T
+    CvMat rotationInverse = CvMat.create(3, 3, CV_32FC1);
+    cvTranspose(rotationMat, rotationInverse);
+    
+    // result1 = R^-1 * P_cn
+    CvMat result1 = CvMat.create(3, 1, CV_32FC1);
+    // result2 = R^-1 * T
+    CvMat result2 = CvMat.create(3, 1, CV_32FC1);
+    cvGEMM(rotationInverse, normalizedCameraCoords, 1, null, 0, result1, 0);
+    cvGEMM(rotationInverse, translationMat, 1, null, 0, result2, 0);
+    
+    float cameraZ = (float)(result2.get(2) / result1.get(2));
+
     Point2f converted = new Point2f(
-        (float)(result.get(0) * cameraZ + translationMat.get(0)),
-        (float)(result.get(1) * cameraZ + translationMat.get(1)));
-    result.release();
+        (float)(result1.get(0) * cameraZ - result2.get(0)),
+        (float)(result1.get(1) * cameraZ - result2.get(1)));
+    
+    imageCoords.release();
+    undistorted.release();
+    normalizedCameraCoords.release();
+    rotationInverse.release();
+    result1.release();
+    result2.release();
+
     return converted;
   }
   
   /**
-   * Calculates the error between the converted display coordinates from the 
-   * image coordinates and the actual display coordinates.
+   * Calculates the average error between the converted display coordinates from 
+   * the image coordinates and the actual display coordinates.
    * 
    * @param displayCoords list of actaul display coordinates.
    * @param imageCoords list of corresponding image coordinates of the same size
    *     as displayCoords.
-   * @return sum of squared L2 distance between converted and actual display
+   * @return average of squared L2 distance between converted and actual display
    *     coordinates.
    */
   public float imageToDisplayCoordsError(List<Point2f> displayCoords,
@@ -91,10 +114,9 @@ public class CalibrationExample {
     float error = 0;
     for (int i = 0; i < displayCoords.size(); i++) {
       Point2f converted = imageToDisplayCoords(imageCoords.get(i));
-      System.out.println("converted: " + converted);
       error += converted.distanceSquared(displayCoords.get(i));
     }
-    return error;
+    return error / displayCoords.size();
   }
   
   public void release() {
