@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop.app;
 
-import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -20,6 +19,7 @@ import org.apache.commons.cli.OptionBuilder;
 import edu.mit.yingyin.calib.CalibView;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.CalibrationExample;
+import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethod;
 import edu.mit.yingyin.tabletop.OpenNIWrapper;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
@@ -129,9 +129,10 @@ public class CalibrationApp {
     } else {
       if (!cameraPoints.isEmpty() && !screenPoints.isEmpty()) {
         CalibrationExample example = 
-          new CalibrationExample(screenPoints, cameraPoints);
+          new CalibrationExample(screenPoints, cameraPoints, 
+                                 CalibMethod.Homography);
         System.out.println(example.toString());
-        System.out.println("Conversion error: " + 
+        System.out.println("Average reprojection squared error: " + 
             example.imageToDisplayCoordsError(screenPoints, cameraPoints));
         example.release();
       }
