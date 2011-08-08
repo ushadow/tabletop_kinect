@@ -37,6 +37,10 @@ public class CalibrationApp {
     }
   }
   
+  public static void main(String args[]) {
+    new CalibrationApp(args);
+  }
+  
   private List<Point2f> screenPoints = new ArrayList<Point2f>();
   private List<Point2f> cameraPoints = new ArrayList<Point2f>();
   
@@ -127,20 +131,19 @@ public class CalibrationApp {
       view.addKeyListener(new CalibrationController());
       view.showView();
     } else {
-      if (!cameraPoints.isEmpty() && !screenPoints.isEmpty()) {
-        CalibrationExample example = 
-          new CalibrationExample(screenPoints, cameraPoints, 
-                                 CalibMethod.Homography);
-        System.out.println(example.toString());
-        System.out.println("Average reprojection squared error: " + 
-            example.imageToDisplayCoordsError(screenPoints, cameraPoints));
-        example.release();
-      }
-      
+      calibrate();
     }
   }
   
-  public static void main(String args[]) {
-    new CalibrationApp(args);
+  private void calibrate() {
+    if (!cameraPoints.isEmpty() && !screenPoints.isEmpty()) {
+      CalibrationExample example = 
+        new CalibrationExample(screenPoints, cameraPoints, 
+                               CalibMethod.Homography);
+      System.out.println(example.toString());
+      System.out.println("Average reprojection squared error: " + 
+          example.imageToDisplayCoordsError(screenPoints, cameraPoints));
+      example.release();
+    }
   }
 }
