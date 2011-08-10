@@ -191,7 +191,7 @@ public class CalibrationExample {
       for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++) 
           sb.append(homograhy.get(i, j) + " ");
-      sb.append("]\n");
+      sb.append("]");
     }
     return sb.toString();
   }

@@ -41,8 +41,10 @@ public class CalibrationApp {
     new CalibrationApp(args);
   }
   
-  private List<Point2f> screenPoints = new ArrayList<Point2f>();
-  private List<Point2f> cameraPoints = new ArrayList<Point2f>();
+  private List<Point2f> screenPoints;
+  private List<Point2f> cameraPoints;
+  private List<Point2f> screenPointsTest;
+  private List<Point2f> cameraPointsTest;
   
   @SuppressWarnings("static-access")
   public CalibrationApp(String args[]) {
@@ -51,54 +53,47 @@ public class CalibrationApp {
         hasArg().create();
     Option camPtsOption = OptionBuilder.withLongOpt("cam-points").hasArg().
         create();
-    Option screenPtsOption = OptionBuilder.withLongOpt("screen-points").
+    Option camPtsTestOption = OptionBuilder.withLongOpt("cam-points-t").
         hasArg().create();
     Option scrnImgOption = OptionBuilder.withLongOpt("screen-image").hasArg().
-        create();
+    create();
+    Option screenPtsOption = OptionBuilder.withLongOpt("screen-points").
+        hasArg().create();
+    Option screenPtsTestOption = OptionBuilder.withLongOpt("screen-points-t").
+        hasArg().create();
     
     CommandLineOptions.addOption(camDepthImgOption);
     CommandLineOptions.addOption(screenPtsOption);
     CommandLineOptions.addOption(scrnImgOption);
     CommandLineOptions.addOption(camPtsOption);
+    CommandLineOptions.addOption(camPtsTestOption);
+    CommandLineOptions.addOption(screenPtsTestOption);
     
     CommandLineOptions.parse(args);
     
     String camImgPath = CommandLineOptions.getOptionValue("cam-depth-image", 
         null);
-    String screenPtsPath = CommandLineOptions.getOptionValue("screen-points", 
-        null);
     String scrnImagePath = CommandLineOptions.getOptionValue("screen-image",
         null);
+    String screenPtsPath = CommandLineOptions.getOptionValue("screen-points", 
+        null);
     String camPtsPath = CommandLineOptions.getOptionValue("cam-points", null);
+    String camPtsTestPath = CommandLineOptions.getOptionValue("cam-points-t", 
+        null);
+    String screenPtsTestPath = CommandLineOptions.getOptionValue(
+        "screen-points-t", null);
     
-    Scanner scanner = null;
+    if (screenPtsPath != null)
+      screenPoints = readPointsFromFile(screenPtsPath);
     
-    if (screenPtsPath != null) {
-      try {
-        scanner = new Scanner(new File(screenPtsPath));
-        while (scanner.hasNext()) {
-          screenPoints.add(new Point2f(scanner.nextInt(), scanner.nextInt()));
-        }
-        
-      } catch (FileNotFoundException e) {
-        System.err.println("CalibrationApp:" + e.getMessage());
-      } finally {
-        scanner.close();
-      }
-    }
+    if (camPtsPath != null)
+      cameraPoints = readPointsFromFile(camPtsPath);
     
-    if (camPtsPath != null) {
-      try {
-        scanner = new Scanner(new File(camPtsPath));
-        while (scanner.hasNext()) {
-          cameraPoints.add(new Point2f(scanner.nextInt(), scanner.nextInt()));
-        }
-      } catch (FileNotFoundException e) {
-        System.err.println("CalibrationApp:" + e.getMessage());
-      } finally {
-        scanner.close();
-      }
-    }
+    if (screenPtsTestPath != null)
+      screenPointsTest = readPointsFromFile(screenPtsTestPath);
+    
+    if (camPtsTestPath != null)
+      cameraPointsTest = readPointsFromFile(camPtsTestPath);
     
     boolean isScrnCoord = true;
     BufferedImage image = null;
@@ -135,14 +130,38 @@ public class CalibrationApp {
     }
   }
   
+  private List<Point2f> readPointsFromFile(String file) {
+    Scanner scanner = null;
+    List<Point2f> points = new ArrayList<Point2f>();
+    try {
+      scanner = new Scanner(new File(file));
+      while (scanner.hasNext()) 
+        points.add(new Point2f(scanner.nextInt(), scanner.nextInt()));
+    } catch (FileNotFoundException e) {
+      System.err.println("CalibrationApp:" + e.getMessage());
+      System.exit(-1);
+    } finally {
+      scanner.close();
+    }
+    return points;
+  }
+  
   private void calibrate() {
-    if (!cameraPoints.isEmpty() && !screenPoints.isEmpty()) {
+    if (screenPoints != null && !screenPoints.isEmpty() && 
+        cameraPoints != null && !cameraPoints.isEmpty()) {
       CalibrationExample example = 
         new CalibrationExample(screenPoints, cameraPoints, 
-                               CalibMethod.Homography);
+                               CalibMethod.Extrinsic);
       System.out.println(example.toString());
       System.out.println("Average reprojection squared error: " + 
           example.imageToDisplayCoordsError(screenPoints, cameraPoints));
+      
+      if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
+          cameraPointsTest != null && !cameraPointsTest.isEmpty()) {
+        System.out.println("Average test squared error: " +
+            example.imageToDisplayCoordsError(screenPointsTest, 
+                cameraPointsTest));
+      }
       example.release();
     }
   }
