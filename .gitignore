@@ -1,4 +1,9 @@
 bin
 *.so
 .settings
-data
+data/*
+!data/.gitkeep
+config/*
+!config/.gitkeep
+lib/*
+!lib/.gitkeep

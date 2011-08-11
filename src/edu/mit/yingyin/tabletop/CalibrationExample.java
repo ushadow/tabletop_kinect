@@ -1,23 +1,28 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
+import static com.googlecode.javacv.cpp.opencv_calib3d.cvRodrigues2;
+import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
+import static com.googlecode.javacv.cpp.opencv_core.CV_32FC2;
+import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
+import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
+
+import java.io.IOException;
 import java.util.List;
 
 import javax.vecmath.Point2f;
 
-import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
-import static com.googlecode.javacv.cpp.opencv_core.CV_32FC2;
-import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
-import static com.googlecode.javacv.cpp.opencv_calib3d.cvRodrigues2;
-import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
-import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
-import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
+import rywang.util.ObjectIO;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 public class CalibrationExample {
+
   public enum CalibMethod {Extrinsic, Homography, Distortion};
   
+  private static final long serialVersionUID = 8128132501879730224L;
   private static final float[][] INTRINSIC_MATRIX = {
       {(float)5.9421434211923247e+02, 0, (float)3.3930780975300314e+02},
       {0, (float)5.9104053696870778e+02, (float)2.4273913761751615e+02},
@@ -141,23 +146,31 @@ public class CalibrationExample {
   }
   
   /**
-   * Calculates the average error between the converted display coordinates from 
-   * the image coordinates and the actual display coordinates.
+   * Calculates and prints the average error between the converted display 
+   * coordinates from the image coordinates and the actual display coordinates.
    * 
    * @param displayCoords list of actaul display coordinates.
    * @param imageCoords list of corresponding image coordinates of the same size
    *     as displayCoords.
-   * @return average of squared L2 distance between converted and actual display
-   *     coordinates.
    */
-  public float imageToDisplayCoordsError(List<Point2f> displayCoords,
+  public void printImageToDisplayCoordsErrors(List<Point2f> displayCoords,
       List<Point2f> imageCoords) {
     float error = 0;
-    for (int i = 0; i < displayCoords.size(); i++) {
+    float xError = 0;
+    float yError = 0;
+    int numPoints = displayCoords.size(); 
+    for (int i = 0; i < numPoints; i++) {
       Point2f converted = imageToDisplayCoords(imageCoords.get(i));
-      error += converted.distanceSquared(displayCoords.get(i));
+      Point2f display = displayCoords.get(i);
+      error += converted.distanceSquared(display);
+      xError += (converted.x - display.x) * (converted.x - display.x);
+      yError += (converted.y - display.y) * (converted.y - display.y);
     }
-    return error / displayCoords.size();
+    System.out.println("X-axis average error = " + 
+        Math.sqrt(xError / numPoints));
+    System.out.println("Y-axis average error = " + 
+        Math.sqrt(yError / numPoints));
+    System.out.println("Average error = " + Math.sqrt(error / numPoints));
   }
   
   public void release() {
@@ -196,6 +209,14 @@ public class CalibrationExample {
     return sb.toString();
   }
   
+  public void saveObject(String fileName) {
+    try {
+      ObjectIO.writeObject(this, fileName);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
   /**
    * Requires objectPoints.size = imagePoints.size
    * @param objectPoints

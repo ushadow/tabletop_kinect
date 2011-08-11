@@ -1,35 +1,44 @@
 package edu.mit.yingyin.tabletop.app;
 
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Point2f;
-
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.calib.CalibView;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.CalibrationExample;
 import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethod;
 import edu.mit.yingyin.tabletop.OpenNIWrapper;
-import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 
 public class CalibrationApp {
-  private static class CalibrationController extends KeyAdapter {
+  private class CalibrationController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyCode()) {
       case KeyEvent.VK_Q:
       case KeyEvent.VK_ESCAPE:
+        if (calibModel != null) {
+          List<Point2f> points = new ArrayList<Point2f>(
+              calibModel.getImagePoints().size());
+          for (Point p : calibModel.getImagePoints()) 
+            points.add(new Point2f(p.x, p.y));
+          if (isScrnCoord)
+            screenPoints = points;
+          else cameraPoints = points;
+          calibrate();
+        }
         System.exit(0);
         break;
       default: break;
@@ -41,47 +50,41 @@ public class CalibrationApp {
     new CalibrationApp(args);
   }
   
+  private boolean isScrnCoord = true;
   private List<Point2f> screenPoints;
   private List<Point2f> cameraPoints;
   private List<Point2f> screenPointsTest;
   private List<Point2f> cameraPointsTest;
+  private GeoCalibModel calibModel;
+  private CalibMethod calibMethod = CalibMethod.Extrinsic;
+  private String calibMethodStr; 
+  private String savePath;
   
   @SuppressWarnings("static-access")
   public CalibrationApp(String args[]) {
-    // Raw depth image.
-    Option camDepthImgOption = OptionBuilder.withLongOpt("cam-depth-image").
-        hasArg().create();
-    Option camPtsOption = OptionBuilder.withLongOpt("cam-points").hasArg().
-        create();
-    Option camPtsTestOption = OptionBuilder.withLongOpt("cam-points-t").
-        hasArg().create();
-    Option scrnImgOption = OptionBuilder.withLongOpt("screen-image").hasArg().
-    create();
-    Option screenPtsOption = OptionBuilder.withLongOpt("screen-points").
-        hasArg().create();
-    Option screenPtsTestOption = OptionBuilder.withLongOpt("screen-points-t").
-        hasArg().create();
+    Properties config = new Properties();
+    FileInputStream in = null;
+    try {
+      in = new FileInputStream(
+          "./config/calibration.config");
+      config.load(in);
+      in.close();
+    } catch (FileNotFoundException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } 
     
-    CommandLineOptions.addOption(camDepthImgOption);
-    CommandLineOptions.addOption(screenPtsOption);
-    CommandLineOptions.addOption(scrnImgOption);
-    CommandLineOptions.addOption(camPtsOption);
-    CommandLineOptions.addOption(camPtsTestOption);
-    CommandLineOptions.addOption(screenPtsTestOption);
-    
-    CommandLineOptions.parse(args);
-    
-    String camImgPath = CommandLineOptions.getOptionValue("cam-depth-image", 
-        null);
-    String scrnImagePath = CommandLineOptions.getOptionValue("screen-image",
-        null);
-    String screenPtsPath = CommandLineOptions.getOptionValue("screen-points", 
-        null);
-    String camPtsPath = CommandLineOptions.getOptionValue("cam-points", null);
-    String camPtsTestPath = CommandLineOptions.getOptionValue("cam-points-t", 
-        null);
-    String screenPtsTestPath = CommandLineOptions.getOptionValue(
-        "screen-points-t", null);
+    String camImgPath = config.getProperty("cam-depth-image", null);
+    String scrnImagePath = config.getProperty("screen-image", null);
+    String screenPtsPath = config.getProperty("screen-points", null);
+    String camPtsPath = config.getProperty("cam-points", null);
+    String camPtsTestPath = config.getProperty("cam-points-t", null);
+    String screenPtsTestPath = config.getProperty("screen-points-t", null);
+    calibMethodStr = config.getProperty("calib-method", "extrinsic");
+    savePath = config.getProperty("save", null);
     
     if (screenPtsPath != null)
       screenPoints = readPointsFromFile(screenPtsPath);
@@ -95,7 +98,12 @@ public class CalibrationApp {
     if (camPtsTestPath != null)
       cameraPointsTest = readPointsFromFile(camPtsTestPath);
     
-    boolean isScrnCoord = true;
+    if (calibMethodStr.equals("homography"))
+      calibMethod = calibMethod.Homography;
+    else if (calibMethodStr.equals("distortion"))
+      calibMethod = CalibMethod.Distortion;
+    else calibMethod = calibMethod.Extrinsic;
+
     BufferedImage image = null;
     String ptsFileName = null;
     
@@ -121,8 +129,8 @@ public class CalibrationApp {
           System.exit(-1);
         }
       }
-      CalibView view = new CalibView(
-          new GeoCalibModel(image, ptsFileName, isScrnCoord));
+      calibModel = new GeoCalibModel(image, ptsFileName, isScrnCoord);
+      CalibView view = new CalibView(calibModel);
       view.addKeyListener(new CalibrationController());
       view.showView();
     } else {
@@ -149,18 +157,18 @@ public class CalibrationApp {
   private void calibrate() {
     if (screenPoints != null && !screenPoints.isEmpty() && 
         cameraPoints != null && !cameraPoints.isEmpty()) {
+      System.out.println("Calibration method: " + calibMethodStr);
       CalibrationExample example = 
-        new CalibrationExample(screenPoints, cameraPoints, 
-                               CalibMethod.Extrinsic);
+        new CalibrationExample(screenPoints, cameraPoints, calibMethod);
       System.out.println(example.toString());
-      System.out.println("Average reprojection squared error: " + 
-          example.imageToDisplayCoordsError(screenPoints, cameraPoints));
+      System.out.println("Average reprojection errors in pixels:"); 
+      example.printImageToDisplayCoordsErrors(screenPoints, cameraPoints);
       
       if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
           cameraPointsTest != null && !cameraPointsTest.isEmpty()) {
-        System.out.println("Average test squared error: " +
-            example.imageToDisplayCoordsError(screenPointsTest, 
-                cameraPointsTest));
+        System.out.println("Average test squared error:"); 
+        example.printImageToDisplayCoordsErrors(screenPointsTest, 
+            cameraPointsTest);
       }
       example.release();
     }
