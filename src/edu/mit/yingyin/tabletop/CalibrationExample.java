@@ -9,18 +9,20 @@ import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
 import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.vecmath.Point2f;
-
-import rywang.util.ObjectIO;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 public class CalibrationExample {
 
-  public enum CalibMethod {Extrinsic, Homography, Distortion};
+  public enum CalibMethod {EXTRINSIC, HOMOGRAPHY, DISTORTION};
   
   private static final long serialVersionUID = 8128132501879730224L;
   private static final float[][] INTRINSIC_MATRIX = {
@@ -58,15 +60,35 @@ public class CalibrationExample {
       distortionCoeffsMat.put(i, DISTORTION_COEFFS[i]);
     }
     this.method = method;
-    if (method == CalibMethod.Extrinsic)
+    if (method == CalibMethod.EXTRINSIC)
       findExtrinsicCameraParams(objectPoints, imagePoints);
     else
       findHomography(objectPoints, imagePoints);
-    
+  }
+  
+  public CalibrationExample(String fileName) {
+    try {
+      Scanner scanner = new Scanner(new File(fileName));
+      method = CalibMethod.valueOf(scanner.next());
+      if (method == CalibMethod.EXTRINSIC) {
+        for (int i = 0; i < 3; i++)
+          for (int j = 0; j < 3; j++) 
+            rotationMat.put(i, j, scanner.nextFloat());
+        for (int i = 0; i < 3; i++)
+          translationMat.put(i, scanner.nextFloat());
+      } else {
+        for (int i = 0; i < 3; i++)
+          for (int j = 0; j < 3; j++)
+            homograhy.put(i, j, scanner.nextFloat());
+      }
+    } catch (FileNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
   
   public Point2f imageToDisplayCoords(Point2f imagePoint) {
-    if (method == CalibMethod.Extrinsic)
+    if (method == CalibMethod.EXTRINSIC)
       return imageToDisplayCoordsExtrinsic(imagePoint);
     else return imageToDisplayCoords2Homography(imagePoint);
   }
@@ -120,7 +142,7 @@ public class CalibrationExample {
   
   private Point2f imageToDisplayCoords2Homography(Point2f imagePoint) {
     CvMat imageCoords = null;
-    if (method == CalibMethod.Distortion) {
+    if (method == CalibMethod.DISTORTION) {
       imageCoords = CvMat.create(1, 1, CV_32FC2);
       imageCoords.put(0, imagePoint.x);
       imageCoords.put(1, imagePoint.y);
@@ -188,7 +210,7 @@ public class CalibrationExample {
   
   public String toString() {
     StringBuffer sb = new StringBuffer();
-    if (method == CalibMethod.Extrinsic) {
+    if (method == CalibMethod.EXTRINSIC) {
       sb.append("Rotation matrix: [");
       for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++) {
@@ -209,14 +231,34 @@ public class CalibrationExample {
     return sb.toString();
   }
   
-  public void saveObject(String fileName) {
+  public void save(String fileName) {
+    PrintStream ps = null;
     try {
-      ObjectIO.writeObject(this, fileName);
+      ps = new PrintStream(new File(fileName));
+      ps.println(method.toString());
+      if (method == CalibMethod.EXTRINSIC) {
+        for (int i = 0; i < 3; i++)
+          for (int j = 0; j < 3; j++)
+            ps.print(rotationMat.get(i, j) + " ");
+        ps.println();
+        for (int i = 0; i < 3; i++)
+          ps.print(translationMat.get(i) + " ");
+        ps.println();
+      } else {
+        for (int i = 0; i < 3; i++)
+          for (int j = 0; j < 3; j++)
+            ps.print(homograhy.get(i, j) + " ");
+        ps.println();
+      }
     } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    } finally {
+      if (ps != null)
+        ps.close();
     }
   }
+  
   /**
    * Requires objectPoints.size = imagePoints.size
    * @param objectPoints
@@ -268,7 +310,7 @@ public class CalibrationExample {
       imagePointsMat.put(i * 2 + 1, imagePoints.get(i).y);
     }
     
-    if (method == CalibMethod.Distortion)
+    if (method == CalibMethod.DISTORTION)
       cvUndistortPoints(imagePointsMat, imagePointsMat, intrinsicMatrixMat, 
           distortionCoeffsMat, null, null);
     cvFindHomography(imagePointsMat, objectPointsMat, homograhy);

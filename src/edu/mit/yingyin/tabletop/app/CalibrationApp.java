@@ -56,11 +56,10 @@ public class CalibrationApp {
   private List<Point2f> screenPointsTest;
   private List<Point2f> cameraPointsTest;
   private GeoCalibModel calibModel;
-  private CalibMethod calibMethod = CalibMethod.Extrinsic;
+  private CalibMethod calibMethod = CalibMethod.EXTRINSIC;
   private String calibMethodStr; 
   private String savePath;
   
-  @SuppressWarnings("static-access")
   public CalibrationApp(String args[]) {
     Properties config = new Properties();
     FileInputStream in = null;
@@ -83,8 +82,8 @@ public class CalibrationApp {
     String camPtsPath = config.getProperty("cam-points", null);
     String camPtsTestPath = config.getProperty("cam-points-t", null);
     String screenPtsTestPath = config.getProperty("screen-points-t", null);
-    calibMethodStr = config.getProperty("calib-method", "extrinsic");
-    savePath = config.getProperty("save", null);
+    calibMethodStr = config.getProperty("calib-method", "EXTRINSIC");
+    savePath = config.getProperty("save-path", null);
     
     if (screenPtsPath != null)
       screenPoints = readPointsFromFile(screenPtsPath);
@@ -98,12 +97,13 @@ public class CalibrationApp {
     if (camPtsTestPath != null)
       cameraPointsTest = readPointsFromFile(camPtsTestPath);
     
-    if (calibMethodStr.equals("homography"))
-      calibMethod = calibMethod.Homography;
-    else if (calibMethodStr.equals("distortion"))
-      calibMethod = CalibMethod.Distortion;
-    else calibMethod = calibMethod.Extrinsic;
-
+    try {
+      calibMethod = CalibMethod.valueOf(calibMethodStr);
+    } catch (IllegalArgumentException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    }
+    
     BufferedImage image = null;
     String ptsFileName = null;
     
@@ -170,6 +170,9 @@ public class CalibrationApp {
         example.printImageToDisplayCoordsErrors(screenPointsTest, 
             cameraPointsTest);
       }
+      
+      if (savePath != null)
+        example.save(savePath);
       example.release();
     }
   }
