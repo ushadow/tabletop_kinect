@@ -24,7 +24,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 
-public class DebugFrames {
+public class DebugView {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyChar()) {
@@ -60,7 +60,7 @@ public class DebugFrames {
   private boolean showFingertip = false;
   private boolean showBoundingBox = true;
   
-  public DebugFrames(int width, int height) {
+  public DebugView(int width, int height) {
     frames[0] = new CanvasFrame("Processed");
     fpsCounter = new FPSCounter("Processed", frames[0]);
     frames[1] = new CanvasFrame("Depth");
@@ -138,5 +138,10 @@ public class DebugFrames {
     for (CanvasFrame frame : frames)
       isVisible = isVisible && frame.isVisible();
     return isVisible;
+  }
+  
+  public void dispose() {
+    for (CanvasFrame frame: frames)
+      frame.dispose();
   }
 }    

@@ -1,30 +1,19 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.Point;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.vecmath.Point3f;
 
-import rywang.viewer.FPSCounter;
-
-import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
-import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
-import com.googlecode.javacpp.Loader;
-import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacv.*;
 import com.googlecode.javacv.cpp.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;

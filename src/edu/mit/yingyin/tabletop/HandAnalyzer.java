@@ -82,7 +82,7 @@ public class HandAnalyzer {
   
   public void cleanUp() {
     tempImage.release();
-    System.out.println("HandProcessor cleaned up.");
+    System.out.println("HandAnalyzer cleaned up.");
   } 
   
   private void subtractBackground(ProcessPacket packet) {

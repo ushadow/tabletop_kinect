@@ -38,6 +38,11 @@ public class OpenNIWrapper {
     openniWrapper.cleanUp();
   }
   
+  /**
+   * Converts a 2 dimentional array of depth values to a buffered gray image.
+   * @param fileName
+   * @return
+   */
   static public BufferedImage rawDepthToBufferedImage(String fileName) {
     BufferedImage image = new BufferedImage(DEPTH_WIDTH, DEPTH_HEIGHT, 
         BufferedImage.TYPE_USHORT_GRAY);
@@ -86,7 +91,9 @@ public class OpenNIWrapper {
   public int getDepthWidth() { return DEPTH_WIDTH; }
   
   public int getDepthHeight() { return DEPTH_HEIGHT; }
+  
   /**
+   * Initializes the instance from a OpenNI configuration file.
    * 
    * @param configFile xml file name to initialize the OpenNI context.
    * @return true if the initialization is successful; false otherwise.
