@@ -6,8 +6,7 @@ public class ManualLabelApp {
   private static String openniConfigFile = "config/config.xml";
   
   public static void main(String[] args) {
-    OpenNIWrapper openni = new OpenNIWrapper();
-    openni.initFromXmlFile(openniConfigFile);
+    OpenNIWrapper openni = new OpenNIWrapper(openniConfigFile);
     
     while (true) {
       openni.waitAnyUpdateAll();

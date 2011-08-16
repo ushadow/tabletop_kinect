@@ -49,8 +49,8 @@ public class DebugView {
     }
   }
   
-  private static final long serialVersionUID = 1L;
-  private IplImage canvasImage;
+  private IplImage analysisImage;
+  private IplImage appImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
   private FPSCounter fpsCounter;
  
@@ -66,20 +66,21 @@ public class DebugView {
     frames[1] = new CanvasFrame("Depth");
     for (CanvasFrame frame : frames)
       frame.setCanvasSize(width, height);
-    canvasImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     frames[0].addKeyListener(new KeyController());
     CanvasFrame.tile(frames);
   }
   
   public void show(ProcessPacket packet) {
     if (showMorphed)
-      cvCopy(packet.morphedImage, canvasImage);
+      cvCopy(packet.morphedImage, analysisImage);
     else
-      cvCopy(packet.depthImage, canvasImage);
+      cvCopy(packet.depthImage, analysisImage);
     
     if (showBoundingBox)
       for (CvRect rect : packet.boundingBoxes){
-        cvRectangle(canvasImage, 
+        cvRectangle(analysisImage, 
             new CvPoint(rect.x(), 
                         rect.y() + rect.height() - HandAnalyzer.HAND_YCUTOFF), 
             new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
@@ -90,39 +91,40 @@ public class DebugView {
       for (ForelimbModel forelimb : packet.foreLimbsFeatures)
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
-            cvCircle(canvasImage, new CvPoint((int)p.value.x, (int)p.value.y), 
+            cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
                      4, CvScalar.WHITE, 5, 8, 0);
       }
     
     if (showConvexityDefects) {
       for (CvSeq seq : packet.convexityDefects) 
-        CvUtil.drawConvexityDefects(seq, canvasImage);
+        CvUtil.drawConvexityDefects(seq, analysisImage);
     }
     
     if (showHull) {
       for (int i = 0; i < packet.hulls.size(); i++) {
         CvUtil.drawHullCorners(packet.hulls.get(i),packet.approxPolys.get(i), 
-                               canvasImage);
+                               analysisImage);
       }
     }
-    
-    frames[0].showImage(canvasImage);
-    ByteBuffer ib = canvasImage.getByteBuffer();
+    frames[0].showImage(analysisImage);
+
+    ByteBuffer ib = appImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) {
       ib.put(i, (byte)((HandAnalyzer.MAX_DEPTH - packet.depthRawData[i]) *
                        255 / HandAnalyzer.MAX_DEPTH));
     }
-    frames[1].showImage(canvasImage);
+    frames[1].showImage(appImage);
     fpsCounter.computeFPS();
   }
   
   public void drawCircle(int x, int y) {
-    cvCircle(canvasImage, new CvPoint(x, y), 4, CvScalar.WHITE, 5, 8, 0);
-    frames[1].showImage(canvasImage);
+    cvCircle(appImage, new CvPoint(x, y), 4, CvScalar.WHITE, 5, 8, 0);
+    frames[1].showImage(appImage);
   }
   
   public void cleanUp() {
-    canvasImage.release();
+    analysisImage.release();
+    appImage.release();
     for (CanvasFrame frame : frames)
       frame.dispose();
     System.out.println("DebugFrame cleaned up.");
@@ -140,8 +142,8 @@ public class DebugView {
     return isVisible;
   }
   
-  public void dispose() {
+  public void hide() {
     for (CanvasFrame frame: frames)
-      frame.dispose();
+      frame.setVisible(false);
   }
 }    

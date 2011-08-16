@@ -1,15 +1,23 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_32SC1;
+import static com.googlecode.javacv.cpp.opencv_core.CV_32SC2;
+import static com.googlecode.javacv.cpp.opencv_core.CV_WHOLE_SEQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMat;
+import static com.googlecode.javacv.cpp.opencv_core.cvCvtSeqToArray;
+import static com.googlecode.javacv.cpp.opencv_core.cvMat;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_POLY_APPROX_DP;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RETR_EXTERNAL;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvApproxPoly;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvBoundingRect;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexHull2;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexityDefects;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
@@ -24,13 +32,12 @@ import javax.vecmath.Point3f;
 
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
+import com.googlecode.javacv.cpp.opencv_core.CvPoint;
+import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
-
-import com.googlecode.javacpp.Loader;
-import com.googlecode.javacv.*;
-import com.googlecode.javacv.cpp.*;
 
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
@@ -38,10 +45,6 @@ import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
-import static com.googlecode.javacv.cpp.opencv_calib3d.*;
-import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 
 public class HandAnalyzer {
   public static final int MAX_DEPTH = 1600;

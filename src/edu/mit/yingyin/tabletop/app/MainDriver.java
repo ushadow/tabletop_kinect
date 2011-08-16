@@ -21,12 +21,15 @@ public class MainDriver {
         break;
       case KeyEvent.VK_ESCAPE:
       case KeyEvent.VK_Q:
-        debugView.dispose();
+        debugView.hide();
+        break;
       default: 
         break;
       }
     }
   }
+  
+  private String configFile = "config/config.xml";
   
   private class TrackerController implements TrackerListener {
     @Override
@@ -44,8 +47,7 @@ public class MainDriver {
   public MainDriver() {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
-    openni = new OpenNIWrapper();
-    openni.initFromXmlFile("config/config.xml");
+    openni = new OpenNIWrapper(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);

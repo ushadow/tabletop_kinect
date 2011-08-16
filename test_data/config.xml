@@ -1,0 +1,19 @@
+<OpenNI>
+  <Licenses>
+    <!-- Add licenses here 
+    <License vendor="vendor" key="key"/>
+    -->
+  </Licenses>
+  <Log writeToConsole="false" writeToFile="false">
+    <!-- 0 - Verbose, 1 - Info, 2 - Warning, 3 - Error (default) -->
+    <LogLevel value="0"/>
+    <Masks>
+      <Mask name="ALL" on="true"/>
+    </Masks>
+    <Dumps>
+    </Dumps>
+  </Log>
+  <ProductionNodes>
+    <Recording file="/home/yingyin/workspace/tabletop/tabletop_kinect/test_data/Captured.oni" />
+  </ProductionNodes>
+</OpenNI>

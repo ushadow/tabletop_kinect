@@ -24,7 +24,6 @@ public class CalibrationExample {
 
   public enum CalibMethod {EXTRINSIC, HOMOGRAPHY, DISTORTION};
   
-  private static final long serialVersionUID = 8128132501879730224L;
   private static final float[][] INTRINSIC_MATRIX = {
       {(float)5.9421434211923247e+02, 0, (float)3.3930780975300314e+02},
       {0, (float)5.9104053696870778e+02, (float)2.4273913761751615e+02},

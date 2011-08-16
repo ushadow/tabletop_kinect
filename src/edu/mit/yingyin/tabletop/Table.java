@@ -2,14 +2,13 @@ package edu.mit.yingyin.tabletop;
 
 public class Table {
   private int[] depthMap;
-  private int width, height;
+  private int width;
   
   public boolean isInitialized() { return depthMap != null; }
   
   public void init(int[] depthMap, int width, int height) {
     this.depthMap = depthMap.clone();
     this.width = width;
-    this.height = height;
   }
   
   /**

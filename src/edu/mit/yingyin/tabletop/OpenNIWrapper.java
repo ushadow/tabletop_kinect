@@ -12,47 +12,38 @@ import javax.vecmath.Point3f;
 import rywang.util.DirectBufferUtils;
 
 public class OpenNIWrapper {
-  private static final int DEPTH_WIDTH = 640;
-  private static final int DEPTH_HEIGHT = 480;
 
   static { 
     System.loadLibrary("openni-java-wrapper"); 
   }
   
-  public static void main(String[] args) {
-    OpenNIWrapper openniWrapper = new OpenNIWrapper();
-    boolean ret = openniWrapper.initFromXmlFile("config/config.xml");
-    System.out.println("initFromXmlFile: " + ret);
-    ret = openniWrapper.waitAnyUpdateAll();
-    System.out.println("waitAnyUpdateAll: " + ret);
-    int[] depthMap = 
-        new int[openniWrapper.getDepthWidth() * openniWrapper.getDepthHeight()];
-    openniWrapper.getDepthMap(depthMap);
-    int index = 0, maxDepth = 0;
-    for (int h = 0; h < openniWrapper.getDepthHeight(); h++) {
-      for (int w = 0; w < openniWrapper.getDepthWidth(); w++, index++)
-        maxDepth = maxDepth > depthMap[index] ? maxDepth : depthMap[index];
-        System.out.print(depthMap[index] + " ");
-      System.out.println();
-    }
-    openniWrapper.cleanUp();
+  public static int MAX_DEPTH = 65535;
+  public static int DEFAULT_DEPTH_WIDTH = 640;
+  public static int DEFAULT_DEPTH_HEIGHT = 480;
+  
+  static public BufferedImage rawDepthToBufferedImage(String fileName) {
+    return rawDepthToBufferedImage(fileName, DEFAULT_DEPTH_WIDTH, 
+                                   DEFAULT_DEPTH_HEIGHT);
   }
   
   /**
-   * Converts a 2 dimentional array of depth values to a buffered gray image.
+   * Converts a 2 dimensional array of depth values to a gray BufferedImage.
    * @param fileName file name of the .raw file with depth values.
+   * @param width width of the BufferedImage.
+   * @param height height of the BufferedImage.
    * @return a gray BufferedImage with colors proportional to the depth values.
    */
-  static public BufferedImage rawDepthToBufferedImage(String fileName) {
-    BufferedImage image = new BufferedImage(DEPTH_WIDTH, DEPTH_HEIGHT, 
+  static public BufferedImage rawDepthToBufferedImage(String fileName, 
+      int width, int height) {
+    BufferedImage image = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
     short[] depthArray = ((DataBufferUShort)image.getRaster().getDataBuffer()).
         getData();
-    int totalPixels = DEPTH_WIDTH * DEPTH_HEIGHT;
+    int totalPixels = width * height;
     int[] intArray = new int[totalPixels];
     OpenNIWrapper.loadFile(fileName, intArray);
     int max = 0;
-    int min = 65535;
+    int min = MAX_DEPTH;
     for (int i = 0; i < totalPixels; i++) {
       int value = intArray[i];
       if (value != 0 ) { 
@@ -64,9 +55,8 @@ public class OpenNIWrapper {
     		"max depth = " + max + " min depth = " + min);
     for (int i = 0; i < totalPixels; i++) {
       int value = intArray[i];
-      
       depthArray[i] = value == 0 ? 0 : 
-          (short)((intArray[i] - min) * 65535 / (max - min));
+          (short)((value - min) * MAX_DEPTH / (max - min));
     }
     return image;
   }
@@ -82,15 +72,16 @@ public class OpenNIWrapper {
   
   private IntBuffer ctrlBlock;
   private IntBuffer depthBuf;
+  private int width, height;
+  private boolean initialized = false;
   
-  public OpenNIWrapper() {
-    ctrlBlock = DirectBufferUtils.allocateIntBuffer(2);
-    depthBuf = DirectBufferUtils.allocateIntBuffer(DEPTH_HEIGHT * DEPTH_WIDTH);
+  public OpenNIWrapper(String configFile) {
+    initialized = initFromXmlFile(configFile);
   }
   
-  public int getDepthWidth() { return DEPTH_WIDTH; }
+  public int getDepthWidth() { return width; }
   
-  public int getDepthHeight() { return DEPTH_HEIGHT; }
+  public int getDepthHeight() { return height; }
   
   /**
    * Initializes the instance from a OpenNI configuration file.
@@ -98,8 +89,15 @@ public class OpenNIWrapper {
    * @param configFile xml file name to initialize the OpenNI context.
    * @return true if the initialization is successful; false otherwise.
    */
-  public boolean initFromXmlFile(String configFile) {
-    return initFromXmlFile(ctrlBlock, configFile);
+  private boolean initFromXmlFile(String configFile) {
+    ctrlBlock = DirectBufferUtils.allocateIntBuffer(2);
+    IntBuffer widthBuf = DirectBufferUtils.allocateIntBuffer(1);
+    IntBuffer heightBuf = DirectBufferUtils.allocateIntBuffer(1);
+    boolean ret = initFromXmlFile(ctrlBlock, configFile, widthBuf, heightBuf);
+    width = widthBuf.get(0);
+    height = heightBuf.get(0);
+    depthBuf = DirectBufferUtils.allocateIntBuffer(width * height);
+    return ret;
   }
   
   public boolean waitAnyUpdateAll() {
@@ -116,6 +114,10 @@ public class OpenNIWrapper {
     cleanUp(ctrlBlock);
   }
   
+  public boolean initialized() {
+    return initialized;
+  }
+  
   public List<Point3f> converDepthProjectiveToWorld(List<Point3f> points) {
     FloatBuffer fb = DirectBufferUtils.allocateFloatBuffer(3 * points.size());
     List<Point3f> converted = new ArrayList<Point3f>(points.size());
@@ -128,7 +130,8 @@ public class OpenNIWrapper {
   }
   
   private native boolean initFromXmlFile(IntBuffer ctrlBlock, 
-                                         String configFile); 
+                                         String configFile, 
+                                         IntBuffer width, IntBuffer height); 
   private native boolean waitAnyUpdateAll(IntBuffer ctrlBlock);
   private native void getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
   private native void cleanUp(IntBuffer ctrlBlock); 
