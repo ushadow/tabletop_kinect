@@ -40,8 +40,8 @@ public class OpenNIWrapper {
   
   /**
    * Converts a 2 dimentional array of depth values to a buffered gray image.
-   * @param fileName
-   * @return
+   * @param fileName file name of the .raw file with depth values.
+   * @return a gray BufferedImage with colors proportional to the depth values.
    */
   static public BufferedImage rawDepthToBufferedImage(String fileName) {
     BufferedImage image = new BufferedImage(DEPTH_WIDTH, DEPTH_HEIGHT, 
