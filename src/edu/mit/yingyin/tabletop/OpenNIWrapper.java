@@ -1,13 +1,14 @@
 package edu.mit.yingyin.tabletop;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferUShort;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.vecmath.Point3f;
+
+import edu.mit.yingyin.image.ImageConvertUtils;
 
 import rywang.util.DirectBufferUtils;
 
@@ -27,7 +28,7 @@ public class OpenNIWrapper {
   }
   
   /**
-   * Converts a 2 dimensional array of depth values to a gray BufferedImage.
+   * Reads the .raw depth file and converts it to a gray BufferedImage.
    * @param fileName file name of the .raw file with depth values.
    * @param width width of the BufferedImage.
    * @param height height of the BufferedImage.
@@ -35,30 +36,10 @@ public class OpenNIWrapper {
    */
   static public BufferedImage rawDepthToBufferedImage(String fileName, 
       int width, int height) {
-    BufferedImage image = new BufferedImage(width, height, 
-        BufferedImage.TYPE_USHORT_GRAY);
-    short[] depthArray = ((DataBufferUShort)image.getRaster().getDataBuffer()).
-        getData();
     int totalPixels = width * height;
     int[] intArray = new int[totalPixels];
     OpenNIWrapper.loadFile(fileName, intArray);
-    int max = 0;
-    int min = MAX_DEPTH;
-    for (int i = 0; i < totalPixels; i++) {
-      int value = intArray[i];
-      if (value != 0 ) { 
-        max = Math.max(max, value);
-        min = Math.min(min, value);
-      }
-    }
-    System.out.println("OpenNIWrapper#rawDepthToBufferedImage: " +
-    		"max depth = " + max + " min depth = " + min);
-    for (int i = 0; i < totalPixels; i++) {
-      int value = intArray[i];
-      depthArray[i] = value == 0 ? 0 : 
-          (short)((value - min) * MAX_DEPTH / (max - min));
-    }
-    return image;
+    return ImageConvertUtils.depthToGrayBufferedImage(intArray, width, height);
   }
   
   public static void loadFile(String fileName, int[] depthArray) {
