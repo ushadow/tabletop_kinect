@@ -33,7 +33,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     public void paint(Graphics g) {
       super.paint(g);
 
-      List<Point> points = model.getPoints(model.getFrameID());
+      List<Point> points = model.getPoints(model.frameID());
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.red);
       for (Point p : points)
@@ -53,8 +53,8 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
 
   public ManualLabelApp() {
     model = new ManualLabelModel(openniConfigFile);
-    LabelView labelView = new LabelView(new Dimension(model.getImageWidth(),
-        model.getImageHeight()));
+    LabelView labelView = new LabelView(new Dimension(model.imageWidth(),
+        model.imageHeight()));
     viewer = new ImageView("Label", labelView);
     viewer.addKeyListener(this);
     labelView.addMouseListener(this);
@@ -68,13 +68,13 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   }
 
   private void exit() {
-    model.cleanUp();
+    model.release();
     System.exit(0);
   }
 
   private void showNextImage() {
     viewer.show(model.nextImage());
-    viewer.setTitle("Frame = " + model.getFrameID());
+    viewer.setTitle("Frame = " + model.frameID());
   }
 
   public void keyPressed(KeyEvent ke) {

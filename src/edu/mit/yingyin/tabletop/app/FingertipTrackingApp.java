@@ -48,8 +48,8 @@ public class FingertipTrackingApp {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
     openni = new OpenNIWrapper(configFile);
-    depthWidth = openni.getDepthWidth();
-    depthHeight = openni.getDepthHeight();
+    depthWidth = openni.depthWidth();
+    depthHeight = openni.depthHeight();
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
     
@@ -71,7 +71,7 @@ public class FingertipTrackingApp {
       debugView.show(packet);
       tracker.update(packet.foreLimbsFeatures);
     }
-    openni.cleanUp();
+    openni.release();
     analyzer.cleanUp();
     packet.cleanUp();
     debugView.cleanUp();

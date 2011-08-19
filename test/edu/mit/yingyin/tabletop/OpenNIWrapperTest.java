@@ -13,20 +13,21 @@ public class OpenNIWrapperTest {
   public void testInitFromFileAndUpdate() {
     OpenNIWrapper openniWrapper = new OpenNIWrapper("test_data/config.xml");
     assertTrue(openniWrapper.initialized());
-    assertEquals(640, openniWrapper.getDepthWidth());
-    assertEquals(480, openniWrapper.getDepthHeight());
+    assertEquals(640, openniWrapper.depthWidth());
+    assertEquals(480, openniWrapper.depthHeight());
     assertTrue(openniWrapper.waitAnyUpdateAll());
+    assertTrue(openniWrapper.waitDepthUpdateAll());
     int[] depthMap = 
-        new int[openniWrapper.getDepthWidth() * openniWrapper.getDepthHeight()];
+        new int[openniWrapper.depthWidth() * openniWrapper.depthHeight()];
     openniWrapper.getDepthMap(depthMap);
     int index = 0;
-    for (int h = 0; h < openniWrapper.getDepthHeight(); h++) {
-      for (int w = 0; w < openniWrapper.getDepthWidth(); w++, index++) {
+    for (int h = 0; h < openniWrapper.depthHeight(); h++) {
+      for (int w = 0; w < openniWrapper.depthWidth(); w++, index++) {
         int depth = depthMap[index];
         assertTrue(depth >= 0 && depth <= OpenNIWrapper.MAX_DEPTH);
       }
     }
-    openniWrapper.cleanUp();
+    openniWrapper.release();
   }
   
   @Test

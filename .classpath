@@ -19,5 +19,6 @@
 	<classpathentry kind="lib" path="/java_util/lib/vecmath.jar"/>
 	<classpathentry kind="lib" path="/java_util/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/usr/share/java/org.OpenNI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

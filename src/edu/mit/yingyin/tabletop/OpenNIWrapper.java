@@ -59,9 +59,9 @@ public class OpenNIWrapper {
     initialized = initFromXmlFile(configFile);
   }
   
-  public int getDepthWidth() { return width; }
+  public int depthWidth() { return width; }
   
-  public int getDepthHeight() { return height; }
+  public int depthHeight() { return height; }
   
   /**
    * Initializes the instance from a OpenNI configuration file.
@@ -84,6 +84,10 @@ public class OpenNIWrapper {
     return waitAnyUpdateAll(ctrlBlock);
   }
   
+  public boolean waitDepthUpdateAll() {
+    return waitDepthUpdateAll(ctrlBlock);
+  }
+  
   public int getDepthMap(int[] depthArray) {
     int frameID = getDepthMap(ctrlBlock, depthBuf);
     depthBuf.rewind();
@@ -91,8 +95,8 @@ public class OpenNIWrapper {
     return frameID;
   }
   
-  public void cleanUp() {
-    cleanUp(ctrlBlock);
+  public void release() {
+    release(ctrlBlock);
   }
   
   public boolean initialized() {
@@ -115,8 +119,9 @@ public class OpenNIWrapper {
                                          String configFile, 
                                          IntBuffer width, IntBuffer height); 
   private native boolean waitAnyUpdateAll(IntBuffer ctrlBlock);
+  private native boolean waitDepthUpdateAll(IntBuffer ctrlBlock);
   private native int getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
-  private native void cleanUp(IntBuffer ctrlBlock); 
+  private native void release(IntBuffer ctrlBlock); 
   private native void convertDepthProjectiveToWorld(IntBuffer ctrlBlock, 
                                                     FloatBuffer points);
 }
