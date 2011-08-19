@@ -8,9 +8,8 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
-import edu.mit.yingyin.image.ImageConvertUtils;
-
 import rywang.util.DirectBufferUtils;
+import edu.mit.yingyin.image.ImageConvertUtils;
 
 public class OpenNIWrapper {
 
@@ -85,10 +84,11 @@ public class OpenNIWrapper {
     return waitAnyUpdateAll(ctrlBlock);
   }
   
-  public void getDepthMap(int[] depthArray) {
-    getDepthMap(ctrlBlock, depthBuf);
+  public int getDepthMap(int[] depthArray) {
+    int frameID = getDepthMap(ctrlBlock, depthBuf);
     depthBuf.rewind();
     depthBuf.get(depthArray);
+    return frameID;
   }
   
   public void cleanUp() {
@@ -99,8 +99,9 @@ public class OpenNIWrapper {
     return initialized;
   }
   
-  public List<Point3f> converDepthProjectiveToWorld(List<Point3f> points) {
+  public List<Point3f> convertDepthProjectiveToWorld(List<Point3f> points) {
     FloatBuffer fb = DirectBufferUtils.allocateFloatBuffer(3 * points.size());
+    convertDepthProjectiveToWorld(ctrlBlock, fb);
     List<Point3f> converted = new ArrayList<Point3f>(points.size());
     float[] pointArray = new float[3];
     for (int i = 0; i < points.size(); i++) {
@@ -114,7 +115,7 @@ public class OpenNIWrapper {
                                          String configFile, 
                                          IntBuffer width, IntBuffer height); 
   private native boolean waitAnyUpdateAll(IntBuffer ctrlBlock);
-  private native void getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
+  private native int getDepthMap(IntBuffer ctrlBlock, IntBuffer depthBuf);
   private native void cleanUp(IntBuffer ctrlBlock); 
   private native void convertDepthProjectiveToWorld(IntBuffer ctrlBlock, 
                                                     FloatBuffer points);

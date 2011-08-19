@@ -40,7 +40,7 @@ public class OpenNIWrapperTest {
         getData();
     int total = 0;
     for (int i = 0; i < image.getWidth() * image.getHeight(); i++)
-      total += depthArray[i];
+      total += depthArray[i] & 0xffff;
     assertTrue(total > 0);
   }
 }

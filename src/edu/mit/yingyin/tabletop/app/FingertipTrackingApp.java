@@ -12,7 +12,7 @@ import edu.mit.yingyin.tabletop.Tracker;
 import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
 import edu.mit.yingyin.tabletop.Tracker.TrackerListener;
 
-public class MainDriver {
+public class FingertipTrackingApp {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyCode()) {
@@ -44,7 +44,7 @@ public class MainDriver {
   private ProcessPacket packet;
   boolean pause = false;
   
-  public MainDriver() {
+  public FingertipTrackingApp() {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
     openni = new OpenNIWrapper(configFile);
@@ -79,6 +79,6 @@ public class MainDriver {
   }
   
   public static void main(String[] args) {
-      new MainDriver();
+      new FingertipTrackingApp();
   }
 }
