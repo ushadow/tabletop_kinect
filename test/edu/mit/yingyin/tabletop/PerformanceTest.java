@@ -20,7 +20,7 @@ public class PerformanceTest {
   public void testShortBufferAndArry() {
     try {
       Timer timer = new Timer();
-      OpenNI openni = new OpenNI("test_data/config.xml");
+      OpenNIPlayer openni = new OpenNIPlayer("test_data/config.xml");
       int width = openni.depthWidth();
       int height = openni.depthHeight();
       short[] depthArray = new short[width * height];
@@ -76,7 +76,7 @@ public class PerformanceTest {
     int times = 20;
     long totalTime = 0;
     try {
-      OpenNI openni = new OpenNI(configFile);
+      OpenNIPlayer openni = new OpenNIPlayer(configFile);
       for (int i = 0; i < times; i++) {
         timer.tic();
         openni.waitDepthAndUpdateAll();

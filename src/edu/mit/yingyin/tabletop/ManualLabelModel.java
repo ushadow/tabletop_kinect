@@ -15,10 +15,9 @@ import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 
 public class ManualLabelModel {
-  private HashMap<Integer, List<Point>> points = 
-      new HashMap<Integer, List<Point>>();
-  
-  private OpenNI openni;
+  private HashMap<Integer, List<Point>> points = new HashMap<Integer, List<Point>>();
+
+  private OpenNIPlayer openni;
   private BufferedImage image;
   private short[] depthRawData;
   private int width, height;
@@ -28,10 +27,10 @@ public class ManualLabelModel {
   private int frameID = 0;
   private int rate = 1;
   private int count = 0;
-  
+
   public ManualLabelModel(String configFile) {
     try {
-      openni = new OpenNI(configFile);
+      openni = new OpenNIPlayer(configFile);
       width = openni.depthWidth();
       height = openni.depthHeight();
       depthRawData = new short[width * height];
@@ -52,33 +51,39 @@ public class ManualLabelModel {
     }
     return newList;
   }
-  
-  public int imageWidth() { return width; }
-  
-  public int imageHeight() { return height; }
-  
-  public int frameID() { return frameID; }
-  
+
+  public int imageWidth() {
+    return width;
+  }
+
+  public int imageHeight() {
+    return height;
+  }
+
+  public int frameID() {
+    return frameID;
+  }
+
   /**
    * Returns the next image from OpenNI.
+   * 
    * @return a gray image with brightness inversely related to depth value.
    */
   public BufferedImage nextImage() {
-//    frameID++;
-//    while (frameID % rate != 0) {
-//      openni.waitAnyUpdateAll();
-//      frameID++;
-//    }
-//    openni.epthMap(depthRawData);
-//    image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
-//        height);
+    // frameID++;
+    // while (frameID % rate != 0) {
+    // openni.waitAnyUpdateAll();
+    // frameID++;
+    // }
+    // openni.epthMap(depthRawData);
+    // image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
+    // height);
     try {
       openni.waitDepthAndUpdateAll();
       ShortBuffer depthBuffer = openni.depthBuffer();
       depthBuffer.get(depthRawData);
-      image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width, height);
-//      image = ImageConvertUtils.depthToGrayBufferedImage(depthBuffer, width, 
-//                                                         height);
+      image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
+          height);
       frameID = openni.depthFrameID();
     } catch (StatusException e) {
       System.err.println(e.getMessage());
@@ -96,23 +101,27 @@ public class ManualLabelModel {
     }
     list.add(p);
   }
-  
+
   public void removeLastPoint() {
     List<Point> list = points.get(frameID);
-    if (list != null && !list.isEmpty()) 
+    if (list != null && !list.isEmpty())
       list.remove(list.size() - 1);
   }
-  
-  public void increaseRate() { rate++; }
-  
-  public void decreaseRate() { rate--; }
-  
+
+  public void increaseRate() {
+    rate++;
+  }
+
+  public void decreaseRate() {
+    rate--;
+  }
+
   public void release() {
     openni.release();
   }
-  
+
   public void save(String filename) throws IOException {
     ObjectIO.writeObject(points, filename);
   }
-  
+
 }

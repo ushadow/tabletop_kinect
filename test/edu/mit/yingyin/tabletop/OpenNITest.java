@@ -11,12 +11,12 @@ import org.junit.Test;
 
 public class OpenNITest {
 
-  private OpenNI openni;
+  private OpenNIPlayer openni;
   
   @Before
   public void setUp() {
     try {
-      openni = new OpenNI("test_data/config.xml");
+      openni = new OpenNIPlayer("test_data/config.xml");
     } catch (GeneralException e) {
       e.printStackTrace();
       fail();
