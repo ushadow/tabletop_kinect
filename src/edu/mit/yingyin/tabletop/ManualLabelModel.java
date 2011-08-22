@@ -17,7 +17,7 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 public class ManualLabelModel {
   private HashMap<Integer, List<Point>> points = new HashMap<Integer, List<Point>>();
 
-  private OpenNIPlayer openni;
+  private OpenNIDevice openni;
   private BufferedImage image;
   private short[] depthRawData;
   private int width, height;
@@ -25,12 +25,11 @@ public class ManualLabelModel {
    * Current frame ID of the image from OpenNI.
    */
   private int frameID = 0;
-  private int rate = 1;
-  private int count = 0;
+  private int skip = 1;
 
   public ManualLabelModel(String configFile) {
     try {
-      openni = new OpenNIPlayer(configFile);
+      openni = new OpenNIDevice(configFile);
       width = openni.depthWidth();
       height = openni.depthHeight();
       depthRawData = new short[width * height];
@@ -60,39 +59,33 @@ public class ManualLabelModel {
     return height;
   }
 
-  public int frameID() {
-    return frameID;
-  }
+  /**
+   * @return The frame ID of the current image.
+   */
+  public int frameID() { return frameID; }
 
   /**
-   * Returns the next image from OpenNI.
+   * Returns the next image from OpenNI and updates the related information.
    * 
    * @return a gray image with brightness inversely related to depth value.
+   * @throws StatusException 
    */
-  public BufferedImage nextImage() {
-    // frameID++;
-    // while (frameID % rate != 0) {
-    // openni.waitAnyUpdateAll();
-    // frameID++;
-    // }
-    // openni.epthMap(depthRawData);
-    // image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
-    // height);
-    try {
-      openni.waitDepthAndUpdateAll();
-      ShortBuffer depthBuffer = openni.depthBuffer();
-      depthBuffer.get(depthRawData);
-      image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
-          height);
-      frameID = openni.depthFrameID();
-    } catch (StatusException e) {
-      System.err.println(e.getMessage());
-      System.exit(-1);
-    }
+  public BufferedImage nextImage(boolean forward) throws StatusException {
+    openni.seekFrame(forward ? skip : -skip);
+    openni.waitDepthAndUpdateAll();
+    ShortBuffer depthBuffer = openni.depthBuffer();
+    depthBuffer.get(depthRawData);
+    image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
+        height);
+    frameID = openni.depthFrameID();
     return image;
   }
 
   // Mutators
+  /**
+   * Adds a point corresponding to the current image.
+   * @param p point to be added corresponding to current image's frame ID.
+   */
   public void addPoint(Point p) {
     List<Point> list = points.get(frameID);
     if (list == null) {
@@ -109,11 +102,12 @@ public class ManualLabelModel {
   }
 
   public void increaseRate() {
-    rate++;
+    skip++;
   }
 
   public void decreaseRate() {
-    rate--;
+    if (skip > 1)
+      skip--;
   }
 
   public void release() {
@@ -123,5 +117,7 @@ public class ManualLabelModel {
   public void save(String filename) throws IOException {
     ObjectIO.writeObject(points, filename);
   }
+  
+  public int skipRate() { return skip; }
 
 }

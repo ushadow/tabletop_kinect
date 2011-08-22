@@ -15,6 +15,8 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.List;
 
+import org.OpenNI.StatusException;
+
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageView;
 import edu.mit.yingyin.tabletop.ManualLabelModel;
@@ -64,17 +66,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
         exit();
       }
     });
-    showNextImage();
-  }
-
-  private void exit() {
-    model.release();
-    System.exit(0);
-  }
-
-  private void showNextImage() {
-    viewer.show(model.nextImage());
-    viewer.setTitle("Frame = " + model.frameID());
+    showNextImage(true);
   }
 
   public void keyPressed(KeyEvent ke) {
@@ -84,13 +76,18 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
         exit();
         break;
       case KeyEvent.VK_N:
-        showNextImage();
+        showNextImage(true);
+        break;
+      case KeyEvent.VK_P:
+        showNextImage(false);
         break;
       case KeyEvent.VK_UP:
         model.increaseRate();
+        updateTitle();
         break;
       case KeyEvent.VK_DOWN:
         model.decreaseRate();
+        updateTitle();
         break;
       case KeyEvent.VK_S:
         try {
@@ -106,22 +103,13 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   }
 
   @Override
-  public void mouseClicked(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-
-  }
+  public void mouseClicked(MouseEvent arg0) {}
 
   @Override
-  public void mouseEntered(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-
-  }
+  public void mouseEntered(MouseEvent arg0) {}
 
   @Override
-  public void mouseExited(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-
-  }
+  public void mouseExited(MouseEvent arg0) {}
 
   @Override
   public void mousePressed(MouseEvent me) {
@@ -143,9 +131,25 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   }
 
   @Override
-  public void mouseReleased(MouseEvent arg0) {
-    // TODO Auto-generated method stub
+  public void mouseReleased(MouseEvent arg0) {}
 
+  private void exit() {
+    model.release();
+    System.exit(0);
   }
 
+  private void showNextImage(boolean forward) {
+    try {
+      viewer.show(model.nextImage(forward));
+      updateTitle();
+    } catch (StatusException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    }
+  }
+  
+  private void updateTitle() {
+    viewer.setTitle("Frame = " + model.frameID() + " skip = " + 
+        model.skipRate());
+  }
 }
