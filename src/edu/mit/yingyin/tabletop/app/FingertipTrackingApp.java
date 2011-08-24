@@ -63,7 +63,7 @@ public class FingertipTrackingApp {
     while (debugView.isVisible()) {
       if (pause == true)
         continue;
-      openni.waitAnyUpdateAll();
+      openni.waitDepthUpdateAll();
       openni.getDepthMap(packet.depthRawData);
       if (!table.isInitialized())
         table.init(packet.depthRawData, depthWidth, depthHeight);

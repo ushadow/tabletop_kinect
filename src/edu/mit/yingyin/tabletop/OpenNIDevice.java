@@ -1,11 +1,15 @@
 package edu.mit.yingyin.tabletop;
 
+import java.awt.Image;
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 import org.OpenNI.Context;
 import org.OpenNI.DepthGenerator;
 import org.OpenNI.DepthMetaData;
 import org.OpenNI.GeneralException;
+import org.OpenNI.ImageGenerator;
+import org.OpenNI.ImageMetaData;
 import org.OpenNI.NodeInfo;
 import org.OpenNI.NodeInfoList;
 import org.OpenNI.NodeType;
@@ -20,9 +24,11 @@ public class OpenNIDevice {
   private Context context;
   private OutArg<ScriptNode> scriptNode = new OutArg<ScriptNode>();
   private DepthGenerator depthGen = null;
+  private ImageGenerator imageGen = null;
   private Player player = null;
   private DepthMetaData depthMD;
-  private int depthWidth, depthHeight;
+  private ImageMetaData imageMD;
+  private int depthWidth, depthHeight, imageWidth, imageHeight;
   
   /**
    * Creates a player that plays back a recorded file.
@@ -39,21 +45,35 @@ public class OpenNIDevice {
         depthMD = depthGen.getMetaData();
         depthWidth = depthMD.getFullXRes();
         depthHeight = depthMD.getFullYRes();
-      } else if (type.equals(NodeType.PLAYER))
+      } else if (type.equals(NodeType.PLAYER)) {
         player = (Player)node.getInstance();
+      } else if (type.equals(NodeType.IMAGE)) {
+        imageGen = (ImageGenerator)node.getInstance();
+        imageMD = imageGen.getMetaData();
+        imageWidth = imageMD.getFullXRes();
+        imageHeight = imageMD.getFullYRes();
+      }
     }
   }
   
-  public int depthWidth() {
-    return depthWidth;
-  }
+  public int depthWidth() { return depthWidth; }
 
-  public int depthHeight() {
-    return depthHeight;
-  }
+  public int depthHeight() { return depthHeight; }
+  
+  public int imageWidth() { return imageWidth; }
+  
+  public int imageHeight() { return imageHeight; }
   
   public ShortBuffer depthBuffer() throws StatusException {
     return depthMD.getData().createShortBuffer();
+  }
+  
+  public ByteBuffer imageBuffer() {
+    return imageMD.getData().createByteBuffer();
+  }
+  
+  public int imageFrameID() {
+    return imageMD.getFrameID();
   }
 
   public int depthFrameID() {
@@ -62,12 +82,12 @@ public class OpenNIDevice {
   
   public void waitAnyUpdateAll() throws StatusException {
     context.waitAnyUpdateAll();
-    depthMD = depthGen.getMetaData();
+    updateMetaData();
   }
   
   public void waitDepthAndUpdateAll() throws StatusException {
     context.waitOneUpdateAll(depthGen);
-    depthMD = depthGen.getMetaData();
+    updateMetaData();
   }
   
   public int deviceMaxDepth() {
@@ -83,4 +103,10 @@ public class OpenNIDevice {
     if (player != null)
       player.seekToFrame(depthGen, PlayerSeekOrigin.CURRENT, diff);
   }
+  
+  private void updateMetaData() {
+    depthMD = depthGen.getMetaData();
+    imageMD = imageGen.getMetaData();
+  }
+    
 }

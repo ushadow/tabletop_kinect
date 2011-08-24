@@ -12,8 +12,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 import org.OpenNI.StatusException;
 
@@ -44,16 +47,33 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     }
   }
 
+  private static final String CONFIG_FILE = "./config/manual_label.config"; 
   public static void main(String[] args) {
     new ManualLabelApp();
   }
 
   private ImageView viewer;
   private ManualLabelModel model;
-  private String openniConfigFile = "config/config.xml";
-  private String saveFilename = "data/groud_truth.label";
+  private String openniConfigFile;
+  private String saveFilename;
 
   public ManualLabelApp() {
+    Properties config = new Properties();
+    FileInputStream in = null;
+    try {
+      in = new FileInputStream(CONFIG_FILE);
+      config.load(in);
+      in.close();
+    } catch (FileNotFoundException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } 
+    
+    openniConfigFile = config.getProperty("openni-config", "config/config.xml");
+    saveFilename = config.getProperty("save-file", "data/groud_truth.label");
     model = new ManualLabelModel(openniConfigFile);
     LabelView labelView = new LabelView(new Dimension(model.imageWidth(),
         model.imageHeight()));

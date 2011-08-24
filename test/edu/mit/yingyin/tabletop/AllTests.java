@@ -5,6 +5,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({OpenNITest.class, OpenNIWrapperTest.class})
+@SuiteClasses({OpenNIDeviceTest.class, OpenNIWrapperTest.class})
 public class AllTests {
 }

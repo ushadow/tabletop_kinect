@@ -9,7 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OpenNITest {
+public class OpenNIDeviceTest {
 
   private OpenNIDevice openni;
   
@@ -44,8 +44,9 @@ public class OpenNITest {
   }
   
   @Test
-  public void testMaxDevice() {
+  public void testMaxDeviceDepth() {
     int maxDepth = openni.deviceMaxDepth();
+    System.out.println("Device max depth = " + maxDepth);
     assertTrue(maxDepth <= 65535 && maxDepth >= 0);
   }
 
