@@ -57,6 +57,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   private ManualLabelModel model;
   private String openniConfigFile;
   private String saveFilename;
+  private String replayFilename;
 
   public ManualLabelApp() {
     Properties config = new Properties();
@@ -75,17 +76,22 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     
     openniConfigFile = config.getProperty("openni-config", "config/config.xml");
     saveFilename = config.getProperty("save-file", "data/groud_truth.label");
-    model = new ManualLabelModel(openniConfigFile);
+    replayFilename = config.getProperty("replay-file", null);
+    try {
+      model = new ManualLabelModel(openniConfigFile, replayFilename);
+    } catch (IOException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    }
     LabelView depthView = new LabelView(new Dimension(model.depthWidth(),
         model.depthHeight()));
-    LabelView rgbView = new LabelView(new Dimension(model.rgbWidth(),
+    ImageComponent rgbView = new LabelView(new Dimension(model.rgbWidth(),
         model.rgbHeight()));
-    depthViewer = new ImageView("Depth", depthView);
     rgbViewer = new ImageView("RGB", rgbView);
+    depthViewer = new ImageView("Depth", depthView);
     depthViewer.addKeyListener(this);
     rgbViewer.addKeyListener(this);
     depthView.addMouseListener(this);
-    rgbView.addMouseListener(this);
     WindowAdapter wa = new WindowAdapter() {
       public void windowClosing(WindowEvent arg0) {
         exit();
@@ -143,7 +149,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   @Override
   public void mousePressed(MouseEvent me) {
     Point p = me.getPoint();
-
+    depthViewer.setStatus("Clicked at (" + p.x + ", " + p.y + ")");
     // left click
     if ((me.getModifiersEx() | InputEvent.BUTTON1_DOWN_MASK) == 
         InputEvent.BUTTON1_DOWN_MASK) {
@@ -170,9 +176,9 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   private void showNextImage(boolean forward) {
     try {
       model.update(forward);
+      updateTitle();
       depthViewer.show(model.depthImage());
       rgbViewer.show(model.rgbImage());
-      updateTitle();
     } catch (StatusException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
@@ -185,6 +191,5 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   private void updateTitle() {
     depthViewer.setTitle("Frame = " + model.depthFrameID() + " skip = " + 
         model.skipRate());
-    rgbViewer.setTitle("Frame = " + model.rgbFrameID());
   }
 }

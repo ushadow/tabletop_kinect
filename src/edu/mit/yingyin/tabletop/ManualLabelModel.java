@@ -14,8 +14,11 @@ import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 
 public class ManualLabelModel {
-  private HashMap<Integer, List<Point>> points = 
-      new HashMap<Integer, List<Point>>();
+  /**
+   * Points at each frame. Multiple points at each frame for tracking multiple
+   * fingers. 
+   */
+  private HashMap<Integer, List<Point>> points;
 
   private OpenNIDevice openni;
   private BufferedImage depthImage, rgbImage;
@@ -27,7 +30,9 @@ public class ManualLabelModel {
   private int depthFrameID = 0, rgbFrameID = 0;
   private int skip = 1;
 
-  public ManualLabelModel(String configFile) {
+  @SuppressWarnings("unchecked")
+  public ManualLabelModel(String configFile, String replayFilename) 
+      throws IOException {
     try {
       openni = new OpenNIDevice(configFile);
       depthWidth = openni.depthWidth();
@@ -39,6 +44,11 @@ public class ManualLabelModel {
       depthImage = new BufferedImage(depthWidth, depthHeight, 
                                      BufferedImage.TYPE_USHORT_GRAY);
       depthRawData = new short[depthWidth * depthHeight];
+      if (replayFilename != null) 
+        points = ((HashMap<Integer, List<Point>>)
+            ObjectIO.readObject(replayFilename));
+      else
+        points = new HashMap<Integer, List<Point>>();
     } catch (GeneralException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
