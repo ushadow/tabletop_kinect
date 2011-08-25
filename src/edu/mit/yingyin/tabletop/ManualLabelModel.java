@@ -85,6 +85,16 @@ public class ManualLabelModel {
   public void update(boolean forward) throws GeneralException {
     openni.seekFrame(forward ? skip : -skip);
     openni.waitAndUpdateAll();
+    depthFrameID = openni.depthFrameID();
+    rgbFrameID = openni.imageFrameID();
+    while (rgbFrameID != depthFrameID) {
+      if (rgbFrameID < depthFrameID)
+        openni.waitImageUpdateAll();
+      else openni.waitDepthUpdateAll();
+      depthFrameID = openni.depthFrameID();
+      rgbFrameID = openni.imageFrameID();
+    }
+    
     ShortBuffer depthBuffer = openni.depthBuffer();
     depthBuffer.get(depthRawData);
     ImageConvertUtils.depthToGrayBufferedImage(depthRawData, depthImage);
