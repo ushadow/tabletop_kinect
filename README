@@ -1,0 +1,6 @@
+Requred jars:
+* javacpp.jar (20110820)
+* javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
+* javacvcv.jar
+* org.OpenNI.jar
+* vecmath.jar

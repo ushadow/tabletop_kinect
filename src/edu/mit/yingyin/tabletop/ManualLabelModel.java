@@ -9,31 +9,36 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.OpenNI.GeneralException;
-import org.OpenNI.StatusException;
 
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 
 public class ManualLabelModel {
-  private HashMap<Integer, List<Point>> points = new HashMap<Integer, List<Point>>();
+  private HashMap<Integer, List<Point>> points = 
+      new HashMap<Integer, List<Point>>();
 
   private OpenNIDevice openni;
-  private BufferedImage image;
+  private BufferedImage depthImage, rgbImage;
   private short[] depthRawData;
-  private int width, height;
+  private int depthWidth, depthHeight, rgbWidth, rgbHeight;
   /**
    * Current frame ID of the image from OpenNI.
    */
-  private int frameID = 0;
+  private int depthFrameID = 0, rgbFrameID = 0;
   private int skip = 1;
 
   public ManualLabelModel(String configFile) {
     try {
       openni = new OpenNIDevice(configFile);
-      width = openni.depthWidth();
-      height = openni.depthHeight();
-      depthRawData = new short[width * height];
-      image = null;
+      depthWidth = openni.depthWidth();
+      depthHeight = openni.depthHeight();
+      rgbWidth = openni.imageWidth();
+      rgbHeight = openni.imageHeight();
+      rgbImage = new BufferedImage(rgbWidth, rgbHeight, 
+                                   BufferedImage.TYPE_3BYTE_BGR);
+      depthImage = new BufferedImage(depthWidth, depthHeight, 
+                                     BufferedImage.TYPE_USHORT_GRAY);
+      depthRawData = new short[depthWidth * depthHeight];
     } catch (GeneralException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
@@ -51,52 +56,58 @@ public class ManualLabelModel {
     return newList;
   }
 
-  public int imageWidth() {
-    return width;
-  }
+  public int depthWidth() { return depthWidth; }
 
-  public int imageHeight() {
-    return height;
-  }
+  public int depthHeight() { return depthHeight; }
 
+  public int rgbWidth() { return rgbWidth; }
+  
+  public int rgbHeight() { return rgbHeight; }
+  
   /**
    * @return The frame ID of the current image.
    */
-  public int frameID() { return frameID; }
+  public int depthFrameID() { return depthFrameID; }
 
+  public int rgbFrameID() { return rgbFrameID; }
+  
+  public BufferedImage depthImage() { return depthImage; }
+  
+  public BufferedImage rgbImage() { return rgbImage; }
+  
+  // Mutators
   /**
    * Returns the next image from OpenNI and updates the related information.
    * 
    * @return a gray image with brightness inversely related to depth value.
-   * @throws StatusException 
+   * @throws GeneralException 
    */
-  public BufferedImage nextImage(boolean forward) throws StatusException {
+  public void update(boolean forward) throws GeneralException {
     openni.seekFrame(forward ? skip : -skip);
-    openni.waitDepthAndUpdateAll();
+    openni.waitAndUpdateAll();
     ShortBuffer depthBuffer = openni.depthBuffer();
     depthBuffer.get(depthRawData);
-    image = ImageConvertUtils.depthToGrayBufferedImage(depthRawData, width,
-        height);
-    frameID = openni.depthFrameID();
-    return image;
+    ImageConvertUtils.depthToGrayBufferedImage(depthRawData, depthImage);
+    ImageConvertUtils.byteBuffer2BufferedImage(openni.imageBuffer(), rgbImage);
+    depthFrameID = openni.depthFrameID();
+    rgbFrameID = openni.imageFrameID();
   }
 
-  // Mutators
   /**
    * Adds a point corresponding to the current image.
    * @param p point to be added corresponding to current image's frame ID.
    */
   public void addPoint(Point p) {
-    List<Point> list = points.get(frameID);
+    List<Point> list = points.get(depthFrameID);
     if (list == null) {
       list = new ArrayList<Point>();
-      points.put(frameID, list);
+      points.put(depthFrameID, list);
     }
     list.add(p);
   }
 
   public void removeLastPoint() {
-    List<Point> list = points.get(frameID);
+    List<Point> list = points.get(depthFrameID);
     if (list != null && !list.isEmpty())
       list.remove(list.size() - 1);
   }

@@ -9,6 +9,7 @@ import org.OpenNI.DepthGenerator;
 import org.OpenNI.DepthMetaData;
 import org.OpenNI.GeneralException;
 import org.OpenNI.ImageGenerator;
+import org.OpenNI.ImageMap;
 import org.OpenNI.ImageMetaData;
 import org.OpenNI.NodeInfo;
 import org.OpenNI.NodeInfoList;
@@ -68,25 +69,40 @@ public class OpenNIDevice {
     return depthMD.getData().createShortBuffer();
   }
   
-  public ByteBuffer imageBuffer() {
-    return imageMD.getData().createByteBuffer();
+  public ByteBuffer imageBuffer() throws GeneralException {
+    return imageGen.getImageMap().createByteBuffer();
   }
   
-  public int imageFrameID() {
-    return imageMD.getFrameID();
-  }
+  public int imageFrameID() { return imageMD.getFrameID(); }
 
-  public int depthFrameID() {
-    return depthMD.getFrameID();
-  }
+  public int depthFrameID() { return depthMD.getFrameID(); }
   
+  /**
+   * Waits for any node to have new data. Once new data is available from any 
+   * node, all nodes are updated.
+   * @throws StatusException
+   */
   public void waitAnyUpdateAll() throws StatusException {
     context.waitAnyUpdateAll();
     updateMetaData();
   }
   
-  public void waitDepthAndUpdateAll() throws StatusException {
+  public void waitDepthUpdateAll() throws StatusException {
     context.waitOneUpdateAll(depthGen);
+    updateMetaData();
+  }
+  
+  /**
+   * Waits for all nodes to have new data available, and then updates them.
+   * @throws StatusException
+   */
+  public void waitAndUpdateAll() throws StatusException { 
+    context.waitAndUpdateAll();
+    updateMetaData();
+  }
+  
+  public void waitImageUpdateAll() throws StatusException {
+    context.waitOneUpdateAll(imageGen);
     updateMetaData();
   }
   

@@ -31,19 +31,21 @@ public class PerformanceTest {
       int times = 20;
       
       for (int i = 0; i <times; i++) {
-        openni.waitDepthAndUpdateAll();
+        openni.waitDepthUpdateAll();
         ShortBuffer buffer = openni.depthBuffer();
         
         timer.tic();
-        image1 = ImageConvertUtils.depthToGrayBufferedImage(buffer, 
-            width, height);
+        image1 = new BufferedImage(width, height, 
+            BufferedImage.TYPE_USHORT_GRAY);
+        ImageConvertUtils.depthToGrayBufferedImage(buffer, image1);
         totalTime1 += timer.getToc();
   
         buffer.rewind();
         timer.tic();
         buffer.get(depthArray);
-        image2 = ImageConvertUtils.depthToGrayBufferedImage(
-            depthArray, width, height);
+        image2 = new BufferedImage(width, height, 
+            BufferedImage.TYPE_USHORT_GRAY);
+        ImageConvertUtils.depthToGrayBufferedImage(depthArray, image2);
         totalTime2 += timer.getToc();
       }
       
@@ -79,7 +81,7 @@ public class PerformanceTest {
       OpenNIDevice openni = new OpenNIDevice(configFile);
       for (int i = 0; i < times; i++) {
         timer.tic();
-        openni.waitDepthAndUpdateAll();
+        openni.waitDepthUpdateAll();
         totalTime += timer.getToc();
       }
       System.out.println(totalTime / times + 

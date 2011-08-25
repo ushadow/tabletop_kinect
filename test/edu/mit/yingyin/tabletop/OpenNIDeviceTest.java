@@ -33,7 +33,7 @@ public class OpenNIDeviceTest {
   public void testFrameID() {
     try {
       int frameID1 = openni.depthFrameID();
-      openni.waitDepthAndUpdateAll();
+      openni.waitDepthUpdateAll();
       assertEquals(0, frameID1);
       int frameID2 = openni.depthFrameID();
       assertTrue(frameID2 > frameID1);
@@ -48,6 +48,12 @@ public class OpenNIDeviceTest {
     int maxDepth = openni.deviceMaxDepth();
     System.out.println("Device max depth = " + maxDepth);
     assertTrue(maxDepth <= 65535 && maxDepth >= 0);
+  }
+  
+  @Test
+  public void testWidthAndHeight() {
+    assertEquals(480, openni.imageHeight());
+    assertEquals(640, openni.imageWidth());
   }
 
 }

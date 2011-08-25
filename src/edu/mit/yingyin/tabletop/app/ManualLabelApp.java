@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+import org.OpenNI.GeneralException;
 import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.gui.ImageComponent;
@@ -38,7 +39,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     public void paint(Graphics g) {
       super.paint(g);
 
-      List<Point> points = model.getPoints(model.frameID());
+      List<Point> points = model.getPoints(model.depthFrameID());
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.red);
       for (Point p : points)
@@ -52,7 +53,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     new ManualLabelApp();
   }
 
-  private ImageView viewer;
+  private ImageView depthViewer, rgbViewer;
   private ManualLabelModel model;
   private String openniConfigFile;
   private String saveFilename;
@@ -75,17 +76,25 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     openniConfigFile = config.getProperty("openni-config", "config/config.xml");
     saveFilename = config.getProperty("save-file", "data/groud_truth.label");
     model = new ManualLabelModel(openniConfigFile);
-    LabelView labelView = new LabelView(new Dimension(model.imageWidth(),
-        model.imageHeight()));
-    viewer = new ImageView("Label", labelView);
-    viewer.addKeyListener(this);
-    labelView.addMouseListener(this);
-    viewer.addWindowListener(new WindowAdapter() {
-
+    LabelView depthView = new LabelView(new Dimension(model.depthWidth(),
+        model.depthHeight()));
+    LabelView rgbView = new LabelView(new Dimension(model.rgbWidth(),
+        model.rgbHeight()));
+    depthViewer = new ImageView("Depth", depthView);
+    rgbViewer = new ImageView("RGB", rgbView);
+    depthViewer.addKeyListener(this);
+    rgbViewer.addKeyListener(this);
+    depthView.addMouseListener(this);
+    rgbView.addMouseListener(this);
+    WindowAdapter wa = new WindowAdapter() {
       public void windowClosing(WindowEvent arg0) {
         exit();
       }
-    });
+    };
+    depthViewer.addWindowListener(wa);
+    rgbViewer.addWindowListener(wa);
+    Point location = depthViewer.getLocation();
+    rgbViewer.setLocation(location.x + depthViewer.getWidth(), location.y);
     showNextImage(true);
   }
 
@@ -139,14 +148,14 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     if ((me.getModifiersEx() | InputEvent.BUTTON1_DOWN_MASK) == 
         InputEvent.BUTTON1_DOWN_MASK) {
       model.addPoint(p);
-      viewer.repaint();
+      depthViewer.repaint();
     }
 
     // right click
     if ((me.getModifiersEx() | InputEvent.BUTTON3_DOWN_MASK) == 
         InputEvent.BUTTON3_DOWN_MASK) {
       model.removeLastPoint();
-      viewer.repaint();
+      depthViewer.repaint();
     }
   }
 
@@ -160,16 +169,22 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
 
   private void showNextImage(boolean forward) {
     try {
-      viewer.show(model.nextImage(forward));
+      model.update(forward);
+      depthViewer.show(model.depthImage());
+      rgbViewer.show(model.rgbImage());
       updateTitle();
     } catch (StatusException e) {
       System.err.println(e.getMessage());
+      System.exit(-1);
+    } catch (GeneralException ge) {
+      System.err.println(ge.getMessage());
       System.exit(-1);
     }
   }
   
   private void updateTitle() {
-    viewer.setTitle("Frame = " + model.frameID() + " skip = " + 
+    depthViewer.setTitle("Frame = " + model.depthFrameID() + " skip = " + 
         model.skipRate());
+    rgbViewer.setTitle("Frame = " + model.rgbFrameID());
   }
 }
