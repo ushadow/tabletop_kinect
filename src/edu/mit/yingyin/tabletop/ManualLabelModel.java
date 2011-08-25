@@ -3,7 +3,6 @@ package edu.mit.yingyin.tabletop;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,8 +104,7 @@ public class ManualLabelModel {
       rgbFrameID = openni.imageFrameID();
     }
     
-    ShortBuffer depthBuffer = openni.depthBuffer();
-    depthBuffer.get(depthRawData);
+    openni.depthArray(depthRawData);
     ImageConvertUtils.depthToGrayBufferedImage(depthRawData, depthImage);
     ImageConvertUtils.byteBuffer2BufferedImage(openni.imageBuffer(), rgbImage);
     depthFrameID = openni.depthFrameID();

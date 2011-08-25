@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop;
 
-import java.awt.Image;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
@@ -9,7 +8,6 @@ import org.OpenNI.DepthGenerator;
 import org.OpenNI.DepthMetaData;
 import org.OpenNI.GeneralException;
 import org.OpenNI.ImageGenerator;
-import org.OpenNI.ImageMap;
 import org.OpenNI.ImageMetaData;
 import org.OpenNI.NodeInfo;
 import org.OpenNI.NodeInfoList;
@@ -67,6 +65,19 @@ public class OpenNIDevice {
   
   public ShortBuffer depthBuffer() throws StatusException {
     return depthMD.getData().createShortBuffer();
+  }
+  
+  public void depthArray(short[] depthArray) throws StatusException {
+    depthBuffer().get(depthArray);
+  }
+
+  public void depthArray(int[] depthArray) throws StatusException {
+    ShortBuffer sb = depthBuffer();
+    sb.rewind();
+    while (sb.remaining() > 0) {
+      int pos = sb.position();
+      depthArray[pos] = sb.get() & 0xffffffff;
+    }
   }
   
   public ByteBuffer imageBuffer() throws GeneralException {

@@ -3,9 +3,12 @@ package edu.mit.yingyin.tabletop.app;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import org.OpenNI.GeneralException;
+import org.OpenNI.StatusException;
+
 import edu.mit.yingyin.tabletop.DebugView;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
-import edu.mit.yingyin.tabletop.OpenNIWrapper;
+import edu.mit.yingyin.tabletop.OpenNIDevice;
 import edu.mit.yingyin.tabletop.ProcessPacket;
 import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.Tracker;
@@ -38,7 +41,7 @@ public class FingertipTrackingApp {
     }
   }
   
-  private OpenNIWrapper openni;
+  private OpenNIDevice openni;
   private DebugView debugView;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
@@ -47,7 +50,12 @@ public class FingertipTrackingApp {
   public FingertipTrackingApp() {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
-    openni = new OpenNIWrapper(configFile);
+    try {
+      openni = new OpenNIDevice(configFile);
+    } catch (GeneralException e1) {
+      System.err.println(e1.getMessage());
+      System.exit(-1);
+    }
     depthWidth = openni.depthWidth();
     depthHeight = openni.depthHeight();
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
@@ -63,8 +71,13 @@ public class FingertipTrackingApp {
     while (debugView.isVisible()) {
       if (pause == true)
         continue;
-      openni.waitDepthUpdateAll();
-      openni.getDepthMap(packet.depthRawData);
+      try {
+        openni.waitDepthUpdateAll();
+        openni.depthArray(packet.depthRawData);
+      } catch (StatusException e) {
+        System.err.println(e.getMessage());
+        System.exit(-1);
+      }
       if (!table.isInitialized())
         table.init(packet.depthRawData, depthWidth, depthHeight);
       analyzer.analyzeData(packet);
