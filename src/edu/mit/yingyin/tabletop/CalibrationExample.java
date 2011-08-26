@@ -43,7 +43,7 @@ public class CalibrationExample {
   
   /**
    * Constructs a CalibrationExample from corresponding object points and image
-   * points using the specified cablibration method.
+   * points using the specified calibration method.
    * 
    * @param objectPoints a list of object points in 2D.
    * @param imagePoints a list of image points in 2D.

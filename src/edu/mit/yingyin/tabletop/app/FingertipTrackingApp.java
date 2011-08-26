@@ -68,6 +68,7 @@ public class FingertipTrackingApp {
     Tracker tracker = new Tracker(table);
     tracker.addListener(new TrackerController());
     
+    // Only one ProcessPacket present at all time.
     while (debugView.isVisible()) {
       if (pause == true)
         continue;
