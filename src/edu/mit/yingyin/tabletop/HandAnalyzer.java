@@ -47,7 +47,6 @@ import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
-  public static final int MAX_DEPTH = 1600;
   public static final int HAND_YCUTOFF = 50;
 
   private static final int CVCLOSE_ITR = 2;
@@ -83,7 +82,7 @@ public class HandAnalyzer {
 //    temporalSmooth(packet);
   }
   
-  public void cleanUp() {
+  public void release() {
     tempImage.release();
     System.out.println("HandAnalyzer cleaned up.");
   } 
@@ -101,8 +100,8 @@ public class HandAnalyzer {
         ib.put(i, (byte)0);
       } else {
         int depth = depthRawData[i];
-        depth = depth > MAX_DEPTH ? MAX_DEPTH : depth;
-        ib.put(i, (byte)(depth * 255 / MAX_DEPTH));
+        depth = depth > Background.MAX_DEPTH ? Background.MAX_DEPTH : depth;
+        ib.put(i, (byte)(depth * 255 / Background.MAX_DEPTH));
       }
     }
     // Cleans up the background subtracted image.

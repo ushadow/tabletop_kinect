@@ -86,7 +86,7 @@ public class FingertipTrackingApp {
       tracker.update(packet.foreLimbsFeatures);
     }
     openni.release();
-    analyzer.cleanUp();
+    analyzer.release();
     packet.cleanUp();
     debugView.cleanUp();
     System.exit(0);

@@ -9,6 +9,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
 import static com.googlecode.javacv.cpp.opencv_core.cvAdd;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
+import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
 import java.nio.FloatBuffer;
@@ -17,6 +18,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 
 public class Background {
+  public static final int MAX_DEPTH = 1600; 
   private IplImage scratchI, scratchI2, avgFI, prevFI, diffFI, hiFI, lowFI;
   private boolean first = true;
   private float highScale, lowScale;
@@ -45,13 +47,7 @@ public class Background {
    * @param depthRawData int array of depth values.
    */
   public void accumulateBackground(int[] depthRawData) {
-    FloatBuffer fb = scratchI.getFloatBuffer();
-    fb.rewind();
-    // Converts to float.
-    while(fb.remaining() > 0) {
-      int pos = fb.position();
-      fb.put((float)depthRawData[pos] / HandAnalyzer.MAX_DEPTH);
-    }
+    scale(depthRawData, scratchI);
     if (!first) {
       cvAcc(scratchI, avgFI, null);
       cvAbsDiff(scratchI, prevFI, scratchI2);
@@ -71,10 +67,41 @@ public class Background {
     setLowThreshold(lowScale);
   }
   
-  public void backgroundDiff() {
+  public void backgroundDiff(int[] depthRawData, IplImage mask) {
     
+    // To float.
+    scale(depthRawData, scratchI);
+    cvInRange(scratchI, lowFI, hiFI, mask);
+  }
+  
+  public void release() {
+    scratchI.release();
+    scratchI2.release();
+    avgFI.release();
+    diffFI.release();
+    prevFI.release();
+    hiFI.release();
+    lowFI.release();
   }
 
+  /**
+   * Scales integer depth values into a floating-point 1-channel image with
+   * values between 0 and 1.
+   * @param depthRawData int array of depth values.
+   * @param image floating-point 1-channel image with the same number of pixels
+   *    as the depth array.
+   */
+  private void scale(int[] depthRawData, IplImage image) {
+    FloatBuffer fb = image.getFloatBuffer();
+    fb.rewind();
+    // Converts to float.
+    while(fb.remaining() > 0) {
+      int pos = fb.position();
+      float depth = (float)depthRawData[pos] / MAX_DEPTH;
+      fb.put(depth > 1 ? depth : 1);
+    }
+  }
+  
   private void setHighThreshold(float scale) {
     cvConvertScale(diffFI, scratchI, scale, 0);
     cvAdd(scratchI, avgFI, hiFI, null);

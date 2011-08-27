@@ -110,8 +110,8 @@ public class DebugView {
 
     ByteBuffer ib = appImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) {
-      ib.put(i, (byte)((HandAnalyzer.MAX_DEPTH - packet.depthRawData[i]) *
-                       255 / HandAnalyzer.MAX_DEPTH));
+      ib.put(i, (byte)((Background.MAX_DEPTH - packet.depthRawData[i]) *
+                       255 / Background.MAX_DEPTH));
     }
     frames[1].showImage(appImage);
     fpsCounter.computeFPS();
