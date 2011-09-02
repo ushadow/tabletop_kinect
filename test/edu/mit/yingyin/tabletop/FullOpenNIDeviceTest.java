@@ -9,14 +9,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OpenNIDeviceTest {
+public class FullOpenNIDeviceTest {
 
-  private OpenNIDevice openni;
+  private FullOpenNIDevice openni;
   
   @Before
   public void setUp() {
     try {
-      openni = new OpenNIDevice("test_data/config.xml");
+      openni = new FullOpenNIDevice("test_data/config.xml");
     } catch (GeneralException e) {
       e.printStackTrace();
       fail();

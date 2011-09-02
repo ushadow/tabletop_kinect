@@ -20,7 +20,7 @@ import edu.mit.yingyin.calib.CalibView;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.CalibrationExample;
 import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethod;
-import edu.mit.yingyin.tabletop.OpenNIWrapper;
+import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
 import edu.mit.yingyin.util.FileUtil;
 
 public class CalibrationApp {
@@ -109,7 +109,7 @@ public class CalibrationApp {
     
     if (camImgPath != null || scrnImagePath != null) {
       if (camImgPath != null) {
-        image = OpenNIWrapper.rawDepthToBufferedImage(camImgPath);
+        image = PartialOpenNIDevice.rawDepthToBufferedImage(camImgPath);
         try {
           ImageIO.write(image, "PNG", new File(FileUtil.setExtension(camImgPath, 
                                                "png")));

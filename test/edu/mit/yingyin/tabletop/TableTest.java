@@ -10,12 +10,12 @@ public class TableTest {
   @Test
   public void testAverageTableDepth() {
     try {
-      OpenNIDevice openni = new OpenNIDevice("test_data/config.xml");
+      FullOpenNIDevice openni = new FullOpenNIDevice("test_data/config.xml");
       openni.waitAndUpdateAll();
-      int[] depthArray = new int[openni.depthWidth() * openni.depthHeight()];
-      openni.depthArray(depthArray);
-      Table table = new Table(depthArray, openni.depthWidth(), 
-                              openni.depthHeight());
+      int[] depthArray = new int[openni.getDepthWidth() * openni.getDepthHeight()];
+      openni.getDepthArray(depthArray);
+      Table table = new Table(depthArray, openni.getDepthWidth(), 
+                              openni.getDepthHeight());
       int averageDepth = table.averageDepth();
       assertTrue(averageDepth > 0);
       System.out.println("Average table depth = " + averageDepth);

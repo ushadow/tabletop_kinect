@@ -20,9 +20,9 @@ public class PerformanceTest {
   public void testShortBufferAndArry() {
     try {
       Timer timer = new Timer();
-      OpenNIDevice openni = new OpenNIDevice("test_data/config.xml");
-      int width = openni.depthWidth();
-      int height = openni.depthHeight();
+      FullOpenNIDevice openni = new FullOpenNIDevice("test_data/config.xml");
+      int width = openni.getDepthWidth();
+      int height = openni.getDepthHeight();
       short[] depthArray = new short[width * height];
       BufferedImage image1 = null;
       BufferedImage image2 = null;
@@ -78,7 +78,7 @@ public class PerformanceTest {
     int times = 20;
     long totalTime = 0;
     try {
-      OpenNIDevice openni = new OpenNIDevice(configFile);
+      FullOpenNIDevice openni = new FullOpenNIDevice(configFile);
       for (int i = 0; i < times; i++) {
         timer.tic();
         openni.waitDepthUpdateAll();
@@ -92,7 +92,7 @@ public class PerformanceTest {
       fail();
     }
     
-    OpenNIWrapper openni = new OpenNIWrapper(configFile);
+    PartialOpenNIDevice openni = new PartialOpenNIDevice(configFile);
     totalTime = 0;
     for (int i = 0; i < times; i++) {
       timer.tic();

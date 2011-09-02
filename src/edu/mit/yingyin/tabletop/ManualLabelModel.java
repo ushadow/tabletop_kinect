@@ -19,7 +19,7 @@ public class ManualLabelModel {
    */
   private HashMap<Integer, List<Point>> points;
 
-  private OpenNIDevice openni;
+  private FullOpenNIDevice openni;
   private BufferedImage depthImage, rgbImage;
   private short[] depthRawData;
   private int depthWidth, depthHeight, rgbWidth, rgbHeight;
@@ -33,9 +33,9 @@ public class ManualLabelModel {
   public ManualLabelModel(String configFile, String replayFilename) 
       throws IOException {
     try {
-      openni = new OpenNIDevice(configFile);
-      depthWidth = openni.depthWidth();
-      depthHeight = openni.depthHeight();
+      openni = new FullOpenNIDevice(configFile);
+      depthWidth = openni.getDepthWidth();
+      depthHeight = openni.getDepthHeight();
       rgbWidth = openni.imageWidth();
       rgbHeight = openni.imageHeight();
       rgbImage = new BufferedImage(rgbWidth, rgbHeight, 

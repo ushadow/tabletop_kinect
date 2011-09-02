@@ -7,24 +7,24 @@ import java.awt.image.DataBufferUShort;
 
 import org.junit.Test;
 
-public class OpenNIWrapperTest {
+public class PartialOpenNIDeviceTest {
 
   @Test
   public void testInitFromFileAndUpdate() {
-    OpenNIWrapper openniWrapper = new OpenNIWrapper("test_data/config.xml");
+    PartialOpenNIDevice openniWrapper = 
+        new PartialOpenNIDevice("test_data/config.xml");
     assertTrue(openniWrapper.initialized());
-    assertEquals(640, openniWrapper.depthWidth());
-    assertEquals(480, openniWrapper.depthHeight());
+    assertEquals(640, openniWrapper.getDepthWidth());
+    assertEquals(480, openniWrapper.getDepthHeight());
     assertTrue(openniWrapper.waitAnyUpdateAll());
-    assertTrue(openniWrapper.waitDepthUpdateAll());
     int[] depthMap = 
-        new int[openniWrapper.depthWidth() * openniWrapper.depthHeight()];
-    openniWrapper.getDepthMap(depthMap);
+        new int[openniWrapper.getDepthWidth() * openniWrapper.getDepthHeight()];
+    openniWrapper.getDepthArray(depthMap);
     int index = 0;
-    for (int h = 0; h < openniWrapper.depthHeight(); h++) {
-      for (int w = 0; w < openniWrapper.depthWidth(); w++, index++) {
+    for (int h = 0; h < openniWrapper.getDepthHeight(); h++) {
+      for (int w = 0; w < openniWrapper.getDepthWidth(); w++, index++) {
         int depth = depthMap[index];
-        assertTrue(depth >= 0 && depth <= OpenNIWrapper.MAX_DEPTH);
+        assertTrue(depth >= 0 && depth <= PartialOpenNIDevice.MAX_DEPTH);
       }
     }
     openniWrapper.release();
@@ -32,10 +32,10 @@ public class OpenNIWrapperTest {
   
   @Test
   public void testRawDepthToBufferedImage() {
-    BufferedImage image = OpenNIWrapper.rawDepthToBufferedImage(
+    BufferedImage image = PartialOpenNIDevice.rawDepthToBufferedImage(
         "test_data/Depth_0.raw");
-    assertEquals(OpenNIWrapper.DEFAULT_DEPTH_WIDTH, image.getWidth());
-    assertEquals(OpenNIWrapper.DEFAULT_DEPTH_HEIGHT, image.getHeight());
+    assertEquals(PartialOpenNIDevice.DEFAULT_DEPTH_WIDTH, image.getWidth());
+    assertEquals(PartialOpenNIDevice.DEFAULT_DEPTH_HEIGHT, image.getHeight());
     assertEquals(BufferedImage.TYPE_USHORT_GRAY, image.getType());
     short[] depthArray = ((DataBufferUShort)image.getRaster().getDataBuffer()).
         getData();
