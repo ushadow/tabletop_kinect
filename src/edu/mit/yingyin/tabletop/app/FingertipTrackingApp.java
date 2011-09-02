@@ -4,12 +4,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import org.OpenNI.GeneralException;
-import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.tabletop.DebugView;
-import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
+import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.OpenNIDevice;
+import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
 import edu.mit.yingyin.tabletop.ProcessPacket;
 import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.Tracker;
@@ -51,12 +51,7 @@ public class FingertipTrackingApp {
   public FingertipTrackingApp() {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
-    try {
-      openni = new FullOpenNIDevice(configFile);
-    } catch (GeneralException e1) {
-      System.err.println(e1.getMessage());
-      System.exit(-1);
-    }
+    openni = new PartialOpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);

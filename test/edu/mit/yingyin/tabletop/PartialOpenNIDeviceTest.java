@@ -17,6 +17,7 @@ public class PartialOpenNIDeviceTest {
     assertEquals(640, openniWrapper.getDepthWidth());
     assertEquals(480, openniWrapper.getDepthHeight());
     assertTrue(openniWrapper.waitAnyUpdateAll());
+    openniWrapper.waitAnyUpdateAll();
     int[] depthMap = 
         new int[openniWrapper.getDepthWidth() * openniWrapper.getDepthHeight()];
     openniWrapper.getDepthArray(depthMap);

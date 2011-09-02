@@ -15,12 +15,7 @@ public class FullOpenNIDeviceTest {
   
   @Before
   public void setUp() {
-    try {
-      openni = new FullOpenNIDevice("test_data/config.xml");
-    } catch (GeneralException e) {
-      e.printStackTrace();
-      fail();
-    }
+    openni = new FullOpenNIDevice("test_data/config.xml");
   }
   
   @After

@@ -32,26 +32,21 @@ public class ManualLabelModel {
   @SuppressWarnings("unchecked")
   public ManualLabelModel(String configFile, String replayFilename) 
       throws IOException {
-    try {
-      openni = new FullOpenNIDevice(configFile);
-      depthWidth = openni.getDepthWidth();
-      depthHeight = openni.getDepthHeight();
-      rgbWidth = openni.imageWidth();
-      rgbHeight = openni.imageHeight();
-      rgbImage = new BufferedImage(rgbWidth, rgbHeight, 
-                                   BufferedImage.TYPE_3BYTE_BGR);
-      depthImage = new BufferedImage(depthWidth, depthHeight, 
-                                     BufferedImage.TYPE_USHORT_GRAY);
-      depthRawData = new short[depthWidth * depthHeight];
-      if (replayFilename != null) 
-        points = ((HashMap<Integer, List<Point>>)
-            ObjectIO.readObject(replayFilename));
-      else
-        points = new HashMap<Integer, List<Point>>();
-    } catch (GeneralException e) {
-      System.err.println(e.getMessage());
-      System.exit(-1);
-    }
+    openni = new FullOpenNIDevice(configFile);
+    depthWidth = openni.getDepthWidth();
+    depthHeight = openni.getDepthHeight();
+    rgbWidth = openni.imageWidth();
+    rgbHeight = openni.imageHeight();
+    rgbImage = new BufferedImage(rgbWidth, rgbHeight, 
+                                 BufferedImage.TYPE_3BYTE_BGR);
+    depthImage = new BufferedImage(depthWidth, depthHeight, 
+                                   BufferedImage.TYPE_USHORT_GRAY);
+    depthRawData = new short[depthWidth * depthHeight];
+    if (replayFilename != null) 
+      points = ((HashMap<Integer, List<Point>>)
+          ObjectIO.readObject(replayFilename));
+    else
+      points = new HashMap<Integer, List<Point>>();
   }
 
   // Accessors
