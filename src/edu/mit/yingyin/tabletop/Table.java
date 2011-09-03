@@ -30,7 +30,7 @@ public class Table {
   /**
    * @return average depth of the table after it is initialized.
    */
-  public int averageDepth() { 
+  public int getAverageDepth() { 
     long sum = 0;
     for (int i = 0; i < depthMap.length; i++) 
       sum += depthMap[i];

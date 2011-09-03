@@ -6,6 +6,6 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({FullOpenNIDeviceTest.class, PartialOpenNIDeviceTest.class,
-               TableTest.class})
+               TableTest.class, HandAnalyzerTest.class})
 public class AllTests {
 }

@@ -84,7 +84,7 @@ public class FingertipTrackingApp {
     }
     openni.release();
     analyzer.release();
-    packet.cleanUp();
+    packet.release();
     debugView.cleanUp();
     System.exit(0);
   }

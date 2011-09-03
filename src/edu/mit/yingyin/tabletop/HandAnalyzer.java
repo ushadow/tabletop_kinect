@@ -76,6 +76,7 @@ public class HandAnalyzer {
     packet.clear();
     
     subtractBackground(packet);
+    cleanUpBackground(packet);
 //    findConnectedComponents(packet, PERIM_SCALE);
 //    thinningHands(packet);
 //    findForelimbFeatures(packet);
@@ -87,7 +88,7 @@ public class HandAnalyzer {
     System.out.println("HandAnalyzer cleaned up.");
   } 
   
-  private void subtractBackground(ProcessPacket packet) {
+  protected void subtractBackground(ProcessPacket packet) {
     int[] depthRawData = packet.depthRawData;
     IplImage depthImage = packet.depthImage;
     if (bgDepthMap == null) {
@@ -104,10 +105,16 @@ public class HandAnalyzer {
         ib.put(i, (byte)(depth * 255 / Background.MAX_DEPTH));
       }
     }
-    // Cleans up the background subtracted image.
+  }
+  
+  /**
+   *  Cleans up the background subtracted image.
+   * @param packet ProcessPacket containing the data.
+   */
+  private void cleanUpBackground(ProcessPacket packet) {
     // The default 3x3 kernel with the anchor at the the center is used.
     // The opening operator involves erosion followed by dilation.
-    cvMorphologyEx(depthImage, packet.morphedImage, null, null, 
+    cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
         CV_MOP_OPEN, CVCLOSE_ITR);
   }
   

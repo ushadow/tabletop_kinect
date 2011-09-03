@@ -16,7 +16,7 @@ public class TableTest {
       openni.getDepthArray(depthArray);
       Table table = new Table(depthArray, openni.getDepthWidth(), 
                               openni.getDepthHeight());
-      int averageDepth = table.averageDepth();
+      int averageDepth = table.getAverageDepth();
       assertTrue(averageDepth > 0);
       System.out.println("Average table depth = " + averageDepth);
     } catch (GeneralException e) {

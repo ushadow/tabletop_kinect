@@ -50,6 +50,9 @@ public class ProcessPacket {
     }
   }
   
+  /**
+   * Integer array of raw depth values from Kinect.
+   */
   public int[] depthRawData;
   public IplImage depthImage;
   public IplImage morphedImage;
@@ -63,30 +66,41 @@ public class ProcessPacket {
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
+    // Creates an unsigned 8-bit integer image.
     depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    // Allocates a default size of 64kB of memory.
     tempMem = cvCreateMemStorage(0);
   }
   
-  public void cleanUp() {
+  /**
+   * Releases the memory from all the data structures.
+   */
+  public void release() {
     clear();
     depthImage.release();
     morphedImage.release();
     cvReleaseMemStorage(tempMem);
   }
   
+  /**
+   * Clears the data structures.
+   */
   public void clear() {
     for (CvMat m : approxPolys) {
       if (m != null && !m.isNull())
         m.release();
     }
     approxPolys.clear();
+    
     for (CvMat m : hulls) 
         cvReleaseMat(m);
     hulls.clear();
+    
+    // Empty the memory storage.
+    cvClearMemStorage(tempMem);
     convexityDefects.clear();
     foreLimbsFeatures.clear();
     boundingBoxes.clear();
-    cvClearMemStorage(tempMem);
   }
 }
