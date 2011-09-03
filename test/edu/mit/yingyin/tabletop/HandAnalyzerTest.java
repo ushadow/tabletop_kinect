@@ -49,5 +49,7 @@ public class HandAnalyzerTest {
     ib = packet.depthImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) 
       assertEquals(0, ib.get(i));
+    
+    packet.release();
   }
 }
