@@ -50,5 +50,4 @@ public class FullOpenNIDeviceTest {
     assertEquals(480, openni.imageHeight());
     assertEquals(640, openni.imageWidth());
   }
-
 }
