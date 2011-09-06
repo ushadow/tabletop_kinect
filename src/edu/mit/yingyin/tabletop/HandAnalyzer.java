@@ -97,18 +97,13 @@ public class HandAnalyzer {
     
     ByteBuffer ib = depthImage.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      if (bgDepthMap[i] - depthRawData[i] < FOREGROUND_THRESH) {
-        ib.put(i, (byte)0);
-      } else {
-        int depth = depthRawData[i];
-        depth = depth > Background.MAX_DEPTH ? Background.MAX_DEPTH : depth;
-        ib.put(i, (byte)(depth * 255 / Background.MAX_DEPTH));
-      }
+      int diff = Math.abs(bgDepthMap[i] - depthRawData[i]);
+      ib.put(i, (byte)(Math.min(255, diff)));
     }
   }
   
   /**
-   *  Cleans up the background subtracted image.
+   * Cleans up the background subtracted image.
    * @param packet ProcessPacket containing the data.
    */
   private void cleanUpBackground(ProcessPacket packet) {

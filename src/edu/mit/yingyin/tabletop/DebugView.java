@@ -5,9 +5,13 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.ByteBuffer;
 
 import javax.vecmath.Point3f;
@@ -21,10 +25,23 @@ import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 
 public class DebugView {
+  private class MouseController extends MouseAdapter {
+    public void mousePressed(MouseEvent me) {
+      Point p = me.getPoint();
+      int depth = packet.depthImage.getByteBuffer().get(p.y * width + p.x) &
+                  0xff;
+      System.out.println("Clicked at (" + p.x + ", " + p.y + ") " + 
+                               "depth = " + depth);
+//      depthDiffFrame.setStatus("Clicked at (" + p.x + ", " + p.y + ") " + 
+//                               "depth = " + depth);
+    }
+  }
+  
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyChar()) {
@@ -53,14 +70,19 @@ public class DebugView {
   private IplImage appImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
   private FPSCounter fpsCounter;
+  private ImageFrame depthDiffFrame;
  
   private boolean showConvexityDefects = false;
   private boolean showHull = false;
   private boolean showMorphed = true;
   private boolean showFingertip = false;
   private boolean showBoundingBox = true;
+  private ProcessPacket packet; 
+  private int width;
   
   public DebugView(int width, int height) {
+    this.width = width;
+    
     frames[0] = new CanvasFrame("Processed");
     fpsCounter = new FPSCounter("Processed", frames[0]);
     frames[1] = new CanvasFrame("Depth");
@@ -70,9 +92,14 @@ public class DebugView {
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     frames[0].addKeyListener(new KeyController());
     CanvasFrame.tile(frames);
+//    depthDiffFrame = new ImageFrame("Depth Diff", new Dimension(width, height));
+//    depthDiffFrame.setLocation(0, frames[0].getHeight());
+//    depthDiffFrame.addMouseListenerToImageComponent(new MouseController());
+    frames[0].addMouseListener(new MouseController());
   }
   
   public void show(ProcessPacket packet) {
+    this.packet = packet;
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
     else
@@ -115,6 +142,7 @@ public class DebugView {
     }
     frames[1].showImage(appImage);
     fpsCounter.computeFPS();
+//    depthDiffFrame.show(packet.depthImage.getBufferedImage());
   }
   
   public void drawCircle(int x, int y) {

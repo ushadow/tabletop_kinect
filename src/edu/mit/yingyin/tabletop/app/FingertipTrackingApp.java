@@ -2,14 +2,15 @@ package edu.mit.yingyin.tabletop.app;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
-import org.OpenNI.GeneralException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.nio.ByteBuffer;
 
 import edu.mit.yingyin.tabletop.DebugView;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.OpenNIDevice;
-import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
 import edu.mit.yingyin.tabletop.ProcessPacket;
 import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.Tracker;
@@ -27,13 +28,32 @@ public class FingertipTrackingApp {
       case KeyEvent.VK_Q:
         debugView.hide();
         break;
+      case KeyEvent.VK_R:
+        printDepthDiff();
       default: 
         break;
       }
     }
+    
+    private void printDepthDiff() {
+      ByteBuffer bb = packet.depthImage.getByteBuffer();
+      PrintStream ps = null;
+      try {
+        ps = new PrintStream(new File("tmp"));
+        for (int h = 0; h < depthHeight; h++) {
+          for (int w = 0; w < depthWidth; w++)
+            ps.print((bb.get(h * depthWidth + w) & 0xff) + " ");
+          ps.println();
+        }
+      } catch (FileNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } finally {
+        if (ps != null)
+          ps.close();
+      }
+    }
   }
-  
-  private String configFile = "config/config.xml";
   
   private class TrackerController implements TrackerListener {
     @Override
@@ -42,6 +62,11 @@ public class FingertipTrackingApp {
     }
   }
   
+  public static void main(String[] args) {
+      new FingertipTrackingApp();
+  }
+  
+  private String configFile = "config/config.xml";
   private OpenNIDevice openni;
   private DebugView debugView;
   private int depthWidth, depthHeight;
@@ -51,7 +76,7 @@ public class FingertipTrackingApp {
   public FingertipTrackingApp() {
     System.out.println("java.library.path = " + 
                        System.getProperty("java.library.path"));
-    openni = new PartialOpenNIDevice(configFile);
+    openni = new FullOpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
@@ -87,9 +112,5 @@ public class FingertipTrackingApp {
     packet.release();
     debugView.cleanUp();
     System.exit(0);
-  }
-  
-  public static void main(String[] args) {
-      new FingertipTrackingApp();
   }
 }
