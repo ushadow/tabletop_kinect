@@ -3,6 +3,8 @@ package edu.mit.yingyin.tabletop;
 import static org.junit.Assert.assertEquals;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -36,19 +38,25 @@ public class HandAnalyzerTest {
     handAnalyzer.subtractBackground(packet);
     ib = packet.depthImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) 
-      assertEquals(0, ib.get(i));
+      assertEquals(1, ib.get(i));
     
     Arrays.fill(packet.depthRawData, 490);
     handAnalyzer.subtractBackground(packet);
     ib = packet.depthImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) 
-      assertEquals(78, ib.get(i));
+      assertEquals(10, ib.get(i));
     
     Arrays.fill(packet.depthRawData, 555);
     handAnalyzer.subtractBackground(packet);
     ib = packet.depthImage.getByteBuffer();
     for (int i = 0; i < packet.depthRawData.length; i++) 
-      assertEquals(0, ib.get(i));
+      assertEquals(55, ib.get(i));
+    DataBuffer db = packet.depthImage.getBufferedImage().getRaster().
+        getDataBuffer();
+    byte[] byteArray = ((DataBufferByte)db).getData();
+    assertEquals(width * height, byteArray.length);
+    for (int i = 0; i < byteArray.length; i++)
+      assertEquals(55, byteArray[i]);
     
     packet.release();
   }

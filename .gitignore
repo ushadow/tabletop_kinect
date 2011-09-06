@@ -7,3 +7,4 @@ config/*
 !config/.gitkeep
 lib/*
 !lib/.gitkeep
+tmp/
