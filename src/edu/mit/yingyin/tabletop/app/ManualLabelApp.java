@@ -22,7 +22,7 @@ import org.OpenNI.GeneralException;
 import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.gui.ImageComponent;
-import edu.mit.yingyin.gui.ImageView;
+import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.ManualLabelModel;
 
 public class ManualLabelApp extends KeyAdapter implements MouseListener {
@@ -53,7 +53,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     new ManualLabelApp();
   }
 
-  private ImageView depthViewer, rgbViewer;
+  private ImageFrame depthViewer, rgbViewer;
   private ManualLabelModel model;
   private String openniConfigFile;
   private String saveFilename;
@@ -87,8 +87,8 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
         model.depthHeight()));
     ImageComponent rgbView = new LabelView(new Dimension(model.rgbWidth(),
         model.rgbHeight()));
-    rgbViewer = new ImageView("RGB", rgbView);
-    depthViewer = new ImageView("Depth", depthView);
+    rgbViewer = new ImageFrame("RGB", rgbView);
+    depthViewer = new ImageFrame("Depth", depthView);
     depthViewer.addKeyListener(this);
     rgbViewer.addKeyListener(this);
     depthView.addMouseListener(this);
