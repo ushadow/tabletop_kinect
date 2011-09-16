@@ -1,8 +1,7 @@
 bin
 *.so
 .settings
-data/*
-!data/.gitkeep
+data
 config/*
 !config/.gitkeep
 lib/*
