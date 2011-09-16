@@ -8,3 +8,4 @@ config/*
 lib/*
 !lib/.gitkeep
 tmp/
+*~

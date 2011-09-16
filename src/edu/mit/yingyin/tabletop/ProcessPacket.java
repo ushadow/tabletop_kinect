@@ -63,6 +63,7 @@ public class ProcessPacket {
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<ForelimbModel> foreLimbsFeatures = 
       new ArrayList<ForelimbModel>();
+  public int depthFrameID;
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];

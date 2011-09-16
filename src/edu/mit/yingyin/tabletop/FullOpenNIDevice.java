@@ -91,7 +91,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
   
   public int imageFrameID() { return imageMD.getFrameID(); }
 
-  public int depthFrameID() { return depthMD.getFrameID(); }
+  /**
+   * Returns the current depth frame ID.
+   * @return current depth frame ID.
+   */
+  public int getDepthFrameID() { return depthMD.getFrameID(); }
   
   /**
    * Waits for any node to have new data. Once new data is available from any 
