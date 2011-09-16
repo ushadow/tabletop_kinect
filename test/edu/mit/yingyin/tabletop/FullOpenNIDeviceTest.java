@@ -27,10 +27,10 @@ public class FullOpenNIDeviceTest {
   @Test
   public void testFrameID() {
     try {
-      int frameID1 = openni.depthFrameID();
+      int frameID1 = openni.getDepthFrameID();
       openni.waitDepthUpdateAll();
       assertEquals(0, frameID1);
-      int frameID2 = openni.depthFrameID();
+      int frameID2 = openni.getDepthFrameID();
       assertTrue(frameID2 > frameID1);
     } catch (GeneralException e) {
       e.printStackTrace();

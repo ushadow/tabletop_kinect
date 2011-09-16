@@ -37,8 +37,8 @@ public class DebugView {
                   0xff;
       System.out.println("Clicked at (" + p.x + ", " + p.y + ") " + 
                                "depth = " + depth);
-//      depthDiffFrame.setStatus("Clicked at (" + p.x + ", " + p.y + ") " + 
-//                               "depth = " + depth);
+      depthDiffFrame.setStatus("Clicked at (" + p.x + ", " + p.y + ") " + 
+                               "depth = " + depth);
     }
   }
   
@@ -92,9 +92,9 @@ public class DebugView {
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     frames[0].addKeyListener(new KeyController());
     CanvasFrame.tile(frames);
-//    depthDiffFrame = new ImageFrame("Depth Diff", new Dimension(width, height));
-//    depthDiffFrame.setLocation(0, frames[0].getHeight());
-//    depthDiffFrame.addMouseListenerToImageComponent(new MouseController());
+    depthDiffFrame = new ImageFrame("Depth Diff", new Dimension(width, height));
+    depthDiffFrame.setLocation(0, frames[0].getHeight());
+    depthDiffFrame.addMouseListenerToImageComponent(new MouseController());
     frames[0].addMouseListener(new MouseController());
   }
   
@@ -141,8 +141,9 @@ public class DebugView {
                        255 / Background.MAX_DEPTH));
     }
     frames[1].showImage(appImage);
+    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
     fpsCounter.computeFPS();
-//    depthDiffFrame.show(packet.depthImage.getBufferedImage());
+    depthDiffFrame.show(packet.depthImage.getBufferedImage());
   }
   
   public void drawCircle(int x, int y) {
