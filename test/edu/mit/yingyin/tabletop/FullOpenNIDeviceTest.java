@@ -40,14 +40,14 @@ public class FullOpenNIDeviceTest {
   
   @Test
   public void testMaxDeviceDepth() {
-    int maxDepth = openni.deviceMaxDepth();
+    int maxDepth = openni.getDeviceMaxDepth();
     System.out.println("Device max depth = " + maxDepth);
     assertTrue(maxDepth <= 65535 && maxDepth >= 0);
   }
   
   @Test
   public void testWidthAndHeight() {
-    assertEquals(480, openni.imageHeight());
-    assertEquals(640, openni.imageWidth());
+    assertEquals(480, openni.getImageHeight());
+    assertEquals(640, openni.getImageWidth());
   }
 }

@@ -18,6 +18,10 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 
 public class Background {
+  /**
+   * Maximum depth of the background. This is considered to be the maximum value
+   * getting from the depth sensor. 
+   */
   public static final int MAX_DEPTH = 1600; 
   private IplImage scratchI, scratchI2, avgFI, prevFI, diffFI, hiFI, lowFI;
   private boolean first = true;

@@ -35,8 +35,8 @@ public class ManualLabelModel {
     openni = new FullOpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    rgbWidth = openni.imageWidth();
-    rgbHeight = openni.imageHeight();
+    rgbWidth = openni.getImageWidth();
+    rgbHeight = openni.getImageHeight();
     rgbImage = new BufferedImage(rgbWidth, rgbHeight, 
                                  BufferedImage.TYPE_3BYTE_BGR);
     depthImage = new BufferedImage(depthWidth, depthHeight, 
@@ -90,20 +90,20 @@ public class ManualLabelModel {
     openni.seekFrame(forward ? skip : -skip);
     openni.waitAndUpdateAll();
     depthFrameID = openni.getDepthFrameID();
-    rgbFrameID = openni.imageFrameID();
+    rgbFrameID = openni.getImageFrameID();
     while (rgbFrameID != depthFrameID) {
       if (rgbFrameID < depthFrameID)
         openni.waitImageUpdateAll();
       else openni.waitDepthUpdateAll();
       depthFrameID = openni.getDepthFrameID();
-      rgbFrameID = openni.imageFrameID();
+      rgbFrameID = openni.getImageFrameID();
     }
     
-    openni.depthArray(depthRawData);
+    openni.getDepthArray(depthRawData);
     ImageConvertUtils.depthToGrayBufferedImage(depthRawData, depthImage);
-    ImageConvertUtils.byteBuffer2BufferedImage(openni.imageBuffer(), rgbImage);
+    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), rgbImage);
     depthFrameID = openni.getDepthFrameID();
-    rgbFrameID = openni.imageFrameID();
+    rgbFrameID = openni.getImageFrameID();
   }
 
   /**

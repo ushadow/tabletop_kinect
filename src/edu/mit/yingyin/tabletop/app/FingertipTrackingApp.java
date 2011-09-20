@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
-import edu.mit.yingyin.tabletop.DebugView;
+import edu.mit.yingyin.tabletop.ProcessPacketView;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.OpenNIDevice;
@@ -96,7 +96,7 @@ public class FingertipTrackingApp {
 
   private String configFile = "config/config.xml";
   private OpenNIDevice openni;
-  private DebugView debugView;
+  private ProcessPacketView debugView;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   boolean pause = false;
@@ -110,7 +110,7 @@ public class FingertipTrackingApp {
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
 
-    debugView = new DebugView(depthWidth, depthHeight);
+    debugView = new ProcessPacketView(depthWidth, depthHeight);
     debugView.addKeyListener(new KeyController());
 
     Table table = new Table();
