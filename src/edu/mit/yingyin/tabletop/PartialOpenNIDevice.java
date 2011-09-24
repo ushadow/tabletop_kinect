@@ -106,6 +106,10 @@ public class PartialOpenNIDevice implements OpenNIDevice {
     throw new UnsupportedOperationException();
   }
   
+  public void seekFrameBy(int diff) {
+    throw new UnsupportedOperationException();
+  }
+  
   public List<Point3f> convertDepthProjectiveToWorld(List<Point3f> points) {
     FloatBuffer fb = DirectBufferUtils.allocateFloatBuffer(3 * points.size());
     convertDepthProjectiveToWorld(ctrlBlock, fb);

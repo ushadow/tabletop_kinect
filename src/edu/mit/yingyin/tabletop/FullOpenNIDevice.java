@@ -139,7 +139,14 @@ public class FullOpenNIDevice implements OpenNIDevice {
     System.out.println("OpenNI released.");
   }
   
-  public void seekFrame(int diff) throws StatusException {
+  /**
+   * Seeks a certain number of frames forward or backward.
+   * 
+   * @param diff the number of frames to seek from the current frame. Forward if
+   *    diff is positve, backward otherwise.
+   * @throws StatusException
+   */
+  public void seekFrameBy(int diff) throws StatusException {
     if (player != null)
       player.seekToFrame(depthGen, PlayerSeekOrigin.CURRENT, diff);
   }

@@ -11,4 +11,11 @@ public interface OpenNIDevice {
    * @return ID of the current depth frame.
    */
   public int getDepthFrameID();
+  
+  /**
+   * This method is optional.
+   * @param diff
+   * @throws Exception
+   */
+  public void seekFrameBy(int diff) throws Exception;
 }

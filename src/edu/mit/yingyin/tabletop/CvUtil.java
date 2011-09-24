@@ -1,12 +1,22 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.CV_NEXT_LINE_POINT;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvInitLineIterator;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSampleLine;
 
 import java.awt.Point;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+import java.lang.IllegalArgumentException;
 
+import rywang.util.DirectBufferUtils;
+
+import com.googlecode.javacv.cpp.opencv_core.CvLineIterator;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -14,6 +24,11 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
 
+/**
+ * Utility functions that wrapps around OpenCV funtions.
+ * @author yingyin
+ *
+ */
 public class CvUtil {
   public static int distance2(CvPoint p1, CvPoint p2) {
     return (p1.x() - p2.x()) * (p1.x() - p2.x()) + 
@@ -45,6 +60,34 @@ public class CvUtil {
       Point p = new Point((int)points.get(idx * points.channels()),
                           (int)points.get(idx * points.channels() + 1));
       cvCircle(image, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 1, 8, 0);
+    }
+  }
+  
+  /**
+   * Converts an integer array to a IplImage with single channel.
+   * @param intArray
+   * @param image
+   */
+  public static void intToIplImage(int[] intArray, IplImage image) {
+    ByteBuffer buffer = image.getByteBuffer();
+    buffer.rewind();
+    switch (image.depth()) {
+      case 8:
+        for (int value : intArray)
+          buffer.put((byte)value);
+        break;
+      case 16:
+        ShortBuffer sb = buffer.asShortBuffer();
+        for (int value : intArray)
+          sb.put((short)value);
+        break;
+      case 32:
+        IntBuffer ib = buffer.asIntBuffer();
+        for (int value : intArray)
+          ib.put(value);
+        break;
+      default:
+        throw new IllegalArgumentException();
     }
   }
 }

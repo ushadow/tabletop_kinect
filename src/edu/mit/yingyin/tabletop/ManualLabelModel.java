@@ -87,7 +87,7 @@ public class ManualLabelModel {
    * @throws GeneralException 
    */
   public void update(boolean forward) throws GeneralException {
-    openni.seekFrame(forward ? skip : -skip);
+    openni.seekFrameBy(forward ? skip : -skip);
     openni.waitAndUpdateAll();
     depthFrameID = openni.getDepthFrameID();
     rgbFrameID = openni.getImageFrameID();

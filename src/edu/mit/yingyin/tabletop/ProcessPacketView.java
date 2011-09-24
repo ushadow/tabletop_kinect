@@ -106,7 +106,6 @@ public class ProcessPacketView {
     depthDiffFrame = new ImageFrame("Depth Diff", new Dimension(width, height));
     depthDiffFrame.setLocation(0, frames[0].getHeight());
     depthDiffFrame.addMouseListenerToImageComponent(new MouseController());
-    frames[0].addMouseListener(new MouseController());
     
     histogram = new float[Background.MAX_DEPTH];
   }
