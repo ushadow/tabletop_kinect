@@ -1,22 +1,15 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
-import static com.googlecode.javacv.cpp.opencv_core.CV_NEXT_LINE_POINT;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
-import static com.googlecode.javacv.cpp.opencv_core.cvInitLineIterator;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvSampleLine;
 
 import java.awt.Point;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.lang.IllegalArgumentException;
 
-import rywang.util.DirectBufferUtils;
-
-import com.googlecode.javacv.cpp.opencv_core.CvLineIterator;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
