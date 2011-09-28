@@ -4,6 +4,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
@@ -12,6 +13,7 @@ import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.OpenNIDevice;
 import edu.mit.yingyin.tabletop.ProcessPacket;
+import edu.mit.yingyin.tabletop.Recorder;
 import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.Tracker;
 import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
@@ -31,9 +33,13 @@ public class FingertipTrackingApp {
         case KeyEvent.VK_Q:
           debugView.hide();
           break;
-        case KeyEvent.VK_R:
+        case KeyEvent.VK_F:
           printDepthRaw();
           break;
+        case KeyEvent.VK_L:
+          recording = !recording;
+          if (recording == false && recorder.isRecording())
+            recorder.close();
         default:
           break;
       }
@@ -95,11 +101,15 @@ public class FingertipTrackingApp {
   }
 
   private String configFile = "config/config.xml";
+  private String recordFilePrefix = "data/depth_raw/depth_row";
   private OpenNIDevice openni;
   private ProcessPacketView debugView;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   boolean pause = false;
+  boolean recording = false;
+  Recorder recorder;
+  private int rowToRecord = 0;
 
   public FingertipTrackingApp() {
     System.out.println("java.library.path = "
@@ -117,9 +127,9 @@ public class FingertipTrackingApp {
     Tracker tracker = new Tracker(table);
     tracker.addListener(new TrackerController());
 
-    // Only one ProcessPacket present at all time.
+    // A one thread process. Only one ProcessPacket present at all time.
     while (debugView.isVisible()) {
-      if (pause == true)
+      if (pause)
         continue;
       try {
         openni.waitDepthUpdateAll();
@@ -134,6 +144,21 @@ public class FingertipTrackingApp {
         table.init(packet.depthRawData, depthWidth, depthHeight);
       analyzer.analyzeData(packet);
       debugView.show(packet);
+      if (recording) {
+        if (recorder == null) {
+          rowToRecord = depthHeight / 2;
+          String recordFileName = recordFilePrefix + rowToRecord;
+          try {
+            recorder = new Recorder(new FileOutputStream(recordFileName));
+          } catch (FileNotFoundException e) {
+              System.err.println(e.getMessage());
+              System.exit(-1);
+            }
+        }
+        recorder.record(packet.depthFrameID, 
+                        packet.getDepthRaw(depthHeight / 2));
+      }
+        
       tracker.update(packet.foreLimbsFeatures);
     }
     openni.release();
