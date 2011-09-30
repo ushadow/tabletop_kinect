@@ -3,7 +3,7 @@
 % Args:
 %   row_: The row that to be ploted.
 %   column_range_ : The range of columns to be ploted.
-function analyzeDephImages(row_, column_range_)
+function analyze_depth_images(row_, column_range_)
 
 column_range = 480 : 580;
 row = 240;

@@ -3,6 +3,11 @@ package edu.mit.yingyin.tabletop;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+/**
+ * Records data to output stream.
+ * @author yingyin
+ *
+ */
 public class Recorder {
   private PrintStream ps;
   private boolean started = false;
@@ -13,9 +18,14 @@ public class Recorder {
     System.out.println("Started recording.");
   }
   
-  public void record(int frameID, int[] aRow) {
-    ps.println(frameID);
-    for (int v : aRow)
+  /**
+   * Prints frameId and the date in the row.
+   * @param frameID
+   * @param row
+   */
+  public void print(int frameID, int[] row) {
+    ps.print(frameID + " ");
+    for (int v : row)
       ps.print(v + " ");
     ps.println();
   }

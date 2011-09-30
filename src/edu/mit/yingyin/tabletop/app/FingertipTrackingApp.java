@@ -155,7 +155,7 @@ public class FingertipTrackingApp {
               System.exit(-1);
             }
         }
-        recorder.record(packet.depthFrameID, 
+        recorder.print(packet.depthFrameID, 
                         packet.getDepthRaw(depthHeight / 2));
       }
         
