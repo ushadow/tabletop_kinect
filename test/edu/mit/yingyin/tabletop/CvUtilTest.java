@@ -1,15 +1,13 @@
 package edu.mit.yingyin.tabletop;
 
-import static org.junit.Assert.*;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16U;
+import static org.junit.Assert.assertEquals;
 
-import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import org.junit.Test;
 
-import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
-import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16U;
 
 public class CvUtilTest {
 
