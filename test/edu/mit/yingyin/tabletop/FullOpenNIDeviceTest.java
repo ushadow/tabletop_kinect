@@ -27,10 +27,10 @@ public class FullOpenNIDeviceTest {
   @Test
   public void testFrameID() {
     try {
-      int frameID1 = openni.depthFrameID();
+      int frameID1 = openni.getDepthFrameID();
       openni.waitDepthUpdateAll();
       assertEquals(0, frameID1);
-      int frameID2 = openni.depthFrameID();
+      int frameID2 = openni.getDepthFrameID();
       assertTrue(frameID2 > frameID1);
     } catch (GeneralException e) {
       e.printStackTrace();
@@ -40,14 +40,14 @@ public class FullOpenNIDeviceTest {
   
   @Test
   public void testMaxDeviceDepth() {
-    int maxDepth = openni.deviceMaxDepth();
+    int maxDepth = openni.getDeviceMaxDepth();
     System.out.println("Device max depth = " + maxDepth);
     assertTrue(maxDepth <= 65535 && maxDepth >= 0);
   }
   
   @Test
   public void testWidthAndHeight() {
-    assertEquals(480, openni.imageHeight());
-    assertEquals(640, openni.imageWidth());
+    assertEquals(480, openni.getImageHeight());
+    assertEquals(640, openni.getImageWidth());
   }
 }

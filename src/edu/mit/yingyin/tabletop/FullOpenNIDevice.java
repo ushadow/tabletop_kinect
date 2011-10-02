@@ -18,8 +18,12 @@ import org.OpenNI.PlayerSeekOrigin;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
 
+/**
+ * This class provides the full functionality of an OpenNI sensor device.
+ * @author yingyin
+ *
+ */
 public class FullOpenNIDevice implements OpenNIDevice {
-  
   private Context context;
   private OutArg<ScriptNode> scriptNode = new OutArg<ScriptNode>();
   private DepthGenerator depthGen = null;
@@ -64,20 +68,20 @@ public class FullOpenNIDevice implements OpenNIDevice {
 
   public int getDepthHeight() { return depthHeight; }
   
-  public int imageWidth() { return imageWidth; }
+  public int getImageWidth() { return imageWidth; }
   
-  public int imageHeight() { return imageHeight; }
+  public int getImageHeight() { return imageHeight; }
   
-  public ShortBuffer depthBuffer() throws StatusException {
+  public ShortBuffer getDepthBuffer() throws StatusException {
     return depthMD.getData().createShortBuffer();
   }
   
-  public void depthArray(short[] depthArray) throws StatusException {
-    depthBuffer().get(depthArray);
+  public void getDepthArray(short[] depthArray) throws StatusException {
+    getDepthBuffer().get(depthArray);
   }
 
   public void getDepthArray(int[] depthArray) throws StatusException {
-    ShortBuffer sb = depthBuffer();
+    ShortBuffer sb = getDepthBuffer();
     sb.rewind();
     while (sb.remaining() > 0) {
       int pos = sb.position();
@@ -85,13 +89,17 @@ public class FullOpenNIDevice implements OpenNIDevice {
     }
   }
   
-  public ByteBuffer imageBuffer() throws GeneralException {
+  public ByteBuffer getImageBuffer() throws GeneralException {
     return imageGen.getImageMap().createByteBuffer();
   }
   
-  public int imageFrameID() { return imageMD.getFrameID(); }
+  public int getImageFrameID() { return imageMD.getFrameID(); }
 
-  public int depthFrameID() { return depthMD.getFrameID(); }
+  /**
+   * Returns the current depth frame ID.
+   * @return current depth frame ID.
+   */
+  public int getDepthFrameID() { return depthMD.getFrameID(); }
   
   /**
    * Waits for any node to have new data. Once new data is available from any 
@@ -122,7 +130,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
     updateMetaData();
   }
   
-  public int deviceMaxDepth() {
+  public int getDeviceMaxDepth() {
     return depthGen.getDeviceMaxDepth();
   }
   
@@ -131,7 +139,14 @@ public class FullOpenNIDevice implements OpenNIDevice {
     System.out.println("OpenNI released.");
   }
   
-  public void seekFrame(int diff) throws StatusException {
+  /**
+   * Seeks a certain number of frames forward or backward.
+   * 
+   * @param diff the number of frames to seek from the current frame. Forward if
+   *    diff is positve, backward otherwise.
+   * @throws StatusException
+   */
+  public void seekFrameBy(int diff) throws StatusException {
     if (player != null)
       player.seekToFrame(depthGen, PlayerSeekOrigin.CURRENT, diff);
   }

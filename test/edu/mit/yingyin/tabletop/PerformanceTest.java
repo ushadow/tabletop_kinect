@@ -32,7 +32,7 @@ public class PerformanceTest {
       
       for (int i = 0; i <times; i++) {
         openni.waitDepthUpdateAll();
-        ShortBuffer buffer = openni.depthBuffer();
+        ShortBuffer buffer = openni.getDepthBuffer();
         
         timer.tic();
         image1 = new BufferedImage(width, height, 

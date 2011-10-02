@@ -16,18 +16,33 @@ import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
-
+/**
+ * Keeps track of statistics of the background model.
+ * @author yingyin
+ *
+ */
 public class Background {
+  /**
+   * Maximum depth of the background. This is considered to be the maximum value
+   * getting from the depth sensor. 
+   */
   public static final int MAX_DEPTH = 1600; 
+  /**
+   * Float, 1-channel images.
+   */
   private IplImage scratchI, scratchI2, avgFI, prevFI, diffFI, hiFI, lowFI;
   private boolean first = true;
-  private float highScale, lowScale;
   /**
    * Counts the number of images learned for averaging later.
    */
   private float count = (float)0.00001; // Protects against divide by zero.
   
-  public Background(int width, int height, float highScale, float lowScale) {
+  /**
+   * Initializes the background model.
+   * @param width
+   * @param height
+   */
+  public Background(int width, int height) {
     scratchI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     scratchI2 = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     avgFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
@@ -38,8 +53,6 @@ public class Background {
     cvZero(avgFI);
     cvZero(prevFI);
     cvZero(diffFI);
-    this.highScale = highScale;
-    this.lowScale = lowScale;
   }
   
   /**
@@ -58,7 +71,10 @@ public class Background {
     cvCopy(scratchI, prevFI);
   }
   
-  public void createModelsFromStats() {
+  /**
+   * Creates a statistical model of the background.
+   */
+  public void createModelsFromStats(float lowScale, float highScale) {
     cvConvertScale(avgFI, avgFI, 1.0/count, 0);
     cvConvertScale(diffFI, diffFI, 1.0/count, 0);
     // Makes sure diff is always something.
@@ -67,8 +83,12 @@ public class Background {
     setLowThreshold(lowScale);
   }
   
+  /**
+   * Segments an input input into foreground and background.
+   * @param depthRawData input depth image.
+   * @param mask a 0 or 255 mask image where 255 means foreground pixel.
+   */
   public void backgroundDiff(int[] depthRawData, IplImage mask) {
-    
     // To float.
     scale(depthRawData, scratchI);
     cvInRange(scratchI, lowFI, hiFI, mask);
@@ -102,6 +122,15 @@ public class Background {
     }
   }
   
+  /**
+   * Sets the high threshold of the background model for each pixel. Any value 
+   * above a that threshold for a particular pixel is considered foreground.
+   * 
+   * High threshold = average value + average absolute difference * scale
+   * 
+   * @param scale the factor that multiplies the average frame-to-frame absoute
+   *    difference.
+   */
   private void setHighThreshold(float scale) {
     cvConvertScale(diffFI, scratchI, scale, 0);
     cvAdd(scratchI, avgFI, hiFI, null);

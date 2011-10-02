@@ -1,9 +1,21 @@
 package edu.mit.yingyin.tabletop;
 
 public interface OpenNIDevice {
-  abstract public int getDepthWidth();
-  abstract public int getDepthHeight();
-  abstract public void waitDepthUpdateAll() throws Exception;
-  abstract public void getDepthArray(int[] depthArray) throws Exception;
-  abstract public void release();
+  public int getDepthWidth();
+  public int getDepthHeight();
+  public void waitDepthUpdateAll() throws Exception;
+  public void getDepthArray(int[] depthArray) throws Exception;
+  public void release();
+  /**
+   * This method is optional.
+   * @return ID of the current depth frame.
+   */
+  public int getDepthFrameID();
+  
+  /**
+   * This method is optional.
+   * @param diff
+   * @throws Exception
+   */
+  public void seekFrameBy(int diff) throws Exception;
 }

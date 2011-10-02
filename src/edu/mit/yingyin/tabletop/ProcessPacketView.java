@@ -9,6 +9,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import javax.vecmath.Point3f;
 
@@ -24,7 +25,12 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 
-public class DebugView {
+/**
+ * Visualization for the ProcessPacket.
+ * @author yingyin
+ *
+ */
+public class ProcessPacketView {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyChar()) {
@@ -53,14 +59,19 @@ public class DebugView {
   private IplImage appImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
   private FPSCounter fpsCounter;
- 
+  private float[] histogram;
   private boolean showConvexityDefects = false;
   private boolean showHull = false;
   private boolean showMorphed = true;
   private boolean showFingertip = false;
   private boolean showBoundingBox = true;
   
-  public DebugView(int width, int height) {
+  /**
+   * Initializes the data structures.
+   * @param width
+   * @param height
+   */
+  public ProcessPacketView(int width, int height) {
     frames[0] = new CanvasFrame("Processed");
     fpsCounter = new FPSCounter("Processed", frames[0]);
     frames[1] = new CanvasFrame("Depth");
@@ -70,8 +81,14 @@ public class DebugView {
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     frames[0].addKeyListener(new KeyController());
     CanvasFrame.tile(frames);
+    
+    histogram = new float[Background.MAX_DEPTH];
   }
   
+  /**
+   * Shows different visualizations of the ProcessPacket.
+   * @param packet
+   */
   public void show(ProcessPacket packet) {
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
@@ -107,14 +124,9 @@ public class DebugView {
       }
     }
     frames[0].showImage(analysisImage);
-
-    ByteBuffer ib = appImage.getByteBuffer();
-    for (int i = 0; i < packet.depthRawData.length; i++) {
-      ib.put(i, (byte)((Background.MAX_DEPTH - packet.depthRawData[i]) *
-                       255 / Background.MAX_DEPTH));
-    }
-    frames[1].showImage(appImage);
     fpsCounter.computeFPS();
+
+    showAppImage(packet);
   }
   
   public void drawCircle(int x, int y) {
@@ -145,5 +157,35 @@ public class DebugView {
   public void hide() {
     for (CanvasFrame frame: frames)
       frame.setVisible(false);
+  }
+  
+  private void showAppImage(ProcessPacket packet) {
+    calcHist(packet.depthRawData);
+    ByteBuffer ib = appImage.getByteBuffer();
+    for (int depth : packet.depthRawData) {
+      ib.put((byte)(histogram[depth] * 255));
+    }
+    frames[1].showImage(appImage);
+    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
+  }
+  
+  private void calcHist(int[] depthRawData) {
+    Arrays.fill(histogram, 0);
+    
+    int totalPoints = 0;
+    for (int v : depthRawData) {
+      if (v > 0) {
+        histogram[v]++;
+        totalPoints++;
+      }
+    }
+    
+    for (int i = 1; i < histogram.length; i++) 
+      histogram[i] += histogram[i - 1];
+  
+    if (totalPoints > 0) {
+      for (int i = 1; i < histogram.length; i++)
+        histogram[i] = (totalPoints - histogram[i]) / (float)totalPoints;
+    }
   }
 }    

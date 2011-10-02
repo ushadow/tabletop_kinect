@@ -51,7 +51,6 @@ public class HandAnalyzer {
 
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
-  private static final int FOREGROUND_THRESH = 3;
   private static final int PERIM_SCALE = 4;
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
@@ -77,10 +76,10 @@ public class HandAnalyzer {
     
     subtractBackground(packet);
     cleanUpBackground(packet);
-//    findConnectedComponents(packet, PERIM_SCALE);
-//    thinningHands(packet);
-//    findForelimbFeatures(packet);
-//    temporalSmooth(packet);
+    findConnectedComponents(packet, PERIM_SCALE);
+    thinningHands(packet);
+    findForelimbFeatures(packet);
+    temporalSmooth(packet);
   }
   
   public void release() {
@@ -97,18 +96,13 @@ public class HandAnalyzer {
     
     ByteBuffer ib = depthImage.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      if (bgDepthMap[i] - depthRawData[i] < FOREGROUND_THRESH) {
-        ib.put(i, (byte)0);
-      } else {
-        int depth = depthRawData[i];
-        depth = depth > Background.MAX_DEPTH ? Background.MAX_DEPTH : depth;
-        ib.put(i, (byte)(depth * 255 / Background.MAX_DEPTH));
-      }
+      int diff = Math.abs(bgDepthMap[i] - depthRawData[i]);
+      ib.put(i, (byte)(Math.min(255, diff)));
     }
   }
   
   /**
-   *  Cleans up the background subtracted image.
+   * Cleans up the background subtracted image.
    * @param packet ProcessPacket containing the data.
    */
   private void cleanUpBackground(ProcessPacket packet) {

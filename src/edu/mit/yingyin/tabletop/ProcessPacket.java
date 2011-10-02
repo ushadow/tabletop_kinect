@@ -63,6 +63,8 @@ public class ProcessPacket {
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<ForelimbModel> foreLimbsFeatures = 
       new ArrayList<ForelimbModel>();
+  public int depthFrameID;
+  public int width, height;
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
@@ -71,6 +73,8 @@ public class ProcessPacket {
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     // Allocates a default size of 64kB of memory.
     tempMem = cvCreateMemStorage(0);
+    this.width = width;
+    this.height = height;
   }
   
   /**
@@ -102,5 +106,11 @@ public class ProcessPacket {
     convexityDefects.clear();
     foreLimbsFeatures.clear();
     boundingBoxes.clear();
+  }
+  
+  public int[] getDepthRaw(int row) {
+    int[] rowData = new int[width];
+    System.arraycopy(depthRawData, width * row, rowData, 0, width);
+    return rowData;
   }
 }
