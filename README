@@ -1,6 +1,13 @@
 Requred jars:
-* javacpp.jar (20110820)
-* javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
-* javacvcv.jar
+* JavaCV (http://code.google.com/p/javacv/downloads/list):
+  * javacpp.jar (20110820)
+  * javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
+  * javacvcv.jar
 * org.OpenNI.jar
 * vecmath.jar
+
+Other dependencies:
+*JavaCV requires OpenCV 2.3.1 
+  * http://sourceforge.net/projects/opencvlibrary/files/
+
+
