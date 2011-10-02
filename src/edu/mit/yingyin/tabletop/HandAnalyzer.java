@@ -48,7 +48,8 @@ import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
   public static final int HAND_YCUTOFF = 50;
-
+  
+  private static final int BG_INIT_FRAMES = 30;
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   private static final int PERIM_SCALE = 4;
@@ -59,13 +60,21 @@ public class HandAnalyzer {
   private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
   private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
   
-  private int[] bgDepthMap;
+  private Background background;
   private IplImage tempImage;
   private List<ForelimbModel> prevForelimbsFeatures = 
       new ArrayList<ProcessPacket.ForelimbModel>();
+  private IplImage foregroundMask;
   
+  /**
+   * Initializes the data structures.
+   * @param width
+   * @param height
+   */
   public HandAnalyzer(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    background = new Background(width, height);
+    foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
   public void analyzeData(ProcessPacket packet) {
@@ -73,6 +82,10 @@ public class HandAnalyzer {
     for (ForelimbModel forelimb : packet.foreLimbsFeatures)
       prevForelimbsFeatures.add(new ForelimbModel(forelimb));
     packet.clear();
+    
+    if (packet.depthFrameID < BG_INIT_FRAMES) {
+      background.accumulateBackground(packet.depthRawData);
+    }
     
     subtractBackground(packet);
     cleanUpBackground(packet);
@@ -90,14 +103,17 @@ public class HandAnalyzer {
   protected void subtractBackground(ProcessPacket packet) {
     int[] depthRawData = packet.depthRawData;
     IplImage depthImage = packet.depthImage;
-    if (bgDepthMap == null) {
-      bgDepthMap = packet.depthRawData.clone();
-    }
-    
-    ByteBuffer ib = depthImage.getByteBuffer();
+ 
+    background.backgroundDiff(depthRawData, foregroundMask);
+    ByteBuffer depthBuffer = depthImage.getByteBuffer();
+    ByteBuffer maskBuffer = foregroundMask.getByteBuffer();
     for (int i = 0; i < depthRawData.length; i++) {
-      int diff = Math.abs(bgDepthMap[i] - depthRawData[i]);
-      ib.put(i, (byte)(Math.min(255, diff)));
+      if (maskBuffer.get(i) == 255) {
+        depthBuffer.put(i, 
+                        (byte)(depthRawData[i] * 255 / Background.MAX_DEPTH));
+      } else {
+        depthBuffer.put(i, (byte)0);
+      }
     }
   }
   
