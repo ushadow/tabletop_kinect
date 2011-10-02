@@ -12,7 +12,6 @@ import org.OpenNI.GeneralException;
 import org.junit.Test;
 
 import rywang.util.Timer;
-
 import edu.mit.yingyin.image.ImageConvertUtils;
 
 public class PerformanceTest {

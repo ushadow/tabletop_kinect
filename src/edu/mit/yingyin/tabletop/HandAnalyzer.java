@@ -48,6 +48,7 @@ import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
   public static final int HAND_YCUTOFF = 50;
+  public static final int MAX_DEPTH = 1600;
   
   private static final int BG_INIT_FRAMES = 30;
   private static final int CVCLOSE_ITR = 2;
@@ -73,7 +74,7 @@ public class HandAnalyzer {
    */
   public HandAnalyzer(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    background = new Background(width, height);
+    background = new Background(width, height, MAX_DEPTH);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
@@ -85,6 +86,9 @@ public class HandAnalyzer {
     
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
+      return;
+    } else if (packet.depthFrameID == BG_INIT_FRAMES) {
+      background.createModelsFromStats((float)1.0, (float)1.0);
     }
     
     subtractBackground(packet);
@@ -110,7 +114,7 @@ public class HandAnalyzer {
     for (int i = 0; i < depthRawData.length; i++) {
       if (maskBuffer.get(i) == 255) {
         depthBuffer.put(i, 
-                        (byte)(depthRawData[i] * 255 / Background.MAX_DEPTH));
+                        (byte)(depthRawData[i] * 255 / MAX_DEPTH));
       } else {
         depthBuffer.put(i, (byte)0);
       }

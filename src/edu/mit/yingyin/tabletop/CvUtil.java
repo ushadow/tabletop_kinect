@@ -7,6 +7,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 
 import java.awt.Point;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
@@ -81,6 +82,26 @@ public class CvUtil {
         break;
       default:
         throw new IllegalArgumentException();
+    }
+  }
+  
+  /**
+   * Scales an integer array to a float image with values between 0 and 1.
+   * 
+   * So image[i] = raw[i] / scale.
+   * 
+   * @param raw
+   * @param image
+   * @param scale the factor for conversion.
+   */
+  public static void intToFloatImage(int[] raw, IplImage image, int scale) {
+    FloatBuffer fb = image.getFloatBuffer();
+    fb.rewind();
+    // Converts to float.
+    while(fb.remaining() > 0) {
+      int pos = fb.position();
+      float depth = (float)raw[pos] / scale;
+      fb.put(depth > 1 ? 1 : depth);
     }
   }
 }

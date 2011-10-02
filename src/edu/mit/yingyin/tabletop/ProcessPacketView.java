@@ -82,7 +82,7 @@ public class ProcessPacketView {
     frames[0].addKeyListener(new KeyController());
     CanvasFrame.tile(frames);
     
-    histogram = new float[Background.MAX_DEPTH];
+    histogram = new float[HandAnalyzer.MAX_DEPTH];
   }
   
   /**

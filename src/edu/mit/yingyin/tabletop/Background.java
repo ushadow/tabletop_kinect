@@ -2,17 +2,15 @@ package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
 import static com.googlecode.javacv.cpp.opencv_core.cvAbsDiff;
-import static com.googlecode.javacv.cpp.opencv_core.cvZero;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
-import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
-import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
-import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
 import static com.googlecode.javacv.cpp.opencv_core.cvAdd;
-import static com.googlecode.javacv.cpp.opencv_core.cvSub;
+import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
+import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
+import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
+import static com.googlecode.javacv.cpp.opencv_core.cvSub;
+import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
-
-import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -23,10 +21,9 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
  */
 public class Background {
   /**
-   * Maximum depth of the background. This is considered to be the maximum value
-   * getting from the depth sensor. 
+   * Maximum depth of the background. 
    */
-  public static final int MAX_DEPTH = 1600; 
+  private int maxDepth; 
   /**
    * Float, 1-channel images.
    */
@@ -42,7 +39,8 @@ public class Background {
    * @param width
    * @param height
    */
-  public Background(int width, int height) {
+  public Background(int width, int height, int maxDepth) {
+    this.maxDepth = maxDepth;
     scratchI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     scratchI2 = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     avgFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
@@ -103,6 +101,8 @@ public class Background {
     hiFI.release();
     lowFI.release();
   }
+  
+  public IplImage getAvg() { return avgFI; }
 
   /**
    * Scales integer depth values into a floating-point 1-channel image with
@@ -112,14 +112,7 @@ public class Background {
    *    as the depth array.
    */
   private void scale(int[] depthRawData, IplImage image) {
-    FloatBuffer fb = image.getFloatBuffer();
-    fb.rewind();
-    // Converts to float.
-    while(fb.remaining() > 0) {
-      int pos = fb.position();
-      float depth = (float)depthRawData[pos] / MAX_DEPTH;
-      fb.put(depth > 1 ? depth : 1);
-    }
+    CvUtil.intToFloatImage(depthRawData, image, maxDepth);
   }
   
   /**
