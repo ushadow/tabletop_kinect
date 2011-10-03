@@ -64,21 +64,31 @@ public class CvUtil {
    */
   public static void intToIplImage(int[] intArray, IplImage image) {
     ByteBuffer buffer = image.getByteBuffer();
-    buffer.rewind();
+    int imageWidth = image.width();
+    int imageHeight = image.height();
+    int widthStep = image.widthStep();
     switch (image.depth()) {
       case 8:
-        for (int value : intArray)
-          buffer.put((byte)value);
+        for (int h = 0; h < imageHeight; h++)
+          for (int w = 0; w < imageWidth; w++) {
+            buffer.put(h * widthStep + w, (byte)intArray[h * imageWidth + w]);
+          }
         break;
       case 16:
         ShortBuffer sb = buffer.asShortBuffer();
-        for (int value : intArray)
-          sb.put((short)value);
+        widthStep /= 2;
+        for (int h = 0; h < imageHeight; h++)
+          for (int w = 0; w < imageWidth; w++) {
+            sb.put(h * widthStep + w, (short)intArray[h * imageWidth + w]);
+          }
         break;
       case 32:
         IntBuffer ib = buffer.asIntBuffer();
-        for (int value : intArray)
-          ib.put(value);
+        widthStep /= 4;
+        for (int h = 0; h < imageHeight; h++)
+          for (int w = 0; w < imageWidth; w++) {
+            ib.put(h * widthStep + w, intArray[h * imageWidth + w]);
+          }
         break;
       default:
         throw new IllegalArgumentException();
@@ -91,17 +101,19 @@ public class CvUtil {
    * So image[i] = raw[i] / scale.
    * 
    * @param raw
-   * @param image
+   * @param image an IplImage of type float (32-bit).
    * @param scale the factor for conversion.
    */
   public static void intToFloatImage(int[] raw, IplImage image, int scale) {
     FloatBuffer fb = image.getFloatBuffer();
-    fb.rewind();
+    int height = image.height();
+    int width = image.width();
+    int widthStep = image.widthStep() / 4;
     // Converts to float.
-    while(fb.remaining() > 0) {
-      int pos = fb.position();
-      float depth = (float)raw[pos] / scale;
-      fb.put(depth > 1 ? 1 : depth);
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++) {
+        float depth = (float)raw[h * width + w] / scale;
+        fb.put(h * widthStep + w, depth > 1 ? 1 : depth);
     }
   }
 }

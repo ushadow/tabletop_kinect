@@ -1,9 +1,13 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.opencv_core.CV_CMP_EQ;
 import static com.googlecode.javacv.cpp.opencv_core.cvAbsDiff;
 import static com.googlecode.javacv.cpp.opencv_core.cvAdd;
 import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
+import static com.googlecode.javacv.cpp.opencv_core.cvCmpS;
+import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
@@ -11,6 +15,8 @@ import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
+
+import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -28,6 +34,7 @@ public class Background {
    * Float, 1-channel images.
    */
   private IplImage scratchI, scratchI2, avgFI, prevFI, diffFI, hiFI, lowFI;
+  private IplImage mask;
   private boolean first = true;
   /**
    * Counts the number of images learned for averaging later.
@@ -48,6 +55,7 @@ public class Background {
     diffFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     hiFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     lowFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
+    mask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     cvZero(avgFI);
     cvZero(prevFI);
     cvZero(diffFI);
@@ -64,8 +72,8 @@ public class Background {
       cvAbsDiff(scratchI, prevFI, scratchI2);
       cvAcc(scratchI2, diffFI, null);
       count += 1;
-      first = false;
     }
+    first = false;
     cvCopy(scratchI, prevFI);
   }
   
@@ -75,8 +83,10 @@ public class Background {
   public void createModelsFromStats(float lowScale, float highScale) {
     cvConvertScale(avgFI, avgFI, 1.0/count, 0);
     cvConvertScale(diffFI, diffFI, 1.0/count, 0);
-    // Makes sure diff is always something.
-    cvAddS(diffFI, cvScalar(1.0, 0, 0, 0), diffFI, null);
+    // Makes sure diff is at least 1.
+    cvCmpS(diffFI, 0.0, mask, CV_CMP_EQ);
+    // Add S if mask(I) != 0
+    cvAddS(diffFI, cvScalar(1.0 / maxDepth, 0, 0, 0), diffFI, mask);
     setHighThreshold(highScale);
     setLowThreshold(lowScale);
   }
@@ -89,7 +99,10 @@ public class Background {
   public void backgroundDiff(int[] depthRawData, IplImage mask) {
     // To float.
     scale(depthRawData, scratchI);
+    // lowFI is inclusive lower bound, and hiFI is exclusive higher bound.
     cvInRange(scratchI, lowFI, hiFI, mask);
+    // Inverts the results.
+    cvSubRS(mask, cvScalar(255, 0, 0, 0), mask, null);
   }
   
   public void release() {
@@ -100,9 +113,28 @@ public class Background {
     prevFI.release();
     hiFI.release();
     lowFI.release();
+    mask.release();
   }
   
-  public IplImage getAvg() { return avgFI; }
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("Average Frame:\n");
+    FloatBuffer fb = avgFI.getFloatBuffer();
+    fb.rewind();
+    while (fb.remaining() > 0)
+      sb.append(fb.get() + " ");
+    sb.append("\nDiff Frame:\n");
+    fb = diffFI.getFloatBuffer();
+    fb.rewind();
+    while (fb.remaining() > 0)
+      sb.append(fb.get() + " ");
+    sb.append("\nHigher Bound:\n");
+    fb = hiFI.getFloatBuffer();
+    fb.remaining();
+    while (fb.remaining() > 0) 
+      sb.append(fb.get() + " ");
+    return sb.toString();
+  }
 
   /**
    * Scales integer depth values into a floating-point 1-channel image with

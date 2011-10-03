@@ -162,9 +162,12 @@ public class ProcessPacketView {
   private void showAppImage(ProcessPacket packet) {
     calcHist(packet.depthRawData);
     ByteBuffer ib = appImage.getByteBuffer();
-    for (int depth : packet.depthRawData) {
-      ib.put((byte)(histogram[depth] * 255));
-    }
+    int widthStep = appImage.widthStep();
+    for (int h = 0; h < packet.height; h++) 
+      for (int w = 0; w < packet.width; w++) {
+        int depth = packet.depthRawData[h * packet.width + w];
+        ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
+      }
     frames[1].showImage(appImage);
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
   }

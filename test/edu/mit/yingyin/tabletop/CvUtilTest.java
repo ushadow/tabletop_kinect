@@ -24,8 +24,11 @@ public class CvUtilTest {
     IplImage image = IplImage.create(width, height, IPL_DEPTH_16U, 1);
     CvUtil.intToIplImage(intArray, image);
     ShortBuffer sb = image.getShortBuffer();
-    for (int i = 0; i < intArray.length; i++)
-      assertEquals(intArray[i], sb.get(i) & 0xffff);
+    int widthStep = image.widthStep() / 2;
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++)
+        assertEquals(intArray[h * width + w], 
+                     sb.get(h * widthStep + w) & 0xffff);
   }
   
   @Test
@@ -36,10 +39,9 @@ public class CvUtilTest {
     IplImage image = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     CvUtil.intToFloatImage(raw, image, scale);
     FloatBuffer imageBuffer = image.getFloatBuffer();
-    imageBuffer.rewind();
-    while (imageBuffer.remaining() > 0) {
-      System.out.print(imageBuffer.get() + " ");
-    }
-    System.out.println();
+    int widthStep = image.widthStep() / 4;
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++)
+        assertEquals(0.5, imageBuffer.get(h * widthStep + w), 0.001);
   }
 }
