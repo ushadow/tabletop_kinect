@@ -88,7 +88,7 @@ public class HandAnalyzer {
       background.accumulateBackground(packet.depthRawData);
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
-      background.createModelsFromStats((float)1.0, (float)1.0);
+      background.createModelsFromStats((float)6.0, (float)7.0);
     }
     
     subtractBackground(packet);
@@ -105,20 +105,25 @@ public class HandAnalyzer {
   } 
   
   protected void subtractBackground(ProcessPacket packet) {
-    int[] depthRawData = packet.depthRawData;
-    IplImage depthImage = packet.depthImage;
+    int[] depthData = packet.depthRawData;
+    IplImage depthImage = packet.depthImage8U;
  
-    background.backgroundDiff(depthRawData, foregroundMask);
+    background.backgroundDiff(depthData, foregroundMask);
     ByteBuffer depthBuffer = depthImage.getByteBuffer();
     ByteBuffer maskBuffer = foregroundMask.getByteBuffer();
-    for (int i = 0; i < depthRawData.length; i++) {
-      if (maskBuffer.get(i) == 255) {
-        depthBuffer.put(i, 
-                        (byte)(depthRawData[i] * 255 / MAX_DEPTH));
-      } else {
-        depthBuffer.put(i, (byte)0);
+    int maskWidthStep = foregroundMask.widthStep();
+    int depthWidthStep = depthImage.widthStep();
+    int width = packet.width;
+    for (int h = 0; h < packet.height; h++)
+      for (int w = 0; w < packet.width; w++) {
+        int pos = h * depthWidthStep + w;
+        if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
+          depthBuffer.put(pos, 
+                          (byte)(depthData[h * width + w] * 255 / MAX_DEPTH));
+        } else {
+          depthBuffer.put(pos, (byte)0);
+        }
       }
-    }
   }
   
   /**
@@ -128,7 +133,7 @@ public class HandAnalyzer {
   private void cleanUpBackground(ProcessPacket packet) {
     // The default 3x3 kernel with the anchor at the the center is used.
     // The opening operator involves erosion followed by dilation.
-    cvMorphologyEx(packet.depthImage, packet.morphedImage, null, null, 
+    cvMorphologyEx(packet.depthImage8U, packet.morphedImage, null, null, 
         CV_MOP_OPEN, CVCLOSE_ITR);
   }
   
@@ -235,7 +240,7 @@ public class HandAnalyzer {
         
         float angle = (float)Geometry.getAngleC(A, B, C);
         if (angle < FINGERTIP_ANGLE_THRESH && C.y >= cutoff) {
-          float z = packet.depthRawData[C.y * packet.depthImage.width() + C.x];
+          float z = packet.depthRawData[C.y * packet.depthImage8U.width() + C.x];
           fingerTips.add(new ValConfiPair<Point3f>(
               new Point3f(C.x, C.y, z), 1));
         }

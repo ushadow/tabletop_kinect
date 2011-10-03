@@ -54,7 +54,7 @@ public class ProcessPacket {
    * Integer array of raw depth values from Kinect.
    */
   public int[] depthRawData;
-  public IplImage depthImage;
+  public IplImage depthImage8U;
   public IplImage morphedImage;
   public CvMemStorage tempMem;
   public List<CvMat> approxPolys = new ArrayList<CvMat>();
@@ -69,7 +69,7 @@ public class ProcessPacket {
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.
-    depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    depthImage8U = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     // Allocates a default size of 64kB of memory.
     tempMem = cvCreateMemStorage(0);
@@ -82,7 +82,7 @@ public class ProcessPacket {
    */
   public void release() {
     clear();
-    depthImage.release();
+    depthImage8U.release();
     morphedImage.release();
     cvReleaseMemStorage(tempMem);
   }

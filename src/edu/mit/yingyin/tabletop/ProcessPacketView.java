@@ -93,7 +93,7 @@ public class ProcessPacketView {
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
     else
-      cvCopy(packet.depthImage, analysisImage);
+      cvCopy(packet.depthImage8U, analysisImage);
     
     if (showBoundingBox)
       for (CvRect rect : packet.boundingBoxes){

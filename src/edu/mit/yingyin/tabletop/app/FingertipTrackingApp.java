@@ -70,7 +70,7 @@ public class FingertipTrackingApp {
      * Prints the current background subtracted depth frame to a file.
      */
     private void printDepthDiff() {
-      ByteBuffer bb = packet.depthImage.getByteBuffer();
+      ByteBuffer bb = packet.depthImage8U.getByteBuffer();
       PrintStream ps = null;
       try {
         ps = new PrintStream(new File(String.format("tmp/depth_diff%03d.txt",
