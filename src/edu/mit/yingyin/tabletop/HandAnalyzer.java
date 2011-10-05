@@ -93,15 +93,17 @@ public class HandAnalyzer {
     
     subtractBackground(packet);
     cleanUpBackground(packet);
-    findConnectedComponents(packet, PERIM_SCALE);
-    thinningHands(packet);
-    findForelimbFeatures(packet);
-    temporalSmooth(packet);
+//    findConnectedComponents(packet, PERIM_SCALE);
+//    thinningHands(packet);
+//    findForelimbFeatures(packet);
+//    temporalSmooth(packet);
   }
   
   public void release() {
     tempImage.release();
-    System.out.println("HandAnalyzer cleaned up.");
+    background.release();
+    foregroundMask.release();
+    System.out.println("HandAnalyzer released.");
   } 
   
   protected void subtractBackground(ProcessPacket packet) {

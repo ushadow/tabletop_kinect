@@ -114,6 +114,7 @@ public class Background {
     hiFI.release();
     lowFI.release();
     mask.release();
+    System.out.println("Background relesed.");
   }
   
   public String toString() {

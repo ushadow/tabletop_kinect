@@ -134,12 +134,12 @@ public class ProcessPacketView {
     frames[1].showImage(appImage);
   }
   
-  public void cleanUp() {
+  public void release() {
     analysisImage.release();
     appImage.release();
     for (CanvasFrame frame : frames)
       frame.dispose();
-    System.out.println("DebugFrame cleaned up.");
+    System.out.println("ProcessPacketView released.");
   }
   
   public void addKeyListener(KeyListener kl) {
