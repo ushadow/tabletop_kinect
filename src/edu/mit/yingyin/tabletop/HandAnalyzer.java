@@ -93,10 +93,10 @@ public class HandAnalyzer {
     
     subtractBackground(packet);
     cleanUpBackground(packet);
-//    findConnectedComponents(packet, PERIM_SCALE);
-//    thinningHands(packet);
-//    findForelimbFeatures(packet);
-//    temporalSmooth(packet);
+    findConnectedComponents(packet, PERIM_SCALE);
+    thinningHands(packet);
+    findForelimbFeatures(packet);
+    temporalSmooth(packet);
   }
   
   public void release() {

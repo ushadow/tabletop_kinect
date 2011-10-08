@@ -18,6 +18,8 @@ import org.OpenNI.PlayerSeekOrigin;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
 
+import rywang.util.DirectBufferUtils;
+
 /**
  * This class provides the full functionality of an OpenNI sensor device.
  * @author yingyin
@@ -32,6 +34,8 @@ public class FullOpenNIDevice implements OpenNIDevice {
   private DepthMetaData depthMD;
   private ImageMetaData imageMD;
   private int depthWidth, depthHeight, imageWidth, imageHeight;
+  private ByteBuffer depthBuffer;
+  private int depthByteBufferSize;
   
   /**
    * Creates a player that plays back a recorded file.
@@ -49,6 +53,10 @@ public class FullOpenNIDevice implements OpenNIDevice {
           depthMD = depthGen.getMetaData();
           depthWidth = depthMD.getFullXRes();
           depthHeight = depthMD.getFullYRes();
+          depthByteBufferSize = depthHeight * depthWidth * 
+              depthMD.getData().getBytesPerPixel();
+          depthBuffer = DirectBufferUtils.allocateByteBuffer(
+              depthByteBufferSize);
         } else if (type.equals(NodeType.PLAYER)) {
           player = (Player)node.getInstance();
         } else if (type.equals(NodeType.IMAGE)) {
@@ -68,12 +76,20 @@ public class FullOpenNIDevice implements OpenNIDevice {
 
   public int getDepthHeight() { return depthHeight; }
   
+  /**
+   * @return the number of bytes in the depth buffer frame.
+   */
+  public int getDepthByteBufferSize() {
+    return depthByteBufferSize;
+  }
+  
   public int getImageWidth() { return imageWidth; }
   
   public int getImageHeight() { return imageHeight; }
   
   public ShortBuffer getDepthBuffer() throws StatusException {
-    return depthMD.getData().createShortBuffer();
+    updateDepthBuffer();
+    return depthBuffer.asShortBuffer();
   }
   
   public void getDepthArray(short[] depthArray) throws StatusException {
@@ -85,7 +101,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
     sb.rewind();
     while (sb.remaining() > 0) {
       int pos = sb.position();
-      depthArray[pos] = sb.get() & 0xffffffff;
+      depthArray[pos] = sb.get() & 0xffff;
     }
   }
   
@@ -155,5 +171,8 @@ public class FullOpenNIDevice implements OpenNIDevice {
     depthMD = depthGen.getMetaData();
     imageMD = imageGen.getMetaData();
   }
-    
+  
+  private void updateDepthBuffer() {
+    depthMD.getData().copyToBuffer(depthBuffer, depthByteBufferSize);
+  }
 }
