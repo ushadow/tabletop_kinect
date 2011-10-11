@@ -35,5 +35,12 @@ public class BackgroundTest {
     for (int h = 0; h < HEIGHT; h++)
       for (int w = 0; w < WIDTH; w++)
         assertEquals(255, bb.get(h * widthStep + w) & 0xff);
+    
+    Arrays.fill(newDepth, 1);
+    bg.backgroundDiff(newDepth, mask);
+    bb = mask.getByteBuffer();
+    for (int h = 0; h < HEIGHT; h++)
+      for (int w = 0; w < WIDTH; w++)
+        assertEquals(0, bb.get(h * widthStep + w) & 0xff);
   }
 }
