@@ -13,6 +13,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
 import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
+import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
@@ -79,6 +80,10 @@ public class Background {
   
   /**
    * Creates a statistical model of the background.
+   * @param lowScale scale used to multiply with the average absolute difference 
+   *    to create the low threshold.
+   * @param highScale scale used to multiply with the average absolute 
+   *    difference to create the high threshold.
    */
   public void createModelsFromStats(float lowScale, float highScale) {
     cvConvertScale(avgFI, avgFI, 1.0/count, 0);
@@ -117,6 +122,18 @@ public class Background {
     System.out.println("Background relesed.");
   }
   
+  public String stats() {
+    StringBuffer sb = new StringBuffer();
+    sb.append(String.format("Average background depth: %f\n", 
+                            cvAvg(avgFI, null)));
+    sb.append(String.format("Average backgournd absolute difference: %f\n",
+                            cvAvg(diffFI, null)));
+    return sb.toString();
+  }
+  
+  /**
+   * @return the string representation of the background model.
+   */
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("Average Frame:\n");

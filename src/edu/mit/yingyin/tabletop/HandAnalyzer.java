@@ -96,6 +96,7 @@ public class HandAnalyzer {
     findConnectedComponents(packet, PERIM_SCALE);
     thinningHands(packet);
     findForelimbFeatures(packet);
+
     temporalSmooth(packet);
   }
   
