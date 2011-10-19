@@ -110,6 +110,7 @@ public class FingertipTrackingApp {
   boolean recording = false;
   Recorder recorder;
   private int rowToRecord = 0;
+  private int prevDepthFrameID = -1;
 
   public FingertipTrackingApp() {
     System.out.println("java.library.path = "
@@ -134,7 +135,10 @@ public class FingertipTrackingApp {
       try {
         openni.waitDepthUpdateAll();
         openni.getDepthArray(packet.depthRawData);
+        prevDepthFrameID = packet.depthFrameID;
         packet.depthFrameID = openni.getDepthFrameID();
+        if (packet.depthFrameID < prevDepthFrameID)
+          pause = true;
       } catch (Exception e) {
         System.err.println(e.getMessage());
         System.exit(-1);
