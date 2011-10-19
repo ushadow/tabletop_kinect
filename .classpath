@@ -7,9 +7,9 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/java_util"/>
 	<classpathentry kind="lib" path="/java_util/lib/vecmath.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/usr/share/java/org.OpenNI.jar"/>
 	<classpathentry kind="lib" path="lib/javacpp.jar"/>
 	<classpathentry kind="lib" path="lib/javacv-linux-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/javacv.jar"/>
+	<classpathentry kind="lib" path="/usr/share/java/org.OpenNI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

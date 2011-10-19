@@ -33,14 +33,24 @@ public class Background {
   private int maxDepth; 
   /**
    * Float, 1-channel images.
+   * All the depth values are scaled between 0 and 1 according to <code>maxDepth
+   * </code>
    */
-  private IplImage scratchI, scratchI2, avgFI, prevFI, diffFI, hiFI, lowFI;
+  private IplImage scratchI, scratchI2, avgFI, prevFI;
+  /**
+   * Absolute difference between the current frame and the previous frame.
+   */
+  private IplImage diffFI, hiFI, lowFI;
   private IplImage mask;
   private boolean first = true;
   /**
    * Counts the number of images learned for averaging later.
    */
   private float count = (float)0.00001; // Protects against divide by zero.
+  /**
+   * Average absolute difference before adjustment.
+   */
+  private float avgDiff;
   
   /**
    * Initializes the background model.
@@ -88,6 +98,7 @@ public class Background {
   public void createModelsFromStats(float lowScale, float highScale) {
     cvConvertScale(avgFI, avgFI, 1.0/count, 0);
     cvConvertScale(diffFI, diffFI, 1.0/count, 0);
+    avgDiff = (float)(cvAvg(diffFI, null).val(0) * maxDepth);
     // Makes sure diff is at least 1.
     cvCmpS(diffFI, 0.0, mask, CV_CMP_EQ);
     // Add S if mask(I) != 0
@@ -124,12 +135,20 @@ public class Background {
   
   public String stats() {
     StringBuffer sb = new StringBuffer();
-    sb.append(String.format("Average background depth: %f\n", 
-                            cvAvg(avgFI, null)));
+    sb.append(String.format("Average background depth: %f\n", avgDepth()));
     sb.append(String.format("Average backgournd absolute difference: %f\n",
-                            cvAvg(diffFI, null)));
+                            avgDiff()));
     return sb.toString();
   }
+  
+  public float avgDepth() {
+    return (float)(cvAvg(avgFI, null).val(0) * maxDepth);
+  }
+  
+  /**
+   * @return the average absolute difference before adjustment.
+   */
+  public float avgDiff() { return avgDiff; }
   
   /**
    * @return the string representation of the background model.

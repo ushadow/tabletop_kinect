@@ -89,6 +89,7 @@ public class HandAnalyzer {
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float)6.0, (float)7.0);
+      System.out.println(background.stats());
     }
     
     subtractBackground(packet);

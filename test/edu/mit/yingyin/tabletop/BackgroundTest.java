@@ -13,6 +13,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 public class BackgroundTest {
   private static final int MAX_DEPTH = 10;
   private static final int WIDTH = 10, HEIGHT = 10;
+  private static final float EPSILON = 0.00001f;
   
   @Test
   public void testBackgroundDiffSimple() {
@@ -25,6 +26,8 @@ public class BackgroundTest {
     }
     
     bg.createModelsFromStats(1, 1);
+    assertEquals(1, bg.avgDepth(), EPSILON);
+    assertEquals(0, bg.avgDiff(), EPSILON);
     IplImage mask = IplImage.create(WIDTH, HEIGHT, IPL_DEPTH_8U, 1);
     
     int[] newDepth = new int[WIDTH * HEIGHT]; 
@@ -55,6 +58,8 @@ public class BackgroundTest {
     }
     
     bg.createModelsFromStats(2, 1);
+    assertEquals(5.5, bg.avgDepth(), EPSILON);
+    assertEquals(1, bg.avgDiff(), EPSILON);
     IplImage mask = IplImage.create(WIDTH, HEIGHT, IPL_DEPTH_8U, 1);
     
     int[] newDepth = new int[WIDTH * HEIGHT]; 
