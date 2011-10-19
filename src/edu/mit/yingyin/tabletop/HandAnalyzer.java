@@ -47,9 +47,11 @@ import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
-  public static final int HAND_YCUTOFF = 50;
   public static final int MAX_DEPTH = 1600;
-  
+  public static final int HAND_YCUTOFF = 50;
+  /**
+   * Number of initial frames to initialize the background.
+   */
   private static final int BG_INIT_FRAMES = 30;
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
@@ -95,10 +97,10 @@ public class HandAnalyzer {
     subtractBackground(packet);
     cleanUpBackground(packet);
     findConnectedComponents(packet, PERIM_SCALE);
-    thinningHands(packet);
-    findForelimbFeatures(packet);
-
-    temporalSmooth(packet);
+//    thinningHands(packet);
+//    findForelimbFeatures(packet);
+//
+//    temporalSmooth(packet);
   }
   
   public void release() {

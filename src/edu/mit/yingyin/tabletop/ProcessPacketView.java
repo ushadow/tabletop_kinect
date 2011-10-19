@@ -98,8 +98,7 @@ public class ProcessPacketView {
     if (showBoundingBox)
       for (CvRect rect : packet.boundingBoxes){
         cvRectangle(analysisImage, 
-            new CvPoint(rect.x(), 
-                        rect.y() + rect.height() - HandAnalyzer.HAND_YCUTOFF), 
+            new CvPoint(rect.x(), rect.y()), 
             new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
             CvScalar.WHITE, 1, 8, 0);
       }
