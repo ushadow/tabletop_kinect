@@ -55,7 +55,7 @@ public class HandAnalyzer {
   private static final int BG_INIT_FRAMES = 30;
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
-  private static final int PERIM_SCALE = 4;
+  private static final int PERIM_SCALE = 7;
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
   private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
