@@ -42,33 +42,28 @@ public class FullOpenNIDevice implements OpenNIDevice {
    * @param configFile
    * @throws GeneralException
    */
-  public FullOpenNIDevice(String configFile) {
-    try {
-      context = Context.createFromXmlFile(configFile, scriptNode);
-      NodeInfoList list = context.enumerateExistingNodes();
-      for (NodeInfo node : list) {
-        NodeType type = node.getDescription().getType();
-        if (type.equals(NodeType.DEPTH)) {
-          depthGen = (DepthGenerator)node.getInstance();
-          depthMD = depthGen.getMetaData();
-          depthWidth = depthMD.getFullXRes();
-          depthHeight = depthMD.getFullYRes();
-          depthByteBufferSize = depthHeight * depthWidth * 
-              depthMD.getData().getBytesPerPixel();
-          depthBuffer = DirectBufferUtils.allocateByteBuffer(
-              depthByteBufferSize);
-        } else if (type.equals(NodeType.PLAYER)) {
-          player = (Player)node.getInstance();
-        } else if (type.equals(NodeType.IMAGE)) {
-          imageGen = (ImageGenerator)node.getInstance();
-          imageMD = imageGen.getMetaData();
-          imageWidth = imageMD.getFullXRes();
-          imageHeight = imageMD.getFullYRes();
-        }
+  public FullOpenNIDevice(String configFile) throws GeneralException {
+    context = Context.createFromXmlFile(configFile, scriptNode);
+    NodeInfoList list = context.enumerateExistingNodes();
+    for (NodeInfo node : list) {
+      NodeType type = node.getDescription().getType();
+      if (type.equals(NodeType.DEPTH)) {
+        depthGen = (DepthGenerator)node.getInstance();
+        depthMD = depthGen.getMetaData();
+        depthWidth = depthMD.getFullXRes();
+        depthHeight = depthMD.getFullYRes();
+        depthByteBufferSize = depthHeight * depthWidth * 
+            depthMD.getData().getBytesPerPixel();
+        depthBuffer = DirectBufferUtils.allocateByteBuffer(
+            depthByteBufferSize);
+      } else if (type.equals(NodeType.PLAYER)) {
+        player = (Player)node.getInstance();
+      } else if (type.equals(NodeType.IMAGE)) {
+        imageGen = (ImageGenerator)node.getInstance();
+        imageMD = imageGen.getMetaData();
+        imageWidth = imageMD.getFullXRes();
+        imageHeight = imageMD.getFullYRes();
       }
-    } catch (GeneralException ge) {
-      System.err.println(ge.getMessage());
-      System.exit(-1);
     }
   }
   
