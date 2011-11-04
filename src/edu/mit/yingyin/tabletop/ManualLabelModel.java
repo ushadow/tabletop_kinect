@@ -29,9 +29,17 @@ public class ManualLabelModel {
   private int depthFrameID = 0, rgbFrameID = 0;
   private int skip = 1;
 
+  /**
+   * Creates the ManualLabelModel object.
+   * 
+   * @param configFile OpenNI configuration file.
+   * @param replayFilename Recorded file with tracked points at each frame.  
+   * @throws IOException If reading from <code>replayFilename</code> fails.
+   * @throws GeneralException If initializationg from OpenNI device fails.
+   */
   @SuppressWarnings("unchecked")
   public ManualLabelModel(String configFile, String replayFilename) 
-      throws IOException {
+      throws IOException, GeneralException {
     openni = new FullOpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();

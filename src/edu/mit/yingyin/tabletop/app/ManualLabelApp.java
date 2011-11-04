@@ -82,6 +82,9 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     } catch (IOException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
+    } catch (GeneralException ge) {
+      ge.printStackTrace();
+      System.exit(-1);
     }
     LabelView depthView = new LabelView(new Dimension(model.depthWidth(),
         model.depthHeight()));
