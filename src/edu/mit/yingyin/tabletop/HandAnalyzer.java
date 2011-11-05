@@ -47,6 +47,9 @@ import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
+  /**
+   * Maimum depth in mm for the tabletop application.
+   */
   public static final int MAX_DEPTH = 1600;
   public static final int HAND_YCUTOFF = 50;
   /**
@@ -98,9 +101,9 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, PERIM_SCALE);
     thinningHands(packet);
-    findForelimbFeatures(packet);
-
-    temporalSmooth(packet);
+//    findForelimbFeatures(packet);
+//
+//    temporalSmooth(packet);
   }
   
   public void release() {
@@ -180,18 +183,30 @@ public class HandAnalyzer {
     }
   }
   
+  private Rectangle getHandRegion(CvRect armRect, ProcessPacket packet) {
+    // Find the hand region from the arm.
+    if (armRect.height() < HAND_YCUTOFF)
+      return null;
+    int ymid = packet.height / 2;
+    int y1 = armRect.y();
+    int y2 = y1 + armRect.height();
+    int yhand = y1;
+    if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) {
+      yhand = y2 - HAND_YCUTOFF;
+    }
+    return new Rectangle(armRect.x(), yhand, armRect.width(), HAND_YCUTOFF);
+  }
+
   private void thinningHands(ProcessPacket packet) {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
     for (CvRect rect : packet.boundingBoxes) {
-      if (rect.height() > HAND_YCUTOFF) {
-        Rectangle handRect = new Rectangle(rect.x(), 
-            rect.y() + rect.height() - HAND_YCUTOFF, 
-            rect.width(), HAND_YCUTOFF);
+      Rectangle handRect = getHandRegion(rect, packet);
+      if (handRect != null) {
         byte[][] pixels = new byte[handRect.height][handRect.width];
         for (int dy = 0; dy < handRect.height; dy++) 
           for (int dx = 0; dx < handRect. width; dx++) {
             int index = (handRect.y + dy) * packet.morphedImage.width() + 
-                        handRect.x + dx;
+            handRect.x + dx;
             if (bb.get(index) == 0)
               pixels[dy][dx] = BinaryFast.background;
             else pixels[dy][dx] = BinaryFast.foreground;
