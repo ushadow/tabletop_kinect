@@ -74,10 +74,8 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
       config.load(in);
       in.close();
     } catch (FileNotFoundException e1) {
-      // TODO Auto-generated catch block
       e1.printStackTrace();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } 
     
