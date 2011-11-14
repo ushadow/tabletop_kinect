@@ -12,6 +12,11 @@ import org.OpenNI.GeneralException;
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 
+/**
+ * Model for manual labeling of points per frame in a OpenNI recorded file.
+ * @author yingyin
+ *
+ */
 public class ManualLabelModel {
   /**
    * Points at each frame. Multiple points at each frame for tracking multiple

@@ -25,7 +25,14 @@ import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.ManualLabelModel;
 
+/**
+ * Application that allows manual labelling of points on an OpenNI recorded 
+ * file.
+ * @author yingyin
+ *
+ */
 public class ManualLabelApp extends KeyAdapter implements MouseListener {
+  /** View for displaying point labels on an image component. */
   private class LabelView extends ImageComponent {
 
     private static final long serialVersionUID = -516675143416854662L;
@@ -74,9 +81,12 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
       e.printStackTrace();
     } 
     
+    // Get configuration parameters.
     openniConfigFile = config.getProperty("openni-config", "config/config.xml");
     saveFilename = config.getProperty("save-file", "data/groud_truth.label");
     replayFilename = config.getProperty("replay-file", null);
+    
+    
     try {
       model = new ManualLabelModel(openniConfigFile, replayFilename);
     } catch (IOException e) {
