@@ -97,6 +97,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
     return depthBuffer.asShortBuffer();
   }
   
+  /**
+   * Updates <code>depthArray</code> with data from depth buffer.
+   * @param depthArray
+   * @throws StatusException
+   */
   public void getDepthArray(short[] depthArray) throws StatusException {
     getDepthBuffer().get(depthArray);
   }

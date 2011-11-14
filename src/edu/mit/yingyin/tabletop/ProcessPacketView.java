@@ -9,7 +9,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import javax.vecmath.Point3f;
 
@@ -22,6 +21,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
 
@@ -158,8 +158,12 @@ public class ProcessPacketView {
       frame.setVisible(false);
   }
   
+  /**
+   * Displays the application image.
+   * @param packet
+   */
   private void showAppImage(ProcessPacket packet) {
-    calcHist(packet.depthRawData);
+    ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
     ByteBuffer ib = appImage.getByteBuffer();
     int widthStep = appImage.widthStep();
     for (int h = 0; h < packet.height; h++) 
@@ -169,25 +173,5 @@ public class ProcessPacketView {
       }
     frames[1].showImage(appImage);
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
-  }
-  
-  private void calcHist(int[] depthRawData) {
-    Arrays.fill(histogram, 0);
-    
-    int totalPoints = 0;
-    for (int v : depthRawData) {
-      if (v > 0) {
-        histogram[v]++;
-        totalPoints++;
-      }
-    }
-    
-    for (int i = 1; i < histogram.length; i++) 
-      histogram[i] += histogram[i - 1];
-  
-    if (totalPoints > 0) {
-      for (int i = 1; i < histogram.length; i++)
-        histogram[i] = (totalPoints - histogram[i]) / (float)totalPoints;
-    }
   }
 }    

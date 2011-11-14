@@ -21,6 +21,11 @@ import edu.mit.yingyin.tabletop.Tracker;
 import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
 import edu.mit.yingyin.tabletop.Tracker.TrackerListener;
 
+/**
+ * Application that tracks the fingertips in data from an OpenNI device.
+ * @author yingyin
+ *
+ */
 public class FingertipTrackingApp {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
