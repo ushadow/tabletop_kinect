@@ -4,10 +4,13 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import org.OpenNI.GeneralException;
+
+import com.googlecode.javacv.FrameGrabber.Array;
 
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
@@ -117,7 +120,7 @@ public class ManualLabelModel {
     
     openni.getDepthArray(depthRawData);
     ImageConvertUtils.arrayToHistogram(depthRawData, histogram);
-    System.out.println(histogram);
+    System.out.println(Arrays.toString(histogram));
     ImageConvertUtils.histogramToGrayBufferedImage(depthRawData, histogram, 
         depthImage);
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), 

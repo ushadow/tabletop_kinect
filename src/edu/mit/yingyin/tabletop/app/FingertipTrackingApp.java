@@ -40,7 +40,7 @@ public class FingertipTrackingApp {
         case KeyEvent.VK_Q:
           debugView.hide();
           break;
-        case KeyEvent.VK_F:
+        case KeyEvent.VK_W:
           printDepthRaw();
           break;
         case KeyEvent.VK_L:
