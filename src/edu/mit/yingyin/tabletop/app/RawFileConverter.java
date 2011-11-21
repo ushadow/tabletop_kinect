@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop.app;
 
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.BufferedInputStream;
@@ -10,13 +9,18 @@ import java.io.IOException;
 
 import org.apache.commons.cli.Option;
 
-import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.util.CommandLineOptions;
 
+/**
+ * Converts the .raw file from OpenNI to <code>BufferedImage</code> and displays
+ * it.
+ * @author yingyin
+ *
+ */
 public class RawFileConverter {
   private static final String USAGE = "Usage: Arguments: <input file name> " +
-  		"[type] [width] [height]";
+  		"[-t type] [-w width] [-h height]";
   private static final String DEFAULT_WIDTH = "640";
   private static final String DEFAULT_HEIGHT = "480";
   private static final String DEFAULT_TYPE = "rgb";
@@ -68,15 +72,13 @@ public class RawFileConverter {
                                                    - j];
         }
         
-      ImageComponent ic = new ImageComponent(new Dimension(width, height));
-      ic.setImage(bi);
-      new ImageFrame("image", ic);
+      new ImageFrame(bi);
     } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+      System.exit(-1);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+      System.exit(-1);
     }
   }
 }
