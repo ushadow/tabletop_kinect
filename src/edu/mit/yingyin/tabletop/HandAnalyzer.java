@@ -48,17 +48,27 @@ import edu.mit.yingyin.util.Matrix;
 
 public class HandAnalyzer {
   /**
-   * Maimum depth in mm for the tabletop application.
+   * Maximum depth in mm for the tabletop application.
    */
   public static final int MAX_DEPTH = 1600;
-  public static final int HAND_YCUTOFF = 50;
   /**
    * Number of initial frames to initialize the background.
    */
   private static final int BG_INIT_FRAMES = 30;
   private static final int CVCLOSE_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
-  private static final int PERIM_SCALE = 7;
+  /**
+   * The ratio between the perimeter of the table and the perimeter of the hand.
+   * Assumes hand's dimension is w = 15cm, h = 15cm, and the table's dimension 
+   * is w = 122cm, h = 92cm.
+   */
+  private static final int HAND_PERIM_SCALE = 7;
+  /**
+   * The ratio between the height of the table and the minimum height of the 
+   * hand. Assumes minimum height of the hand is 8cm when only part of the hand 
+   * is in the view.
+   */
+  private static final int HAND_HEIGHT_SCALE = 11;
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
   private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
@@ -99,11 +109,12 @@ public class HandAnalyzer {
     
     subtractBackground(packet);
     cleanUpBackground(packet);
-    findConnectedComponents(packet, PERIM_SCALE);
+    findConnectedComponents(packet, HAND_PERIM_SCALE);
+    findHandRegions(packet);
     thinningHands(packet);
-//    findForelimbFeatures(packet);
-//
-//    temporalSmooth(packet);
+    findForelimbFeatures(packet);
+
+    temporalSmooth(packet);
   }
   
   public void release() {
@@ -183,35 +194,37 @@ public class HandAnalyzer {
     }
   }
   
-  private Rectangle getHandRegion(CvRect armRect, ProcessPacket packet) {
-    // Find the hand region from the arm.
-    if (armRect.height() < HAND_YCUTOFF)
-      return null;
-    int ymid = packet.height / 2;
-    int y1 = armRect.y();
-    int y2 = y1 + armRect.height();
-    int yhand = y1;
-    if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) {
-      yhand = y2 - HAND_YCUTOFF;
+  private void findHandRegions(ProcessPacket packet) {
+    int handHeight = packet.height / HAND_HEIGHT_SCALE;
+    for (CvRect rect : packet.boundingBoxes) {
+      if (rect.height() >= handHeight) {
+        int ymid = packet.height / 2;
+        int y1 = rect.y();
+        int y2 = y1 + rect.height();
+        int yhand = y1;
+        if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) 
+          yhand = y2 - handHeight;
+        packet.handRegions.add(
+            new Rectangle(rect.x(), yhand, rect.width(), handHeight));
+      } else {
+        packet.handRegions.add(null);
+      }
     }
-    return new Rectangle(armRect.x(), yhand, armRect.width(), HAND_YCUTOFF);
   }
 
   private void thinningHands(ProcessPacket packet) {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
-    for (CvRect rect : packet.boundingBoxes) {
-      Rectangle handRect = getHandRegion(rect, packet);
-      if (handRect != null) {
-        byte[][] pixels = new byte[handRect.height][handRect.width];
-        for (int dy = 0; dy < handRect.height; dy++) 
-          for (int dx = 0; dx < handRect. width; dx++) {
-            int index = (handRect.y + dy) * packet.morphedImage.width() + 
-            handRect.x + dx;
+    for (Rectangle rect : packet.handRegions) {
+      if (rect != null) {
+        byte[][] pixels = new byte[rect.height][rect.width];
+        for (int dy = 0; dy < rect.height; dy++) 
+          for (int dx = 0; dx < rect. width; dx++) {
+            int index = (rect.y + dy) * packet.morphedImage.width() + rect.x + dx;
             if (bb.get(index) == 0)
               pixels[dy][dx] = BinaryFast.background;
             else pixels[dy][dx] = BinaryFast.foreground;
           }
-        BinaryFast bf = new BinaryFast(pixels, handRect.width, handRect.height);
+        BinaryFast bf = new BinaryFast(pixels, rect.width, rect.height);
         for (int i = 0; i < 20; i++) {
           ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
           ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_DIAG);
@@ -224,10 +237,10 @@ public class HandAnalyzer {
           Matrix.rot90(PRUNING_KERNEL1, 3);
           Matrix.rot90(PRUNING_KERNEL2, 3);
         }
-        for (int dy = 0; dy < handRect.height; dy++) 
-          for (int dx = 0; dx < handRect. width; dx++) {
-            int index = (handRect.y + dy) * packet.morphedImage.width() + 
-                        handRect.x + dx;
+        for (int dy = 0; dy < rect.height; dy++) 
+          for (int dx = 0; dx < rect. width; dx++) {
+            int index = (rect.y + dy) * packet.morphedImage.width() + 
+                        rect.x + dx;
             if (pixels[dy][dx] == BinaryFast.background)
               bb.put(index, (byte)0);
             else bb.put(index, (byte)255);
@@ -238,40 +251,44 @@ public class HandAnalyzer {
   
   private void findForelimbFeatures(ProcessPacket packet) {
     for (int i = 0; i < packet.hulls.size(); i++) {
-      ForelimbModel forelimb = new ForelimbModel();
-      List<ValConfiPair<Point3f>> fingerTips = 
-          new ArrayList<ValConfiPair<Point3f>>();
-      
-      CvMat hull = packet.hulls.get(i);
-      CvMat approxPoly = packet.approxPolys.get(i);
-      CvRect rect = packet.boundingBoxes.get(i);
-      int cutoff = rect.y() + rect.height() - HAND_YCUTOFF;
-      int numPolyPts = approxPoly.length();
-
-      for (int j = 0; j < hull.length(); j++) {
-        int idx = (int)hull.get(j);
-        int pdx = (idx - 1 + numPolyPts) % numPolyPts;
-        int sdx = (idx + 1) % numPolyPts;
-        Point C = new Point((int)approxPoly.get(idx * 2), 
-                            (int)approxPoly.get(idx * 2 + 1));
-        Point A = new Point((int)approxPoly.get(pdx * 2), 
-                            (int)approxPoly.get(pdx * 2 + 1));
-        Point B = new Point((int)approxPoly.get(sdx * 2),
-                            (int)approxPoly.get(sdx * 2 + 1));
+      Rectangle handRect = packet.handRegions.get(i);
+      if (handRect != null) {
+        ForelimbModel forelimb = new ForelimbModel();
+        List<ValConfiPair<Point3f>> fingerTips = 
+            new ArrayList<ValConfiPair<Point3f>>();
         
-        float angle = (float)Geometry.getAngleC(A, B, C);
-        if (angle < FINGERTIP_ANGLE_THRESH && C.y >= cutoff) {
-          float z = packet.depthRawData[C.y * packet.depthImage8U.width() + C.x];
-          fingerTips.add(new ValConfiPair<Point3f>(
-              new Point3f(C.x, C.y, z), 1));
+        CvMat hull = packet.hulls.get(i);
+        CvMat approxPoly = packet.approxPolys.get(i);
+        CvRect rect = packet.boundingBoxes.get(i);
+        int numPolyPts = approxPoly.length();
+  
+        for (int j = 0; j < hull.length(); j++) {
+          int idx = (int)hull.get(j);
+          int pdx = (idx - 1 + numPolyPts) % numPolyPts;
+          int sdx = (idx + 1) % numPolyPts;
+          Point C = new Point((int)approxPoly.get(idx * 2), 
+                              (int)approxPoly.get(idx * 2 + 1));
+          Point A = new Point((int)approxPoly.get(pdx * 2), 
+                              (int)approxPoly.get(pdx * 2 + 1));
+          Point B = new Point((int)approxPoly.get(sdx * 2),
+                              (int)approxPoly.get(sdx * 2 + 1));
+          
+          float angle = (float)Geometry.getAngleC(A, B, C);
+          if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y && 
+              C.y <= handRect.y + handRect.height) {
+            float z = packet.depthRawData[C.y * packet.depthImage8U.width() + 
+                                          C.x];
+            fingerTips.add(new ValConfiPair<Point3f>(
+                new Point3f(C.x, C.y, z), 1));
+          }
         }
+        forelimb.fingertips = fingerTips;
+  
+        forelimb.center = new Point(rect.x() + rect.width() / 2, 
+            rect.y() + rect.height() / 2);
+        
+        packet.foreLimbsFeatures.add(forelimb);
       }
-      forelimb.fingertips = fingerTips;
-
-      forelimb.center = new Point(rect.x() + rect.width() / 2, 
-          rect.y() + rect.height() / 2);
-      
-      packet.foreLimbsFeatures.add(forelimb);
     }
   }
   

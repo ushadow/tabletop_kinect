@@ -7,6 +7,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +64,7 @@ public class ProcessPacket {
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
   public List<ForelimbModel> foreLimbsFeatures = 
       new ArrayList<ForelimbModel>();
+  public List<Rectangle> handRegions = new ArrayList<Rectangle>();
   public int depthFrameID;
   public int width, height;
   
@@ -106,6 +108,7 @@ public class ProcessPacket {
     convexityDefects.clear();
     foreLimbsFeatures.clear();
     boundingBoxes.clear();
+    handRegions.clear();
   }
   
   public int[] getDepthRaw(int row) {
