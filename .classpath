@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/javacv-linux-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/javacv.jar"/>
 	<classpathentry kind="lib" path="/usr/share/java/org.OpenNI.jar"/>
+	<classpathentry kind="lib" path="/java_util/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

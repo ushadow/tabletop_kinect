@@ -34,8 +34,8 @@ public class FullOpenNIDevice implements OpenNIDevice {
   private DepthMetaData depthMD;
   private ImageMetaData imageMD;
   private int depthWidth, depthHeight, imageWidth, imageHeight;
-  private ByteBuffer depthBuffer;
-  private int depthByteBufferSize;
+  private ByteBuffer depthBuffer, imageBuffer;
+  private int depthByteBufferSize, imageByteBufferSize;
   
   /**
    * Creates a player that plays back a recorded file.
@@ -63,6 +63,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
         imageMD = imageGen.getMetaData();
         imageWidth = imageMD.getFullXRes();
         imageHeight = imageMD.getFullYRes();
+        imageByteBufferSize = imageHeight * imageWidth 
+            * imageMD.getData().getBytesPerPixel();
+        imageBuffer = DirectBufferUtils.allocateByteBuffer(
+            imageByteBufferSize);
+        
       }
     }
   }
@@ -82,11 +87,21 @@ public class FullOpenNIDevice implements OpenNIDevice {
   
   public int getImageHeight() { return imageHeight; }
   
+  /**
+   * 
+   * @return the depth buffer as a <code>ShortBuffer</code>.
+   * @throws StatusException
+   */
   public ShortBuffer getDepthBuffer() throws StatusException {
     updateDepthBuffer();
     return depthBuffer.asShortBuffer();
   }
   
+  /**
+   * Updates <code>depthArray</code> with data from depth buffer.
+   * @param depthArray
+   * @throws StatusException
+   */
   public void getDepthArray(short[] depthArray) throws StatusException {
     getDepthBuffer().get(depthArray);
   }
@@ -101,7 +116,8 @@ public class FullOpenNIDevice implements OpenNIDevice {
   }
   
   public ByteBuffer getImageBuffer() throws GeneralException {
-    return imageGen.getImageMap().createByteBuffer();
+    updateImageBuffer();
+    return imageBuffer;
   }
   
   public int getImageFrameID() { return imageMD.getFrameID(); }
@@ -167,7 +183,17 @@ public class FullOpenNIDevice implements OpenNIDevice {
     imageMD = imageGen.getMetaData();
   }
   
+  /**
+   * Updates <code>depthBuffer</code> from meta data.
+   */
   private void updateDepthBuffer() {
     depthMD.getData().copyToBuffer(depthBuffer, depthByteBufferSize);
+  }
+  
+  /**
+   * Updates <code>imageBuffer</code> from meta data.
+   */
+  private void updateImageBuffer() {
+    imageMD.getData().copyToBuffer(imageBuffer, imageByteBufferSize);
   }
 }

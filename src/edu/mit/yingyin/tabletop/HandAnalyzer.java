@@ -93,6 +93,10 @@ public class HandAnalyzer {
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
   }
   
+  /**
+   * Hand data analysis pipeline.
+   * @param packet contains all the relevant data for analysis.
+   */
   public void analyzeData(ProcessPacket packet) {
     prevForelimbsFeatures.clear();
     for (ForelimbModel forelimb : packet.foreLimbsFeatures)
@@ -113,7 +117,6 @@ public class HandAnalyzer {
     findHandRegions(packet);
     thinningHands(packet);
     findForelimbFeatures(packet);
-
     temporalSmooth(packet);
   }
   

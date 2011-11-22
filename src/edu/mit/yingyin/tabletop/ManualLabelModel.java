@@ -4,14 +4,22 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import org.OpenNI.GeneralException;
 
+import com.googlecode.javacv.FrameGrabber.Array;
+
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 
+/**
+ * Model for manual labeling of points per frame in a OpenNI recorded file.
+ * @author yingyin
+ *
+ */
 public class ManualLabelModel {
   /**
    * Points at each frame. Multiple points at each frame for tracking multiple
@@ -28,6 +36,7 @@ public class ManualLabelModel {
    */
   private int depthFrameID = 0, rgbFrameID = 0;
   private int skip = 1;
+  private float[] histogram;
 
   /**
    * Creates the ManualLabelModel object.
@@ -55,6 +64,8 @@ public class ManualLabelModel {
           ObjectIO.readObject(replayFilename));
     else
       points = new HashMap<Integer, List<Point>>();
+  
+    histogram = new float[HandAnalyzer.MAX_DEPTH];
   }
 
   // Accessors
@@ -108,8 +119,12 @@ public class ManualLabelModel {
     }
     
     openni.getDepthArray(depthRawData);
-    ImageConvertUtils.depthToGrayBufferedImage(depthRawData, depthImage);
-    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), rgbImage);
+    ImageConvertUtils.arrayToHistogram(depthRawData, histogram);
+    System.out.println(Arrays.toString(histogram));
+    ImageConvertUtils.histogramToGrayBufferedImage(depthRawData, histogram, 
+        depthImage);
+    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), 
+        rgbImage);
     depthFrameID = openni.getDepthFrameID();
     rgbFrameID = openni.getImageFrameID();
   }
