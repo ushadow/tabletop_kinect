@@ -72,7 +72,8 @@ public class RawFileConverter {
                                                    - j];
         }
         
-      new ImageFrame(bi);
+      new ImageFrame(null, bi);
+      
     } catch (FileNotFoundException e) {
       e.printStackTrace();
       System.exit(-1);
