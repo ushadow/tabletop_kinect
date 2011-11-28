@@ -41,6 +41,7 @@ public class ProcessPacketView {
         showConvexityDefects = !showConvexityDefects;
         break;
       case 'f':
+        // Shows all the detected fingertips.
         showFingertip = !showFingertip;
         break;
       case 'h':

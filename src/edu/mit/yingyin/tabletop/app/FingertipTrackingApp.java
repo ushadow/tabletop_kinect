@@ -3,10 +3,15 @@ package edu.mit.yingyin.tabletop.app;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import org.OpenNI.GeneralException;
 
@@ -17,9 +22,9 @@ import edu.mit.yingyin.tabletop.OpenNIDevice;
 import edu.mit.yingyin.tabletop.ProcessPacket;
 import edu.mit.yingyin.tabletop.Recorder;
 import edu.mit.yingyin.tabletop.Table;
-import edu.mit.yingyin.tabletop.Tracker;
-import edu.mit.yingyin.tabletop.Tracker.FingerEvent;
-import edu.mit.yingyin.tabletop.Tracker.TrackerListener;
+import edu.mit.yingyin.tabletop.HandTracker;
+import edu.mit.yingyin.tabletop.HandTracker.FingerEvent;
+import edu.mit.yingyin.tabletop.HandTracker.HandTrackerListener;
 
 /**
  * Application that tracks the fingertips in data from an OpenNI device.
@@ -96,10 +101,20 @@ public class FingertipTrackingApp {
     }
   }
 
-  private class TrackerController implements TrackerListener {
+  private class TrackerController implements HandTrackerListener {
+    List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     @Override
     public void fingerPressed(FingerEvent fe) {
-      debugView.drawCircle(fe.x, fe.y);
+      if (debugView != null)
+        debugView.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
+      fingerEventList.add(fe);
+    }
+    
+    public void toFile(PrintStream ps) {
+      ps.println("# frame-id x-coordinate y-coordinate z-coordinate");
+      for (FingerEvent fe : fingerEventList)
+        ps.println(String.format("%d %d %d %d", fe.frameID, (int)fe.fingertip.x, 
+                                 (int)fe.fingertip.y, (int)fe.fingertip.z));
     }
   }
 
@@ -107,8 +122,9 @@ public class FingertipTrackingApp {
     new FingertipTrackingApp();
   }
 
-  private String configFile = "config/config.xml";
-  private String recordFilePrefix = "data/depth_raw/depth_row";
+  private static String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
+  private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
+  
   private OpenNIDevice openni;
   private ProcessPacketView debugView;
   private int depthWidth, depthHeight;
@@ -122,8 +138,32 @@ public class FingertipTrackingApp {
   public FingertipTrackingApp() {
     System.out.println("java.library.path = "
         + System.getProperty("java.library.path"));
+    
+    Properties config = new Properties();
+    FileInputStream in = null;
     try {
-      openni = new FullOpenNIDevice(configFile);
+      in = new FileInputStream(CONFIG_FILE);
+      config.load(in);
+      in.close();
+    } catch (FileNotFoundException fnfe) {
+      fnfe.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
+    String openniConfigFile = DIR + config.getProperty("openni-config", 
+                                                       "config/config.xml");
+    String depthFilePrefix = DIR + config.getProperty("depth-file-prefix", 
+        "data/depth_raw/depth_row");
+    String fingertipFile = DIR + config.getProperty("fingertip-file", 
+        "data/fingertip/fingertip.txt");
+    String displayOnProperty = config.getProperty("display-on", "true");
+    boolean displayOn = true;
+    if (displayOnProperty.equals("false"))
+      displayOn = false;
+    
+    try {
+      openni = new FullOpenNIDevice(openniConfigFile);
     } catch (GeneralException ge) {
       ge.printStackTrace();
       System.exit(-1);
@@ -133,16 +173,19 @@ public class FingertipTrackingApp {
     HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
 
-    debugView = new ProcessPacketView(depthWidth, depthHeight);
-    debugView.addKeyListener(new KeyController());
-
+    if (displayOn) {
+      debugView = new ProcessPacketView(depthWidth, depthHeight);
+      debugView.addKeyListener(new KeyController());
+    }
+    
     Table table = new Table();
-    Tracker tracker = new Tracker(table);
-    tracker.addListener(new TrackerController());
+    HandTracker tracker = new HandTracker(table);
+    TrackerController trackerController = new TrackerController();
+    tracker.addListener(trackerController);
 
     // A one thread process. Only one ProcessPacket present at all time.
-    while (debugView.isVisible()) {
-      if (pause)
+    while (debugView != null && debugView.isVisible() || displayOn == false) {
+      if (debugView != null && pause)
         continue;
       try {
         openni.waitDepthUpdateAll();
@@ -150,7 +193,7 @@ public class FingertipTrackingApp {
         prevDepthFrameID = packet.depthFrameID;
         packet.depthFrameID = openni.getDepthFrameID();
         if (packet.depthFrameID < prevDepthFrameID)
-          pause = true;
+          break;
       } catch (Exception e) {
         e.printStackTrace();
         System.exit(-1);
@@ -159,11 +202,16 @@ public class FingertipTrackingApp {
       if (!table.isInitialized())
         table.init(packet.depthRawData, depthWidth, depthHeight);
       analyzer.analyzeData(packet);
-      debugView.show(packet);
+      
+      if (debugView != null)
+        debugView.show(packet);
+      
+      tracker.update(packet.foreLimbsFeatures, packet.depthFrameID);
+
       if (recording) {
         if (recorder == null) {
           rowToRecord = depthHeight / 2;
-          String recordFileName = recordFilePrefix + rowToRecord;
+          String recordFileName = depthFilePrefix + rowToRecord;
           try {
             recorder = new Recorder(new FileOutputStream(recordFileName));
           } catch (FileNotFoundException e) {
@@ -172,15 +220,27 @@ public class FingertipTrackingApp {
             }
         }
         recorder.print(packet.depthFrameID, 
-                        packet.getDepthRaw(depthHeight / 2));
+                       packet.getDepthRaw(depthHeight / 2));
       }
-        
-      tracker.update(packet.foreLimbsFeatures);
     }
+    
+    // Prints finger events.
+    PrintStream ps = null;
+    try {
+      ps = new PrintStream(fingertipFile);
+      trackerController.toFile(ps);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } finally {
+      if (ps != null)
+        ps.close();
+    }
+    
     openni.release();
     analyzer.release();
     packet.release();
-    debugView.release();
+    if (debugView != null)
+      debugView.release();  
     System.exit(0);
   }
 }

@@ -116,7 +116,7 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     thinningHands(packet);
-    findForelimbFeatures(packet);
+    extractForelimbFeatures(packet);
     temporalSmooth(packet);
   }
   
@@ -252,7 +252,11 @@ public class HandAnalyzer {
     }
   }
   
-  private void findForelimbFeatures(ProcessPacket packet) {
+  /**
+   * Extracts forelimb features from the information in the <code>packet</code>.
+   * @param packet
+   */
+  private void extractForelimbFeatures(ProcessPacket packet) {
     for (int i = 0; i < packet.hulls.size(); i++) {
       Rectangle handRect = packet.handRegions.get(i);
       if (handRect != null) {
