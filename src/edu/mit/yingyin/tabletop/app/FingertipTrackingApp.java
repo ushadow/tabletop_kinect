@@ -118,13 +118,13 @@ public class FingertipTrackingApp {
     }
   }
 
+  private static String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
+          private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
+          
   public static void main(String[] args) {
     new FingertipTrackingApp();
   }
 
-  private static String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
-  
   private OpenNIDevice openni;
   private ProcessPacketView debugView;
   private int depthWidth, depthHeight;

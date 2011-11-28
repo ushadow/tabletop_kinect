@@ -28,6 +28,9 @@ import edu.mit.yingyin.tabletop.ManualLabelModel;
 /**
  * Application that allows manual labelling of points on an OpenNI recorded 
  * file.
+ * 
+ * Keyboard interations:
+ * s - save labels to file.
  * @author yingyin
  *
  */
@@ -55,7 +58,9 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     }
   }
 
-  private static final String CONFIG_FILE = "./config/manual_label.config"; 
+  private static final String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
+  private static final String CONFIG_FILE = DIR + "config/manual_label.config"; 
+  
   public static void main(String[] args) {
     new ManualLabelApp();
   }
@@ -80,9 +85,11 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     } 
     
     // Get configuration parameters.
-    openniConfigFile = config.getProperty("openni-config", "config/config.xml");
-    saveFilename = config.getProperty("save-file", "data/groud_truth.label");
-    replayFilename = config.getProperty("replay-file", null);
+    openniConfigFile = DIR + 
+                       config.getProperty("openni-config", "config/config.xml");
+    saveFilename = DIR + 
+                   config.getProperty("save-file", "data/groud_truth.label");
+    replayFilename = DIR + config.getProperty("replay-file", null);
     
     
     try {
