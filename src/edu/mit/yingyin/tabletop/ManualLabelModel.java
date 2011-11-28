@@ -3,7 +3,9 @@ package edu.mit.yingyin.tabletop;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -66,6 +68,11 @@ public class ManualLabelModel {
   }
 
   // Accessors
+  /**
+   * Returns points at a particular frame.
+   * @param frameID
+   * @return
+   */
   public List<Point> getPoints(int frameID) {
     List<Point> newList = new ArrayList<Point>();
     List<Point> list = points.get(frameID);
@@ -126,8 +133,8 @@ public class ManualLabelModel {
   }
 
   /**
-   * Adds a point corresponding to the current image.
-   * @param p point to be added corresponding to current image's frame ID.
+   * Adds a point corresponding to the current frame.
+   * @param p the point to be added corresponding to current image's frame ID.
    */
   public void addPoint(Point p) {
     List<Point> list = points.get(depthFrameID);
@@ -159,6 +166,18 @@ public class ManualLabelModel {
 
   public void save(String filename) throws IOException {
     ObjectIO.writeObject(points, filename);
+    // Save points in a text file as well.
+    String textFileName = filename + ".txt";
+    PrintWriter pw = new PrintWriter(textFileName);
+    pw.write("# frame-id x-coordinate y-coornidate\n");
+    List<Integer> sortedKeys = new ArrayList<Integer>(points.keySet());
+    Collections.sort(sortedKeys);
+    for (Integer key : sortedKeys) {
+      for (Point p : points.get(key))
+        pw.write(String.format("%d %d %d\n", key, p.x, p.y));
+    }
+    pw.close();
+          
   }
   
   public int skipRate() { return skip; }
