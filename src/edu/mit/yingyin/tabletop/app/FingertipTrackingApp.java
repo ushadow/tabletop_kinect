@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,24 +103,41 @@ public class FingertipTrackingApp {
   }
 
   private class TrackerController implements HandTrackerListener {
-    List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
+    /**
+     * List of finger events detected in a frame.
+     */
+    private List<List<FingerEvent>> fingerEventList = 
+        new ArrayList<List<FingerEvent>>();
+    
     @Override
-    public void fingerPressed(FingerEvent fe) {
-      if (debugView != null)
-        debugView.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
-      fingerEventList.add(fe);
+    public void fingerPressed(List<FingerEvent> feList) {
+      if (debugView != null) {
+        for (FingerEvent fe : feList)
+          debugView.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
+      }
+      fingerEventList.add(feList);
     }
     
-    public void toFile(PrintStream ps) {
-      ps.println("# frame-id x-coordinate y-coordinate z-coordinate");
-      for (FingerEvent fe : fingerEventList)
-        ps.println(String.format("%d %d %d %d", fe.frameID, (int)fe.fingertip.x, 
-                                 (int)fe.fingertip.y, (int)fe.fingertip.z));
+    public void toOutput(PrintWriter pw) {
+      pw.println("# frame-id x y z x y z ...");
+      for (List<FingerEvent> list : fingerEventList) {
+        for (int i = 0; i < list.size(); i++) {
+          if (i == 0) {
+            pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
+                (int)list.get(i).fingertip.x, (int)list.get(i).fingertip.y, 
+                (int)list.get(i).fingertip.z));
+          } else {
+            pw.print(String.format("%d %d %d ", (int)list.get(i).fingertip.x, 
+                (int)list.get(i).fingertip.y, (int)list.get(i).fingertip.z));
+          }
+        }
+        pw.println();
+      }
     }
   }
 
   private static String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-          private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
+  private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
           
   public static void main(String[] args) {
     new FingertipTrackingApp();
@@ -225,15 +243,15 @@ public class FingertipTrackingApp {
     }
     
     // Prints finger events.
-    PrintStream ps = null;
+    PrintWriter pw = null;
     try {
-      ps = new PrintStream(fingertipFile);
-      trackerController.toFile(ps);
+      pw = new PrintWriter(fingertipFile);
+      trackerController.toOutput(pw);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } finally {
-      if (ps != null)
-        ps.close();
+      if (pw != null)
+        pw.close();
     }
     
     openni.release();
