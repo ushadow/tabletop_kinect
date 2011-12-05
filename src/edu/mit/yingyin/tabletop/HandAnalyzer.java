@@ -55,7 +55,10 @@ public class HandAnalyzer {
    * Number of initial frames to initialize the background.
    */
   private static final int BG_INIT_FRAMES = 30;
-  private static final int CVCLOSE_ITR = 2;
+  /**
+   * The number of iterations of morphological transformation. 
+   */
+  private static final int MORPH_ITR = 2;
   private static final int CVCONTOUR_APPROX_LEVEL = 2;
   /**
    * The ratio between the perimeter of the table and the perimeter of the hand.
@@ -154,10 +157,12 @@ public class HandAnalyzer {
    * @param packet ProcessPacket containing the data.
    */
   private void cleanUpBackground(ProcessPacket packet) {
-    // The default 3x3 kernel with the anchor at the the center is used.
-    // The opening operator involves erosion followed by dilation.
+    // The default 3x3 kernel with the anchor at the center is used.
+    // The opening operator involves erosion followed by dilation. Its effect is
+    // to eliminate lone outliers that are higher in intensity (bumps) than 
+    // their neighbors.
     cvMorphologyEx(packet.depthImage8U, packet.morphedImage, null, null, 
-        CV_MOP_OPEN, CVCLOSE_ITR);
+        CV_MOP_OPEN, MORPH_ITR);
   }
   
   /**
