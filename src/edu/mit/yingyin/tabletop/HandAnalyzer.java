@@ -72,18 +72,14 @@ public class HandAnalyzer {
    * is in the view.
    */
   private static final int HAND_HEIGHT_SCALE = 11;
-  private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
   private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
-  private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
-  private static int[] THINNING_KERNEL_DIAG = {2, 0, 0, 1, 1, 0, 2, 1, 2};
-  private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
-  private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
   
   private Background background;
   private IplImage tempImage;
   private List<ForelimbModel> prevForelimbsFeatures = 
       new ArrayList<ProcessPacket.ForelimbModel>();
   private IplImage foregroundMask;
+  private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
   
   /**
    * Initializes the data structures.
@@ -118,8 +114,7 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
-    thinningHands(packet);
-    extractForelimbFeatures(packet);
+    ffd.extractFeaturesThinning(packet);
     temporalSmooth(packet);
   }
   
@@ -220,90 +215,6 @@ public class HandAnalyzer {
     }
   }
 
-  private void thinningHands(ProcessPacket packet) {
-    ByteBuffer bb = packet.morphedImage.getByteBuffer();
-    for (Rectangle rect : packet.handRegions) {
-      if (rect != null) {
-        byte[][] pixels = new byte[rect.height][rect.width];
-        for (int dy = 0; dy < rect.height; dy++) 
-          for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * packet.morphedImage.width() + rect.x + dx;
-            if (bb.get(index) == 0)
-              pixels[dy][dx] = BinaryFast.background;
-            else pixels[dy][dx] = BinaryFast.foreground;
-          }
-        BinaryFast bf = new BinaryFast(pixels, rect.width, rect.height);
-        for (int i = 0; i < 20; i++) {
-          ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
-          ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_DIAG);
-          Matrix.rot90(THINNING_KERNEL_ORTH, 3);
-          Matrix.rot90(THINNING_KERNEL_DIAG, 3);
-        }
-        for (int i = 0; i < 8; i++) {
-          ThinningTransform.thinBinaryOnce(bf, PRUNING_KERNEL1);
-          ThinningTransform.thinBinaryOnce(bf, PRUNING_KERNEL2);
-          Matrix.rot90(PRUNING_KERNEL1, 3);
-          Matrix.rot90(PRUNING_KERNEL2, 3);
-        }
-        for (int dy = 0; dy < rect.height; dy++) 
-          for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * packet.morphedImage.width() + 
-                        rect.x + dx;
-            if (pixels[dy][dx] == BinaryFast.background)
-              bb.put(index, (byte)0);
-            else bb.put(index, (byte)255);
-          }
-      }
-    }
-  }
-  
-  /**
-   * Extracts forelimb features from the information in the <code>packet</code>.
-   * @param packet
-   */
-  private void extractForelimbFeatures(ProcessPacket packet) {
-    for (int i = 0; i < packet.hulls.size(); i++) {
-      Rectangle handRect = packet.handRegions.get(i);
-      if (handRect != null) {
-        ForelimbModel forelimb = new ForelimbModel();
-        List<ValConfiPair<Point3f>> fingerTips = 
-            new ArrayList<ValConfiPair<Point3f>>();
-        
-        CvMat hull = packet.hulls.get(i);
-        CvMat approxPoly = packet.approxPolys.get(i);
-        CvRect rect = packet.boundingBoxes.get(i);
-        int numPolyPts = approxPoly.length();
-  
-        for (int j = 0; j < hull.length(); j++) {
-          int idx = (int)hull.get(j);
-          int pdx = (idx - 1 + numPolyPts) % numPolyPts;
-          int sdx = (idx + 1) % numPolyPts;
-          Point C = new Point((int)approxPoly.get(idx * 2), 
-                              (int)approxPoly.get(idx * 2 + 1));
-          Point A = new Point((int)approxPoly.get(pdx * 2), 
-                              (int)approxPoly.get(pdx * 2 + 1));
-          Point B = new Point((int)approxPoly.get(sdx * 2),
-                              (int)approxPoly.get(sdx * 2 + 1));
-          
-          float angle = (float)Geometry.getAngleC(A, B, C);
-          if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y && 
-              C.y <= handRect.y + handRect.height) {
-            float z = packet.depthRawData[C.y * packet.depthImage8U.width() + 
-                                          C.x];
-            fingerTips.add(new ValConfiPair<Point3f>(
-                new Point3f(C.x, C.y, z), 1));
-          }
-        }
-        forelimb.fingertips = fingerTips;
-  
-        forelimb.center = new Point(rect.x() + rect.width() / 2, 
-            rect.y() + rect.height() / 2);
-        
-        packet.foreLimbsFeatures.add(forelimb);
-      }
-    }
-  }
-  
   /**
    * Exponentially weighted moving average filter, i.e. low pass filter.
    * @param packet
