@@ -22,7 +22,6 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,12 +38,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
-import edu.mit.yingyin.image.BinaryFast;
-import edu.mit.yingyin.image.ThinningTransform;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
-import edu.mit.yingyin.util.Geometry;
-import edu.mit.yingyin.util.Matrix;
+import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
 
 public class HandAnalyzer {
   /**
@@ -76,8 +70,7 @@ public class HandAnalyzer {
   
   private Background background;
   private IplImage tempImage;
-  private List<ForelimbModel> prevForelimbsFeatures = 
-      new ArrayList<ProcessPacket.ForelimbModel>();
+  private List<Forelimb> prevForelimbsFeatures = new ArrayList<Forelimb>();
   private IplImage foregroundMask;
   private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
   
@@ -98,8 +91,8 @@ public class HandAnalyzer {
    */
   public void analyzeData(ProcessPacket packet) {
     prevForelimbsFeatures.clear();
-    for (ForelimbModel forelimb : packet.foreLimbsFeatures)
-      prevForelimbsFeatures.add(new ForelimbModel(forelimb));
+    for (Forelimb forelimb : packet.foreLimbsFeatures)
+      prevForelimbsFeatures.add(new Forelimb(forelimb));
     packet.clear();
     
     if (packet.depthFrameID < BG_INIT_FRAMES) {
@@ -115,7 +108,7 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     ffd.extractFeaturesThinning(packet);
-    temporalSmooth(packet);
+    //temporalSmooth(packet);
   }
   
   public void release() {
@@ -197,6 +190,10 @@ public class HandAnalyzer {
     }
   }
   
+  /**
+   * Finds rectangle hand regions from forelimb regions.
+   * @param packet
+   */
   private void findHandRegions(ProcessPacket packet) {
     int handHeight = packet.height / HAND_HEIGHT_SCALE;
     for (CvRect rect : packet.boundingBoxes) {
@@ -220,8 +217,8 @@ public class HandAnalyzer {
    * @param packet
    */
   private void temporalSmooth(ProcessPacket packet) {
-    for (ForelimbModel forelimb : packet.foreLimbsFeatures) 
-      for (ForelimbModel prevForelimb : prevForelimbsFeatures) {
+    for (Forelimb forelimb : packet.foreLimbsFeatures) 
+      for (Forelimb prevForelimb : prevForelimbsFeatures) {
         if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
           for (ValConfiPair<Point3f> fingertip : forelimb.fingertips) { 
             fingertip.confidence *= TEMPORAL_FILTER_PARAM;

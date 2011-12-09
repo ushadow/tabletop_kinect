@@ -210,6 +210,8 @@ public class FingertipTrackingApp {
         openni.getDepthArray(packet.depthRawData);
         prevDepthFrameID = packet.depthFrameID;
         packet.depthFrameID = openni.getDepthFrameID();
+        
+        // Breaks at the last frame.
         if (packet.depthFrameID < prevDepthFrameID)
           break;
       } catch (Exception e) {

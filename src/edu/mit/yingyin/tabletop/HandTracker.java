@@ -5,8 +5,7 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbModel.ValConfiPair;
+import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
 
 /**
  * <code>HandTracker</code> tracks hand events.
@@ -43,9 +42,9 @@ public class HandTracker {
    * @param forelimbs information for all the forlimbs detected.
    * @param frameID frame ID for the current update.
    */
-  public void update(List<ForelimbModel> forelimbs, int frameID) {
+  public void update(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
-    for (ForelimbModel forelimb : forelimbs) 
+    for (Forelimb forelimb : forelimbs) 
       for (ValConfiPair<Point3f> tip : forelimb.fingertips)
         if (Math.abs(tip.value.z - 
             table.getHeight((int)tip.value.x, (int)tip.value.y)) <= 5) {

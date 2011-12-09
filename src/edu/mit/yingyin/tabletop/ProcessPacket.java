@@ -6,12 +6,9 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.vecmath.Point3f;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
@@ -25,32 +22,6 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
  *
  */
 public class ProcessPacket {
-  static public class ForelimbModel {
-    static public class ValConfiPair<T> {
-      public T value;
-      public float confidence;
-      
-      public ValConfiPair(T v, float c) {
-        value = v;
-        confidence = c;
-      }
-    }
-    
-    public List<ValConfiPair<Point3f>> fingertips = 
-        new ArrayList<ValConfiPair<Point3f>>();
-    public Point center;
-    
-    public ForelimbModel() {}
-    
-    public ForelimbModel(ForelimbModel other) {
-      center = new Point(other.center);
-      for (ValConfiPair<Point3f> p: other.fingertips) {
-        fingertips.add(new ValConfiPair<Point3f>(
-            new Point3f(p.value), p.confidence));
-      }
-    }
-  }
-  
   /**
    * Integer array of raw depth values from Kinect.
    */
@@ -62,8 +33,7 @@ public class ProcessPacket {
   public List<CvMat> hulls = new ArrayList<CvMat>();
   public List<CvRect> boundingBoxes = new ArrayList<CvRect>();
   public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
-  public List<ForelimbModel> foreLimbsFeatures = 
-      new ArrayList<ForelimbModel>();
+  public List<Forelimb> foreLimbsFeatures = new ArrayList<Forelimb>();
   public List<Rectangle> handRegions = new ArrayList<Rectangle>();
   public int depthFrameID;
   public int width, height;
