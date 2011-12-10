@@ -5,12 +5,16 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import javax.vecmath.Point3f;
 
@@ -66,6 +70,24 @@ public class ProcessPacketView {
     public RGBComponent(Dimension d) {
       super(d);
     }
+    
+    @Override
+    public void paint(Graphics g) {
+      super.paint(g);
+      
+      if (packet == null)
+        return;
+      
+      Graphics2D g2d = (Graphics2D) g;
+      g2d.setColor(Color.red);
+      for (Forelimb limb : packet.foreLimbsFeatures) {
+        for (List<Point3f> finger : limb.fingers) {
+          for (Point3f p : finger) {
+            g2d.drawLine((int)p.x, (int)p.y, (int)p.x, (int)p.y);
+          }
+        }
+      }
+    }
   }
   
   private IplImage analysisImage;
@@ -76,9 +98,10 @@ public class ProcessPacketView {
   private boolean showConvexityDefects = false;
   private boolean showHull = false;
   private boolean showMorphed = true;
-  private boolean showFingertip = false;
+  private boolean showFingertip = true;
   private boolean showBoundingBox = true;
   private ImageFrame rgbFrame;
+  private ProcessPacket packet;
   
   /**
    * Initializes the data structures.
@@ -93,13 +116,19 @@ public class ProcessPacketView {
       frame.setCanvasSize(width, height);
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    frames[0].addKeyListener(new KeyController());
+    
     CanvasFrame.tile(frames);
     rgbFrame = new ImageFrame("RGB", 
                               new RGBComponent(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
     rgbFrame.setLocation(0, rect.y + rect.height);
+
     histogram = new float[HandAnalyzer.MAX_DEPTH];
+    
+    KeyController kc = new KeyController();
+    for (CanvasFrame f : frames)
+      f.addKeyListener(kc);
+    rgbFrame.addKeyListener(kc);
   }
   
   /**
@@ -107,6 +136,8 @@ public class ProcessPacketView {
    * @param packet
    */
   public void show(ProcessPacket packet) {
+    this.packet = packet;
+    
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
     else
@@ -142,8 +173,9 @@ public class ProcessPacketView {
     frames[0].showImage(analysisImage);
     fpsCounter.computeFPS();
 
-    showAppImage(packet);
     rgbFrame.show(packet.morphedImage.getBufferedImage());
+
+    showAppImage(packet);
   }
   
   public void drawCircle(int x, int y) {
@@ -162,6 +194,7 @@ public class ProcessPacketView {
   public void addKeyListener(KeyListener kl) {
     for (CanvasFrame frame : frames)
       frame.addKeyListener(kl);
+    rgbFrame.addKeyListener(kl);
   }
   
   public boolean isVisible() {

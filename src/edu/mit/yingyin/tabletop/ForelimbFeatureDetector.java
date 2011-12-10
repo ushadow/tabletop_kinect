@@ -126,11 +126,13 @@ public class ForelimbFeatureDetector {
           float z = packet.depthRawData[y * packet.width + x];
           finger.add(new Point3f(x, y, z));
         }
-        forelimb.fingers.add(finger);
-//          forelimb.fingertips.add(new ValConfiPair<Point3f>(
-//                                  new Point3f(x, y, z), 1));
-          forelimb.center = new Point(rect.x + rect.width / 2, 
-              rect.y + rect.height / 2);
+        if (!finger.isEmpty()) {
+          forelimb.fingers.add(finger);
+          forelimb.fingertips.add(new ValConfiPair<Point3f>(
+                                  new Point3f(finger.get(finger.size() - 1)), 1));
+        }
+        forelimb.center = new Point(rect.x + rect.width / 2, 
+                                    rect.y + rect.height / 2);
         
         packet.foreLimbsFeatures.add(forelimb);
       }
