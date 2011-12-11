@@ -46,10 +46,7 @@ public class HandTracker {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 
       for (ValConfiPair<Point3f> tip : forelimb.fingertips)
-        if (Math.abs(tip.value.z - 
-            table.getHeight((int)tip.value.x, (int)tip.value.y)) <= 5) {
           fingerEventList.add(new FingerEvent(tip.value, frameID));
-        }
     if (!fingerEventList.isEmpty()) {
       for (HandTrackerListener l : listeners) 
         l.fingerPressed(fingerEventList);

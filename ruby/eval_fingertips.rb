@@ -41,14 +41,14 @@ end
 
 # Evaluate the accuracy of fingertip detection results.
 # 
-# @param [Array] array of numbers as groundtruth true labels of fingertips 
-#     sorted according to frame IDs.
+# @param [Array] each element is an array of numbers as groundtruth true labels 
+#     of fingertips sorted according to frame IDs.
 # @param [Array] detected detected fingertips sorted according to frame IDs. 
 # @return [String] result string.
 def eval_fingertips(groundtruth, detected)
   gi = di = 0
-  false_pos = true_positive = false_neg = 0
-  total_groundtruth_fingertips = total_detected_fingertips = 0
+  false_pos = true_pos = false_neg = 0
+  total_groundtruth = total_detected = 0
   error = 0
   while gi < groundtruth.length && di < detected.length
     gf, df = groundtruth[gi][0], detected[di][0] 
@@ -56,9 +56,9 @@ def eval_fingertips(groundtruth, detected)
     d_fingertips = to_point_array detected[di][1..-1], 3
     if gf == df 
       error += eval_error g_fingertips, d_fingertips
-      total_groundtruth_fingertips += g_fingertips.length
-      total_detected_fingertips += d_fingertips.length
-      true_positive += [g_fingertips.length, d_fingertips.length].min
+      total_groundtruth += g_fingertips.length
+      total_detected += d_fingertips.length
+      true_pos += [g_fingertips.length, d_fingertips.length].min
       if g_fingertips.length > d_fingertips.length
         false_neg += g_fingertips.length - d_fingertips.length
       else 
@@ -67,11 +67,11 @@ def eval_fingertips(groundtruth, detected)
       gi += 1
       di += 1
     elsif gf < df
-      total_groundtruth_fingertips += g_fingertips.length
+      total_groundtruth += g_fingertips.length
       false_neg += g_fingertips.length
       gi += 1
     else # Groundtruth frame id is greater than that of detected frame ID.
-      total_detected_fingertips += d_fingertips.length
+      total_detected += d_fingertips.length
       false_pos += d_fingertips.length
       di += 1
     end
@@ -80,25 +80,19 @@ def eval_fingertips(groundtruth, detected)
   groundtruth[gi..-1].each do  |l| 
     num_points = to_point_array(l, 2).length 
     false_neg += num_points
-    total_groundtruth_fingertips += num_points 
+    total_groundtruth += num_points 
   end 
   
   detected[di..-1].each do |l| 
     num_points = to_point_array(l, 3).length
     false_pos += num_points
-    total_detected_fingertips += num_points  
+    total_detected += num_points  
   end
   
-  error /= true_positive
-  result = <<EOS
-total fingertips in groundtruth: #{total_groundtruth_fingertips}
-total fingertips in detected: #{total_detected_fingertips}
-true positives: #{true_positive}
-error for true positives: #{error}
-false positives: #{false_pos}
-false negatives: #{false_neg}
-EOS
-      
+  error /= true_pos
+  { :total_groundtruth => total_groundtruth, :total_detected => total_detected, 
+    :true_pos => true_pos, :false_pos => false_pos, :false_neg => false_neg, 
+    :error => error }
 end
 
 if __FILE__ == $0
@@ -110,5 +104,14 @@ if __FILE__ == $0
   detected = File.read(detected_file).split("\n")[1..-1]
   detected.map! { |l| l.split.map(&:to_i) }
   
-  puts eval_fingertips groundtruth, detected
+  result = eval_fingertips groundtruth, detected
+  puts <<EOS
+total fingertips in groundtruth: #{result[:total_groundtruth]}
+total fingertips in detected: #{result[:total_detected]}
+true positives: #{result[:true_pos]}
+error for true positives: #{result[:error]}
+false positives: #{result[:false_pos]}
+false negatives: #{result[:false_neg]}
+EOS
+
 end

@@ -28,7 +28,9 @@ import edu.mit.yingyin.tabletop.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.HandTracker.HandTrackerListener;
 
 /**
- * Application that tracks the fingertips in data from an OpenNI device.
+ * Application that tracks the fingertips in data from an OpenNI device. Saves
+ * fingertip events to file in the end.
+ * 
  * @author yingyin
  *
  */
