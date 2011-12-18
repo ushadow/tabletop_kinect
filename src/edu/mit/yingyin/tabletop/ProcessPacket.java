@@ -1,6 +1,7 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16S;
 import static com.googlecode.javacv.cpp.opencv_core.cvClearMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
@@ -28,6 +29,7 @@ public class ProcessPacket {
   public int[] depthRawData;
   public IplImage depthImage8U;
   public IplImage morphedImage;
+  public IplImage derivativeImage;
   public CvMemStorage tempMem;
   public List<CvMat> approxPolys = new ArrayList<CvMat>();
   public List<CvMat> hulls = new ArrayList<CvMat>();
@@ -43,6 +45,7 @@ public class ProcessPacket {
     // Creates an unsigned 8-bit integer image.
     depthImage8U = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    derivativeImage = IplImage.create(width, height, IPL_DEPTH_16S, 1);
     // Allocates a default size of 64kB of memory.
     tempMem = cvCreateMemStorage(0);
     this.width = width;
@@ -56,6 +59,7 @@ public class ProcessPacket {
     clear();
     depthImage8U.release();
     morphedImage.release();
+    derivativeImage.release();
     cvReleaseMemStorage(tempMem);
   }
   

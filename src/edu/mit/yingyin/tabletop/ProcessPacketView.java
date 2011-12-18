@@ -3,6 +3,7 @@ package edu.mit.yingyin.tabletop;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
+import static com.googlecode.javacv.cpp.opencv_highgui.cvConvertImage;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
 
 import java.awt.Color;
@@ -141,7 +142,7 @@ public class ProcessPacketView {
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
     else
-      cvCopy(packet.depthImage8U, analysisImage);
+      cvConvertImage(packet.derivativeImage, analysisImage, 0);
     
     if (showBoundingBox)
       for (CvRect rect : packet.boundingBoxes){

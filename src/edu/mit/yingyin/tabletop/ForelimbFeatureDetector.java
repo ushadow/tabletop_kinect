@@ -58,8 +58,7 @@ public class ForelimbFeatureDetector {
           float angle = (float)Geometry.getAngleC(A, B, C);
           if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y && 
               C.y <= handRect.y + handRect.height) {
-            float z = packet.depthRawData[C.y * packet.depthImage8U.width() + 
-                                          C.x];
+            float z = packet.depthRawData[C.y * packet.width + C.x];
             forelimb.fingertips.add(new ValConfiPair<Point3f>(
                 new Point3f(C.x, C.y, z), 1));
           }
@@ -76,6 +75,15 @@ public class ForelimbFeatureDetector {
     thinningHands(packet);
   }
   
+  public void extractFeaturesDP(ProcessPacket packet) {
+    ByteBuffer bb = packet.morphedImage.getByteBuffer();
+    for (Rectangle rect : packet.handRegions) {
+      if (rect != null) {
+        
+      }
+    }
+  }
+  
   /**
    * Applies thinning mophological operation to hand regions.
    * 
@@ -83,6 +91,7 @@ public class ForelimbFeatureDetector {
    */
   private void thinningHands(ProcessPacket packet) {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
+    int widthStep = packet.morphedImage.widthStep();
     for (Rectangle rect : packet.handRegions) {
       Forelimb forelimb = new Forelimb();
       
@@ -90,8 +99,7 @@ public class ForelimbFeatureDetector {
         byte[][] pixels = new byte[rect.height][rect.width];
         for (int dy = 0; dy < rect.height; dy++) 
           for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * packet.morphedImage.width() + rect.x + 
-                        dx;
+            int index = (rect.y + dy) * widthStep + rect.x + dx;
             if (bb.get(index) == 0)
               pixels[dy][dx] = BinaryFast.background;
             else pixels[dy][dx] = BinaryFast.foreground;
@@ -112,8 +120,7 @@ public class ForelimbFeatureDetector {
         }
         for (int dy = 0; dy < rect.height; dy++) 
           for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * packet.morphedImage.width() + 
-                        rect.x + dx;
+            int index = (rect.y + dy) * widthStep + rect.x + dx;
             if (pixels[dy][dx] == BinaryFast.background)
               bb.put(index, (byte)0);
             else bb.put(index, (byte)255);

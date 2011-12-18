@@ -64,9 +64,11 @@ public class CvUtil {
    */
   public static void intToIplImage(int[] intArray, IplImage image) {
     ByteBuffer buffer = image.getByteBuffer();
+    // For IplImage, image width is not necessarily equal to the width step in 
+    // of the buffer.
     int imageWidth = image.width();
     int imageHeight = image.height();
-    int widthStep = image.widthStep();
+    int widthStep = image.widthStep(); // In number of bytes.
     switch (image.depth()) {
       case 8:
         for (int h = 0; h < imageHeight; h++)

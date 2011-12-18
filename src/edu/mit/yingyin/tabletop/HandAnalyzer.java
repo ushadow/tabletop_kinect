@@ -2,12 +2,17 @@ package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_32SC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_32SC2;
+import static com.googlecode.javacv.cpp.opencv_core.CV_16SC1;
+import static com.googlecode.javacv.cpp.opencv_core.CV_8UC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_WHOLE_SEQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvCvtSeqToArray;
 import static com.googlecode.javacv.cpp.opencv_core.cvMat;
+import static com.googlecode.javacv.cpp.opencv_core.cvRect;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSubRect;
+import static com.googlecode.javacv.cpp.opencv_core.cvConvert;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
@@ -21,6 +26,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexityDefects;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
@@ -192,7 +198,10 @@ public class HandAnalyzer {
   
   /**
    * Finds rectangle hand regions from forelimb regions.
-   * @param packet
+   * 
+   * @param packet contains all the processing information.
+   * 
+   * TODO(yingyin): find hand region based on arm orientation. 
    */
   private void findHandRegions(ProcessPacket packet) {
     int handHeight = packet.height / HAND_HEIGHT_SCALE;
@@ -209,6 +218,18 @@ public class HandAnalyzer {
       } else {
         packet.handRegions.add(null);
       }
+    }
+  }
+  
+  private void findDerivative(ProcessPacket packet) {
+    for (Rectangle hr : packet.handRegions) {
+      CvMat submat = cvMat(hr.height, hr.width, CV_8UC1, null);
+      CvMat derivativeSubmat = cvMat(hr.height, hr.width, CV_16SC1, null);
+      CvRect rect = cvRect(hr.x, hr.y, hr.width, hr.height);
+      cvGetSubRect(packet.morphedImage, submat, rect);
+      cvSobel(submat, derivativeSubmat, 1, 0, 5);
+      cvConvert(derivativeSubmat, submat);
+      submat.release();
     }
   }
 
