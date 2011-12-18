@@ -6,6 +6,11 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
+/**
+ * Information for a forelimb model.
+ * @author yingyin
+ *
+ */
 public class Forelimb {
   static public class ValConfiPair<T> {
     public T value;

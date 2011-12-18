@@ -154,7 +154,9 @@ public class HandAnalyzer {
   }
   
   /**
-   * Cleans up the foreground segmentation mask.
+   * Cleans up the foreground segmentation mask, and finds connected components
+   * as forelimbs.
+   * 
    * @param packet ProcessPacket containing the data necessary for the analysis.
    * @param perimScale len = (image.width + image.height) / perimScale. If 
    *                   contour length < len, delete that contour.
