@@ -1,5 +1,6 @@
 package edu.mit.yingyin.tabletop.app;
 
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -11,10 +12,13 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
 import org.OpenNI.GeneralException;
+
+import rywang.util.ObjectIO;
 
 import edu.mit.yingyin.tabletop.ProcessPacketView;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
@@ -154,7 +158,9 @@ public class FingertipTrackingApp {
   Recorder recorder;
   private int rowToRecord = 0;
   private int prevDepthFrameID = -1;
+  private HashMap<Integer, List<Point>> labels;
 
+  @SuppressWarnings("unchecked")
   public FingertipTrackingApp() {
     System.out.println("java.library.path = "
         + System.getProperty("java.library.path"));
@@ -177,10 +183,21 @@ public class FingertipTrackingApp {
         "data/depth_raw/depth_row");
     String fingertipFile = DIR + config.getProperty("fingertip-file", 
         "data/fingertip/fingertip.txt");
+    String labelFile = DIR + config.getProperty("label-file", null);
     String displayOnProperty = config.getProperty("display-on", "true");
+    
+    try {
+      if (labelFile != null)
+        labels = (HashMap<Integer, List<Point>>) ObjectIO.readObject(labelFile);
+    } catch (IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    
     boolean displayOn = true;
     if (displayOnProperty.equals("false"))
       displayOn = false;
+    
     
     try {
       openni = new FullOpenNIDevice(openniConfigFile);
@@ -212,6 +229,7 @@ public class FingertipTrackingApp {
         openni.getDepthArray(packet.depthRawData);
         prevDepthFrameID = packet.depthFrameID;
         packet.depthFrameID = openni.getDepthFrameID();
+        packet.labels = labels.get(packet.depthFrameID);
         
         // Breaks at the last frame.
         if (packet.depthFrameID < prevDepthFrameID)
@@ -228,7 +246,7 @@ public class FingertipTrackingApp {
       if (debugView != null)
         debugView.show(packet);
       
-      tracker.update(packet.foreLimbsFeatures, packet.depthFrameID);
+      tracker.update(packet.foreLimbs, packet.depthFrameID);
 
       if (recording) {
         if (recorder == null) {
@@ -251,6 +269,7 @@ public class FingertipTrackingApp {
     try {
       pw = new PrintWriter(fingertipFile);
       trackerController.toOutput(pw);
+      System.out.println("Tracker controller output done.");
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } finally {

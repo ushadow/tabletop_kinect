@@ -14,6 +14,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
 import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 
@@ -34,14 +35,14 @@ public class ForelimbFeatureDetector {
    * @param packet
    */
   public void extractFeaturesConvexHull(ProcessPacket packet) {
-    for (int i = 0; i < packet.hulls.size(); i++) {
-      Rectangle handRect = packet.handRegions.get(i);
+    for (ForelimbFeatures ff : packet.forelimbFeatures) {
+      Rectangle handRect = ff.handRegion;
       if (handRect != null) {
         Forelimb forelimb = new Forelimb();
         
-        CvMat hull = packet.hulls.get(i);
-        CvMat approxPoly = packet.approxPolys.get(i);
-        CvRect rect = packet.boundingBoxes.get(i);
+        CvMat hull = ff.hull;
+        CvMat approxPoly = ff.approxPoly;
+        CvRect rect = ff.boundingBox;
         int numPolyPts = approxPoly.length();
   
         for (int j = 0; j < hull.length(); j++) {
@@ -66,22 +67,13 @@ public class ForelimbFeatureDetector {
         forelimb.center = new Point(rect.x() + rect.width() / 2, 
             rect.y() + rect.height() / 2);
         
-        packet.foreLimbsFeatures.add(forelimb);
+        packet.foreLimbs.add(forelimb);
       }
     }
   }
   
   public void extractFeaturesThinning(ProcessPacket packet) {
     thinningHands(packet);
-  }
-  
-  public void extractFeaturesDP(ProcessPacket packet) {
-    ByteBuffer bb = packet.morphedImage.getByteBuffer();
-    for (Rectangle rect : packet.handRegions) {
-      if (rect != null) {
-        
-      }
-    }
   }
   
   /**
@@ -92,7 +84,8 @@ public class ForelimbFeatureDetector {
   private void thinningHands(ProcessPacket packet) {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
     int widthStep = packet.morphedImage.widthStep();
-    for (Rectangle rect : packet.handRegions) {
+    for (ForelimbFeatures ff : packet.forelimbFeatures) {
+      Rectangle rect = ff.handRegion;
       Forelimb forelimb = new Forelimb();
       
       if (rect != null) {
@@ -141,7 +134,7 @@ public class ForelimbFeatureDetector {
         forelimb.center = new Point(rect.x + rect.width / 2, 
                                     rect.y + rect.height / 2);
         
-        packet.foreLimbsFeatures.add(forelimb);
+        packet.foreLimbs.add(forelimb);
       }
     }
   }

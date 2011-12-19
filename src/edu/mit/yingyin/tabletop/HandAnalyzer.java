@@ -1,18 +1,18 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_16SC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_32SC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_32SC2;
-import static com.googlecode.javacv.cpp.opencv_core.CV_16SC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_8UC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_WHOLE_SEQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.opencv_core.cvConvert;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvCvtSeqToArray;
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSubRect;
 import static com.googlecode.javacv.cpp.opencv_core.cvMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvRect;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSubRect;
-import static com.googlecode.javacv.cpp.opencv_core.cvConvert;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CHAIN_APPROX_SIMPLE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
@@ -25,8 +25,8 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexHull2;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvConvexityDefects;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
@@ -45,6 +45,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
 import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 
 public class HandAnalyzer {
   /**
@@ -58,8 +59,8 @@ public class HandAnalyzer {
   /**
    * The number of iterations of morphological transformation. 
    */
-  private static final int MORPH_ITR = 2;
-  private static final int CVCONTOUR_APPROX_LEVEL = 2;
+  private static final int MORPH_ITR = 1;
+  private static final int CONTOUR_APPROX_LEVEL = 2;
   /**
    * The ratio between the perimeter of the table and the perimeter of the hand.
    * Assumes hand's dimension is w = 15cm, h = 15cm, and the table's dimension 
@@ -97,7 +98,7 @@ public class HandAnalyzer {
    */
   public void analyzeData(ProcessPacket packet) {
     prevForelimbsFeatures.clear();
-    for (Forelimb forelimb : packet.foreLimbsFeatures)
+    for (Forelimb forelimb : packet.foreLimbs)
       prevForelimbsFeatures.add(new Forelimb(forelimb));
     packet.clear();
     
@@ -171,6 +172,9 @@ public class HandAnalyzer {
   private void findConnectedComponents(ProcessPacket packet, float perimScale) {
     cvCopy(packet.morphedImage, tempImage);
     
+    // CV_RETR_EXTERNAL: retrieves only the extreme outer contours.
+    // CV_CHAIN_APPROX_SIMPLE: compresses horizontal, vertical, and diagonal 
+    // segments, leaving only their ending points.
     CvContourScanner scanner = cvStartFindContours(tempImage, packet.tempMem, 
         Loader.sizeof(CvContour.class), CV_RETR_EXTERNAL, 
         CV_CHAIN_APPROX_SIMPLE);
@@ -180,20 +184,20 @@ public class HandAnalyzer {
     while( (c = cvFindNextContour(scanner)) != null ) {
       double len = cvContourPerimeter(c);
       if (len > q) {
+        ForelimbFeatures ff = new ForelimbFeatures();
+        // Approximates the contour with fewer vertices.
         CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
-            packet.tempMem, CV_POLY_APPROX_DP, CVCONTOUR_APPROX_LEVEL, 0);
+            packet.tempMem, CV_POLY_APPROX_DP, CONTOUR_APPROX_LEVEL, 0);
         CvPoint approxPolyPts = new CvPoint(approxPoly.total());
         cvCvtSeqToArray(approxPoly, approxPolyPts, CV_WHOLE_SEQ);
-        CvMat approxPolyMat = cvMat(1, approxPoly.total(), CV_32SC2, 
-                                    approxPolyPts);
-        packet.approxPolys.add(approxPolyMat);
-        packet.boundingBoxes.add(cvBoundingRect(approxPolyMat, 0));
-        CvMat hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
+        ff.approxPoly = cvMat(1, approxPoly.total(), CV_32SC2, approxPolyPts);
+        ff.boundingBox = cvBoundingRect(ff.approxPoly, 0);
+        ff.hull = cvCreateMat(1, approxPoly.total(), CV_32SC1);
         // returnPoints = 0: returns pointers to the points in the contour
-        cvConvexHull2(approxPolyMat, hull, CV_CLOCKWISE, 0);
-        packet.hulls.add(hull);
-        packet.convexityDefects.add(
-            cvConvexityDefects(approxPolyMat, hull, packet.tempMem));
+        cvConvexHull2(ff.approxPoly, ff.hull, CV_CLOCKWISE, 0);
+        ff.convexityDefects = cvConvexityDefects(ff.approxPoly, ff.hull, 
+                                                 packet.tempMem);
+        packet.forelimbFeatures.add(ff);
       } 
     }
   }
@@ -207,7 +211,8 @@ public class HandAnalyzer {
    */
   private void findHandRegions(ProcessPacket packet) {
     int handHeight = packet.height / HAND_HEIGHT_SCALE;
-    for (CvRect rect : packet.boundingBoxes) {
+    for (ForelimbFeatures ff : packet.forelimbFeatures) {
+      CvRect rect = ff.boundingBox;
       if (rect.height() >= handHeight) {
         int ymid = packet.height / 2;
         int y1 = rect.y();
@@ -215,16 +220,15 @@ public class HandAnalyzer {
         int yhand = y1;
         if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) 
           yhand = y2 - handHeight;
-        packet.handRegions.add(
-            new Rectangle(rect.x(), yhand, rect.width(), handHeight));
-      } else {
-        packet.handRegions.add(null);
-      }
+        ff.handRegion = 
+            new Rectangle(rect.x(), yhand, rect.width(), handHeight);
+      } 
     }
   }
   
   private void findDerivative(ProcessPacket packet) {
-    for (Rectangle hr : packet.handRegions) {
+    for (ForelimbFeatures ff: packet.forelimbFeatures) {
+      Rectangle hr = ff.handRegion;
       CvMat submat = cvMat(hr.height, hr.width, CV_8UC1, null);
       CvMat derivativeSubmat = cvMat(hr.height, hr.width, CV_16SC1, null);
       CvRect rect = cvRect(hr.x, hr.y, hr.width, hr.height);
@@ -240,7 +244,7 @@ public class HandAnalyzer {
    * @param packet
    */
   private void temporalSmooth(ProcessPacket packet) {
-    for (Forelimb forelimb : packet.foreLimbsFeatures) 
+    for (Forelimb forelimb : packet.foreLimbs) 
       for (Forelimb prevForelimb : prevForelimbsFeatures) {
         if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
           for (ValConfiPair<Point3f> fingertip : forelimb.fingertips) { 

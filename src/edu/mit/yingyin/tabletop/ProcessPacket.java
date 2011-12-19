@@ -7,6 +7,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,24 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
  */
 public class ProcessPacket {
   /**
+   * Features for a forelimb.
+   * @author yingyin
+   *
+   */
+  static public class ForelimbFeatures {
+    CvMat approxPoly, hull;
+    CvRect boundingBox;
+    CvSeq convexityDefects;
+    Rectangle handRegion;
+    
+    public void release() {
+      if (approxPoly != null)
+        approxPoly.release();
+      if (hull != null)
+        cvReleaseMat(hull);
+    }
+  }
+  /**
    * Integer array of raw depth values from Kinect.
    */
   public int[] depthRawData;
@@ -31,14 +50,12 @@ public class ProcessPacket {
   public IplImage morphedImage;
   public IplImage derivativeImage;
   public CvMemStorage tempMem;
-  public List<CvMat> approxPolys = new ArrayList<CvMat>();
-  public List<CvMat> hulls = new ArrayList<CvMat>();
-  public List<CvRect> boundingBoxes = new ArrayList<CvRect>();
-  public List<CvSeq> convexityDefects = new ArrayList<CvSeq>();
-  public List<Forelimb> foreLimbsFeatures = new ArrayList<Forelimb>();
-  public List<Rectangle> handRegions = new ArrayList<Rectangle>();
+  public List<ForelimbFeatures> forelimbFeatures = 
+      new ArrayList<ForelimbFeatures>();
+  public List<Forelimb> foreLimbs = new ArrayList<Forelimb>();
   public int depthFrameID;
   public int width, height;
+  public List<Point> labels;
   
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
@@ -67,22 +84,12 @@ public class ProcessPacket {
    * Clears the data structures.
    */
   public void clear() {
-    for (CvMat m : approxPolys) {
-      if (m != null && !m.isNull())
-        m.release();
-    }
-    approxPolys.clear();
-    
-    for (CvMat m : hulls) 
-        cvReleaseMat(m);
-    hulls.clear();
-    
-    // Empty the memory storage.
+    // Empty the memory storage. This retrieves the memory from sequences.
     cvClearMemStorage(tempMem);
-    convexityDefects.clear();
-    foreLimbsFeatures.clear();
-    boundingBoxes.clear();
-    handRegions.clear();
+    foreLimbs.clear();
+    for (ForelimbFeatures ff : forelimbFeatures)
+      ff.release();
+    forelimbFeatures.clear();
   }
   
   public int[] getDepthRaw(int row) {

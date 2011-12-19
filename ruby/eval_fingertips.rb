@@ -20,20 +20,20 @@ end
 # @return [Fixnum] total error.
 def eval_error(gt, detected)
   total_error = 0
-  gt = Array.new gt 
-  detected.each do |dp|
-    return total_error if gt.empty?
-    dx, dy = dp[0], dp[1]
+  detected = Array.new detected 
+  gt.each do |gp|
+    return total_error if detected.empty?
+    gx, gy = gp[0], gp[1]
     min_error = MAX_INT
     min_index = 0
-    gt.each_with_index do |gp, i|
-      gx, gy = gp[0], gp[1]
+    detected.each_with_index do |dp, i|
+      dx, dy = dp[0], dp[1]
       point_error = Math.sqrt (gx - dx) * (gx - dx) + (gy - dy) * (gy - dy)
       if point_error < min_error
         min_error, min_index = point_error, i
       end 
     end
-    gt.delete_at min_index
+    detected.delete_at min_index
     total_error += min_error
   end
   total_error
