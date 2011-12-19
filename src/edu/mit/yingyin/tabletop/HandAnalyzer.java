@@ -114,7 +114,7 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
-    ffd.extractFingertipsConvexHull(packet);
+    ffd.extractFingertipsConvexityDefects(packet);
     //temporalSmooth(packet);
   }
   

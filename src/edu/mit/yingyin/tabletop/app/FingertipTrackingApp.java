@@ -45,6 +45,9 @@ public class FingertipTrackingApp {
         case KeyEvent.VK_E:
           printDepthDiff();
           break;
+        case KeyEvent.VK_N:
+          step();
+          break;
         case KeyEvent.VK_P:
           pause = !pause;
           break;
@@ -153,12 +156,17 @@ public class FingertipTrackingApp {
   private ProcessPacketView debugView;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
-  boolean pause = false;
-  boolean recording = false;
-  Recorder recorder;
+  private boolean pause = false;
+  private boolean recording = false;
+  private boolean end = false;
+  private Recorder recorder;
   private int rowToRecord = 0;
   private int prevDepthFrameID = -1;
   private HashMap<Integer, List<Point>> labels;
+  private Table table = new Table();
+  private HandTracker tracker = new HandTracker(table);
+  private HandAnalyzer analyzer;
+  private String depthFilePrefix;
 
   @SuppressWarnings("unchecked")
   public FingertipTrackingApp() {
@@ -179,7 +187,7 @@ public class FingertipTrackingApp {
     
     String openniConfigFile = DIR + config.getProperty("openni-config", 
                                                        "config/config.xml");
-    String depthFilePrefix = DIR + config.getProperty("depth-file-prefix", 
+    depthFilePrefix = DIR + config.getProperty("depth-file-prefix", 
         "data/depth_raw/depth_row");
     String fingertipFile = DIR + config.getProperty("fingertip-file", 
         "data/fingertip/fingertip.txt");
@@ -198,7 +206,6 @@ public class FingertipTrackingApp {
     if (displayOnProperty.equals("false"))
       displayOn = false;
     
-    
     try {
       openni = new FullOpenNIDevice(openniConfigFile);
     } catch (GeneralException ge) {
@@ -207,7 +214,7 @@ public class FingertipTrackingApp {
     }
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    HandAnalyzer analyzer = new HandAnalyzer(depthWidth, depthHeight);
+    analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
 
     if (displayOn) {
@@ -215,53 +222,16 @@ public class FingertipTrackingApp {
       debugView.addKeyListener(new KeyController());
     }
     
-    Table table = new Table();
-    HandTracker tracker = new HandTracker(table);
+   
     TrackerController trackerController = new TrackerController();
     tracker.addListener(trackerController);
 
     // A one thread process. Only one ProcessPacket present at all time.
-    while (debugView != null && debugView.isVisible() || displayOn == false) {
+    while ((debugView != null && debugView.isVisible() || displayOn == false) 
+           && !end) {
       if (debugView != null && pause)
         continue;
-      try {
-        openni.waitDepthUpdateAll();
-        openni.getDepthArray(packet.depthRawData);
-        prevDepthFrameID = packet.depthFrameID;
-        packet.depthFrameID = openni.getDepthFrameID();
-        packet.labels = labels.get(packet.depthFrameID);
-        
-        // Breaks at the last frame.
-        if (packet.depthFrameID < prevDepthFrameID)
-          break;
-      } catch (Exception e) {
-        e.printStackTrace();
-        System.exit(-1);
-      }
-
-      if (!table.isInitialized())
-        table.init(packet.depthRawData, depthWidth, depthHeight);
-      analyzer.analyzeData(packet);
-      
-      if (debugView != null)
-        debugView.show(packet);
-      
-      tracker.update(packet.foreLimbs, packet.depthFrameID);
-
-      if (recording) {
-        if (recorder == null) {
-          rowToRecord = depthHeight / 2;
-          String recordFileName = depthFilePrefix + rowToRecord;
-          try {
-            recorder = new Recorder(new FileOutputStream(recordFileName));
-          } catch (FileNotFoundException e) {
-              System.err.println(e.getMessage());
-              System.exit(-1);
-            }
-        }
-        recorder.print(packet.depthFrameID, 
-                       packet.getDepthRaw(depthHeight / 2));
-      }
+      step();
     }
     
     // Prints finger events.
@@ -283,5 +253,46 @@ public class FingertipTrackingApp {
     if (debugView != null)
       debugView.release();  
     System.exit(0);
+  }
+  
+  private void step() {
+    try {
+      openni.waitDepthUpdateAll();
+      openni.getDepthArray(packet.depthRawData);
+      prevDepthFrameID = packet.depthFrameID;
+      packet.depthFrameID = openni.getDepthFrameID();
+      packet.labels = labels.get(packet.depthFrameID);
+      
+      // Breaks at the last frame.
+      if (packet.depthFrameID < prevDepthFrameID)
+        end = true;
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(-1);
+    }
+
+    if (!table.isInitialized())
+      table.init(packet.depthRawData, depthWidth, depthHeight);
+    analyzer.analyzeData(packet);
+    
+    if (debugView != null)
+      debugView.show(packet);
+    
+    tracker.update(packet.foreLimbs, packet.depthFrameID);
+
+    if (recording) {
+      if (recorder == null) {
+        rowToRecord = depthHeight / 2;
+        String recordFileName = depthFilePrefix + rowToRecord;
+        try {
+          recorder = new Recorder(new FileOutputStream(recordFileName));
+        } catch (FileNotFoundException e) {
+            System.err.println(e.getMessage());
+            System.exit(-1);
+          }
+      }
+      recorder.print(packet.depthFrameID, 
+                     packet.getDepthRaw(depthHeight / 2));
+    }
   }
 }

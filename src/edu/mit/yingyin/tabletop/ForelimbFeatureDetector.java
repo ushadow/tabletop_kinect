@@ -22,10 +22,14 @@ import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
+import edu.mit.yingyin.util.Vector2fUtil;
 
 public class ForelimbFeatureDetector {
   
   private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
+  
+  // Around 45 deg.
+  private static final float FINGERTIP_ANGLE_THRESH2 = (float)0.8;
   
   /**
    * Structuring elements for skeletonization by morphological thinning.
@@ -37,6 +41,11 @@ public class ForelimbFeatureDetector {
   
   public void extractFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
+      if (ff.handRegion == null)
+        continue;
+      
+      Forelimb forelimb = new Forelimb();
+      
       CvSeq defects = ff.convexityDefects;
       for (int i = 0; i < defects.total(); i++) {
         CvConvexityDefect defect1 = new CvConvexityDefect(
@@ -51,11 +60,22 @@ public class ForelimbFeatureDetector {
             Vector2f v2 = new Vector2f(
                 defect2.depth_point().x() - defect2.start().x(),
                 defect2.depth_point().y() - defect2.start().y());
+            if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE_THRESH2) {
+              int x = (defect1.end().x() + defect2.start().x()) / 2;
+              int y = (defect1.end().y() + defect2.start().y()) / 2;
+              
+              float z = packet.depthRawData[y * packet.width + x];
+              forelimb.fingertips.add(new ValConfiPair<Point3f>(
+                  new Point3f(x, y, z), 1));
+            }
           }
         }
       }
+      CvRect bb = ff.boundingBox;
+      forelimb.center = new Point(bb.x() + bb.width() / 2, 
+                                  bb.y() + bb.height() / 2);
+      packet.foreLimbs.add(forelimb);
     }
-    
   }
   
   /**
