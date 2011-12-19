@@ -1,16 +1,21 @@
 package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_AA;
+import static com.googlecode.javacv.cpp.opencv_core.CV_FONT_HERSHEY_SIMPLEX;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+import static com.googlecode.javacv.cpp.opencv_core.cvInitFont;
+import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
+import com.googlecode.javacv.cpp.opencv_core.CvFont;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
@@ -24,6 +29,8 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
  *
  */
 public class CvUtil {
+  // Geometry methods.
+  
   public static int distance2(CvPoint p1, CvPoint p2) {
     return (p1.x() - p2.x()) * (p1.x() - p2.x()) + 
            (p1.y() - p2.y()) * (p1.y() - p2.y());
@@ -32,6 +39,15 @@ public class CvUtil {
   public static CvPoint midPoint(CvPoint p1, CvPoint p2) {
     return new CvPoint((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2 );
   }
+  
+  public static boolean pointInRect(CvPoint p, Rectangle rect) {
+    if (p.x() >= rect.x && p.x() <= rect.x + rect.width && p.y() >= rect.y &&
+        p.y() <= rect.y + rect.height)
+      return true;
+    return false;
+  }
+  
+  // Drawing methods.
   
   public static void drawConvexityDefects(CvSeq seqConvexityDefects, 
                                           IplImage image) {
@@ -43,7 +59,13 @@ public class CvUtil {
       points.position(1).x(defect.depth_point().x()).
                          y(defect.depth_point().y());
       points.position(2).x(defect.end().x()).y(defect.end().y());
+      // CV_AA: antialiased.
       cvFillConvexPoly(image, points.position(0), 3, CvScalar.WHITE, CV_AA, 0);
+      
+      CvFont font = new CvFont();
+      cvInitFont(font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5, 0, 1, CV_AA);
+      cvPutText(image, String.format("%d", i), points.position(0), font, 
+                CvScalar.WHITE);
     }
   }
   
@@ -56,6 +78,8 @@ public class CvUtil {
       cvCircle(image, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 1, 8, 0);
     }
   }
+  
+  // Image conversion methods.
   
   /**
    * Converts an integer array to a IplImage with single channel.

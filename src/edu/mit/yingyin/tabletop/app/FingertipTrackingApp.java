@@ -42,7 +42,7 @@ public class FingertipTrackingApp {
   private class KeyController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {
       switch (ke.getKeyCode()) {
-        case KeyEvent.VK_D:
+        case KeyEvent.VK_E:
           printDepthDiff();
           break;
         case KeyEvent.VK_P:

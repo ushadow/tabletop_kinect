@@ -1,5 +1,12 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
+
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
+import com.googlecode.javacv.cpp.opencv_core.CvRect;
+import com.googlecode.javacv.cpp.opencv_core.CvSeq;
+import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
@@ -7,9 +14,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import javax.vecmath.Point3f;
-
-import com.googlecode.javacv.cpp.opencv_core.CvMat;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
+import javax.vecmath.Vector2f;
 
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
@@ -30,11 +35,34 @@ public class ForelimbFeatureDetector {
   private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
   private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
   
+  public void extractFingertipsConvexityDefects(ProcessPacket packet) {
+    for (ForelimbFeatures ff : packet.forelimbFeatures) {
+      CvSeq defects = ff.convexityDefects;
+      for (int i = 0; i < defects.total(); i++) {
+        CvConvexityDefect defect1 = new CvConvexityDefect(
+            cvGetSeqElem(defects, i));
+        if (CvUtil.pointInRect(defect1.end(), ff.handRegion)) {
+          CvConvexityDefect defect2 = new CvConvexityDefect(
+              cvGetSeqElem(defects, (i + 1) % defects.total()));
+          if (CvUtil.pointInRect(defect2.start(), ff.handRegion)) {
+            Vector2f v1 = new Vector2f(
+                defect1.depth_point().x() - defect1.end().x(),
+                defect1.depth_point().y() - defect1.end().y());
+            Vector2f v2 = new Vector2f(
+                defect2.depth_point().x() - defect2.start().x(),
+                defect2.depth_point().y() - defect2.start().y());
+          }
+        }
+      }
+    }
+    
+  }
+  
   /**
-   * Extracts forelimb features from the information in the <code>packet</code>.
-   * @param packet
+   * Extracts fingertips based on convex hull.
+   * @param packet contains all the processed information.
    */
-  public void extractFeaturesConvexHull(ProcessPacket packet) {
+  public void extractFingertipsConvexHull(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       Rectangle handRect = ff.handRegion;
       if (handRect != null) {

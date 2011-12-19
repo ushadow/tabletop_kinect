@@ -27,7 +27,6 @@ public class Forelimb {
   public List<List<Point3f>> fingers = new ArrayList<List<Point3f>>();
   public Point center;
   
-  
   public Forelimb() {}
   
   public Forelimb(Forelimb other) {
