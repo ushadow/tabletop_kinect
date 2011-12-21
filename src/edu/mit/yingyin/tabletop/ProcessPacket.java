@@ -92,9 +92,18 @@ public class ProcessPacket {
     forelimbFeatures.clear();
   }
   
+  /**
+   * Gets one row of depth raw values.
+   * @param row
+   * @return
+   */
   public int[] getDepthRaw(int row) {
     int[] rowData = new int[width];
     System.arraycopy(depthRawData, width * row, rowData, 0, width);
     return rowData;
+  }
+  
+  public int getDepthRaw(int x, int y) {
+    return depthRawData[y * width + x];
   }
 }

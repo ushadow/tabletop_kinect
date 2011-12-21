@@ -55,7 +55,11 @@ def eval_fingertips(groundtruth, detected)
     g_fingertips = to_point_array groundtruth[gi][1..-1], 2
     d_fingertips = to_point_array detected[di][1..-1], 3
     if gf == df 
-      error += eval_error g_fingertips, d_fingertips
+      frame_error = eval_error g_fingertips, d_fingertips
+      error += frame_error
+      if frame_error > 6
+        puts "Error: #{gf}, #{frame_error}"
+      end
       total_groundtruth += g_fingertips.length
       total_detected += d_fingertips.length
       true_pos += [g_fingertips.length, d_fingertips.length].min
@@ -103,6 +107,7 @@ if __FILE__ == $0
   detected_file = ARGV[1]
   detected = File.read(detected_file).split("\n")[1..-1]
   detected.map! { |l| l.split.map(&:to_i) }
+  detected.reject! { |l| l.first == 812 }
   
   result = eval_fingertips groundtruth, detected
   puts <<EOS

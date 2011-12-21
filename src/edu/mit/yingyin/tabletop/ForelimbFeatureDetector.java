@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.ArrayList;
 
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 
@@ -61,12 +62,15 @@ public class ForelimbFeatureDetector {
                 defect2.depth_point().x() - defect2.start().x(),
                 defect2.depth_point().y() - defect2.start().y());
             if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE_THRESH2) {
-              int x = (defect1.end().x() + defect2.start().x()) / 2;
-              int y = (defect1.end().y() + defect2.start().y()) / 2;
+              int mx = (defect1.end().x() + defect2.start().x()) / 2;
+              int my = (defect1.end().y() + defect2.start().y()) / 2;
               
-              float z = packet.depthRawData[y * packet.width + x];
+              Vector2f unitDir = searchDir(defect1, defect2);
+              Point2f fp = searchFingertip(new Point2f(mx, my), unitDir, 
+                                           packet);
+              float z = packet.getDepthRaw(Math.round(fp.x), Math.round(fp.y));
               forelimb.fingertips.add(new ValConfiPair<Point3f>(
-                  new Point3f(x, y, z), 1));
+                  new Point3f(Math.round(fp.x), Math.round(fp.y), z), 1));
             }
           }
         }
@@ -76,6 +80,58 @@ public class ForelimbFeatureDetector {
                                   bb.y() + bb.height() / 2);
       packet.foreLimbs.add(forelimb);
     }
+  }
+  
+  private Vector2f searchDir(CvConvexityDefect d1, CvConvexityDefect d2) {
+    Vector2f v1 = new Vector2f();
+    Vector2f v2 = new Vector2f();
+    Point2f end1 = CvUtil.toPoint2f(d1.end());
+    Point2f mid1 = CvUtil.toPoint2f(d1.depth_point());
+    Point2f start2 = CvUtil.toPoint2f(d2.start());
+    Point2f mid2 = CvUtil.toPoint2f(d2.depth_point());
+    
+    v1.sub(end1, mid1);
+    v1.scale(1 / v1.length());
+    v2.sub(start2, mid2);
+    v2.scale(1 / v2.length());
+    v1.add(v2);
+    v1.scale(1 / v1.length());
+    return v1;
+  }
+  
+  private Point2f searchFingertip(Point2f start, Vector2f unitDir, 
+                                  ProcessPacket packet) {
+    Point2f p1 = new Point2f();
+    Point2f p2 = new Point2f();
+    List<Point2f> points = new ArrayList<Point2f>(3);
+
+    p1.sub(start, unitDir);
+    p2.add(start, unitDir);
+    points.add(p1);
+    points.add(start);
+    points.add(p2);
+    float gradient = (packet.getDepthRaw(Math.round(p1.x), Math.round(p1.y)) - 
+        packet.getDepthRaw(Math.round(p2.x), Math.round(p2.y))) / (float)2.0;
+    
+    int index = 2;
+    while (index <= 6) {
+      points.remove(0);
+      Point2f newPoint = new Point2f();
+      newPoint.scaleAdd(index, unitDir, start);
+      points.add(newPoint);
+      p1 = points.get(0);
+      p2 = points.get(2);
+      float newGradient = 
+          (packet.getDepthRaw(Math.round(p1.x), Math.round(p1.y)) - 
+          packet.getDepthRaw(Math.round(p2.x), Math.round(p2.y))) / (float)2.0;
+    
+      if (Math.abs(newGradient - gradient) > 1)
+        return points.get(1);
+      gradient = newGradient;
+      index++;
+    }
+    
+    return points.get(1);
   }
   
   /**

@@ -15,6 +15,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
+import javax.vecmath.Point2f;
+
 import com.googlecode.javacv.cpp.opencv_core.CvFont;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
@@ -46,9 +48,13 @@ public class CvUtil {
       return true;
     return false;
   }
+
+  // Type conversion.
+  public static Point2f toPoint2f(CvPoint p) {
+    return new Point2f(p.x(), p.y());
+  }
   
   // Drawing methods.
-  
   public static void drawConvexityDefects(CvSeq seqConvexityDefects, 
                                           IplImage image) {
     for (int i = 0; i < seqConvexityDefects.total(); i++) {
