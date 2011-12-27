@@ -4,7 +4,6 @@ import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_highgui.cvSaveImage;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,7 +14,8 @@ import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.PrintStream;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -82,6 +82,7 @@ public class ProcessPacketController extends KeyAdapter {
     }
   }
   
+  public String derivativeSaveDir = "data/derivative/";
   private IplImage analysisImage;
   private IplImage appImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
@@ -140,6 +141,19 @@ public class ProcessPacketController extends KeyAdapter {
       showMorphed = !showMorphed;
       break;
     case KeyEvent.VK_S:
+      PrintWriter pw = null;
+      try {
+        pw = new PrintWriter(
+            String.format(derivativeSaveDir + "%03d", packet.depthFrameID));
+        CvUtil.saveImage(pw, packet.derivative);
+        System.out.println("Saved image.");
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } finally {
+        if (pw != null)
+          pw.close();
+      }
+      break;
     default: 
       break;
     }

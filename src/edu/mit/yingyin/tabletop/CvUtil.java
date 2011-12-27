@@ -150,9 +150,19 @@ public class CvUtil {
     }
   }
   
+  /**
+   * Output image values to an output stream.
+   * @param pw
+   * @param image a float type IplImage.
+   */
   public static void saveImage(PrintWriter pw, IplImage image) {
-    for (int h = 0; h < image.height(); h++)
-      for (int w = 0; w < image.width(); w++) {
-      }
+    int widthStep = image.widthStep();
+    int depth = image.depth();
+    FloatBuffer fb = image.getFloatBuffer();
+    for (int h = 0; h < image.height(); h++){
+      for (int w = 0; w < image.width(); w++) 
+        pw.print(fb.get(h * widthStep * 8 / depth + w) + " ");
+      pw.println();
+    }
   }
 }

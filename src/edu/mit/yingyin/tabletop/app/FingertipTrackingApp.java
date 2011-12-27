@@ -46,6 +46,7 @@ public class FingertipTrackingApp {
           printDepthDiff();
           break;
         case KeyEvent.VK_N:
+          pause = true;
           step();
           break;
         case KeyEvent.VK_P:
@@ -53,7 +54,7 @@ public class FingertipTrackingApp {
           break;
         case KeyEvent.VK_ESCAPE:
         case KeyEvent.VK_Q:
-          debugView.hide();
+          packetController.hide();
           break;
         case KeyEvent.VK_W:
           printDepthRaw();
@@ -120,9 +121,9 @@ public class FingertipTrackingApp {
     
     @Override
     public void fingerPressed(List<FingerEvent> feList) {
-      if (debugView != null) {
+      if (packetController != null) {
         for (FingerEvent fe : feList)
-          debugView.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
+          packetController.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
       }
       fingerEventList.add(feList);
     }
@@ -145,15 +146,15 @@ public class FingertipTrackingApp {
     }
   }
 
-  private static String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static String CONFIG_FILE = DIR + "config/fingertip_tracking.config";
+  private static String MAIN_DIR = "/afs/csail/u/y/yingyin/research/kinect/";
+  private static String CONFIG_FILE = MAIN_DIR + "config/fingertip_tracking.config";
           
   public static void main(String[] args) {
     new FingertipTrackingApp();
   }
 
   private OpenNIDevice openni;
-  private ProcessPacketController debugView;
+  private ProcessPacketController packetController;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   private boolean pause = false;
@@ -185,14 +186,16 @@ public class FingertipTrackingApp {
       e.printStackTrace();
     }
     
-    String openniConfigFile = DIR + config.getProperty("openni-config", 
+    String openniConfigFile = MAIN_DIR + config.getProperty("openni-config", 
                                                        "config/config.xml");
-    depthFilePrefix = DIR + config.getProperty("depth-file-prefix", 
+    depthFilePrefix = MAIN_DIR + config.getProperty("depth-file-prefix", 
         "data/depth_raw/depth_row");
-    String fingertipFile = DIR + config.getProperty("fingertip-file", 
+    String fingertipFile = MAIN_DIR + config.getProperty("fingertip-file", 
         "data/fingertip/fingertip.txt");
-    String labelFile = DIR + config.getProperty("label-file", null);
+    String labelFile = MAIN_DIR + config.getProperty("label-file", null);
     String displayOnProperty = config.getProperty("display-on", "true");
+    String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 
+          "data/derivative/");
     
     try {
       if (labelFile != null)
@@ -218,8 +221,9 @@ public class FingertipTrackingApp {
     packet = new ProcessPacket(depthWidth, depthHeight);
 
     if (displayOn) {
-      debugView = new ProcessPacketController(depthWidth, depthHeight);
-      debugView.addKeyListener(new KeyController());
+      packetController = new ProcessPacketController(depthWidth, depthHeight);
+      packetController.addKeyListener(new KeyController());
+      packetController.derivativeSaveDir = derivativeSaveDir;
     }
     
    
@@ -227,9 +231,9 @@ public class FingertipTrackingApp {
     tracker.addListener(trackerController);
 
     // A one thread process. Only one ProcessPacket present at all time.
-    while ((debugView != null && debugView.isVisible() || displayOn == false) 
+    while ((packetController != null && packetController.isVisible() || displayOn == false) 
            && !end) {
-      if (debugView != null && pause)
+      if (packetController != null && pause)
         continue;
       step();
     }
@@ -250,8 +254,8 @@ public class FingertipTrackingApp {
     openni.release();
     analyzer.release();
     packet.release();
-    if (debugView != null)
-      debugView.release();  
+    if (packetController != null)
+      packetController.release();  
     System.exit(0);
   }
   
@@ -275,8 +279,8 @@ public class FingertipTrackingApp {
       table.init(packet.depthRawData, depthWidth, depthHeight);
     analyzer.analyzeData(packet);
     
-    if (debugView != null)
-      debugView.show(packet);
+    if (packetController != null)
+      packetController.show(packet);
     
     tracker.update(packet.foreLimbs, packet.depthFrameID);
 
