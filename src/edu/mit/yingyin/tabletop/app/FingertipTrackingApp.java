@@ -20,7 +20,7 @@ import org.OpenNI.GeneralException;
 
 import rywang.util.ObjectIO;
 
-import edu.mit.yingyin.tabletop.ProcessPacketView;
+import edu.mit.yingyin.tabletop.ProcessPacketController;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.OpenNIDevice;
@@ -95,8 +95,8 @@ public class FingertipTrackingApp {
       ByteBuffer bb = packet.depthImage8U.getByteBuffer();
       PrintStream ps = null;
       try {
-        ps = new PrintStream(new File(String.format("tmp/depth_diff%03d.txt",
-            packet.depthFrameID)));
+        ps = new PrintStream(new File(String.format(
+            "data/depth_diff/depth_diff%03d.txt", packet.depthFrameID)));
         for (int h = 0; h < depthHeight; h++) {
           for (int w = 0; w < depthWidth; w++)
             ps.print((bb.get(h * depthWidth + w) & 0xff) + " ");
@@ -153,7 +153,7 @@ public class FingertipTrackingApp {
   }
 
   private OpenNIDevice openni;
-  private ProcessPacketView debugView;
+  private ProcessPacketController debugView;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   private boolean pause = false;
@@ -218,7 +218,7 @@ public class FingertipTrackingApp {
     packet = new ProcessPacket(depthWidth, depthHeight);
 
     if (displayOn) {
-      debugView = new ProcessPacketView(depthWidth, depthHeight);
+      debugView = new ProcessPacketController(depthWidth, depthHeight);
       debugView.addKeyListener(new KeyController());
     }
     

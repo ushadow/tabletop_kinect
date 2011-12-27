@@ -4,7 +4,7 @@ import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_highgui.cvConvertImage;
+import static com.googlecode.javacv.cpp.opencv_highgui.cvSaveImage;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,6 +15,7 @@ import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -39,38 +40,13 @@ import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
  * @author yingyin
  *
  */
-public class ProcessPacketView {
-  private class KeyController extends KeyAdapter {
-    public void keyPressed(KeyEvent ke) {
-      switch (ke.getKeyChar()) {
-      case 'b':
-        showBoundingBox = !showBoundingBox;
-        break;
-      case 'd':
-        showConvexityDefects = !showConvexityDefects;
-        break;
-      case 'f':
-        // Shows all the detected fingertips.
-        System.out.println("Toggled show fingertip.");
-        showFingertip = !showFingertip;
-        break;
-      case 'h':
-        showHull = !showHull;
-        break;
-      case 'm':
-        showMorphed = !showMorphed;
-        break;
-      default: 
-        break;
-      }
-    }
-  }
+public class ProcessPacketController extends KeyAdapter {
   
-  private class RGBComponent extends ImageComponent {
+  private class RGBView extends ImageComponent {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
     
-    public RGBComponent(Dimension d) {
+    public RGBView(Dimension d) {
       super(d);
     }
     
@@ -100,8 +76,8 @@ public class ProcessPacketView {
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
             g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
-                         (int)p.value.y - OVAL_WIDTH / 2, 
-                         OVAL_WIDTH, OVAL_WIDTH);
+                (int)p.value.y - OVAL_WIDTH / 2, 
+                OVAL_WIDTH, OVAL_WIDTH);
         }
     }
   }
@@ -124,7 +100,7 @@ public class ProcessPacketView {
    * @param width
    * @param height
    */
-  public ProcessPacketView(int width, int height) {
+  public ProcessPacketController(int width, int height) {
     frames[0] = new CanvasFrame("Processed");
     fpsCounter = new FPSCounter("Processed", frames[0]);
     frames[1] = new CanvasFrame("Depth");
@@ -135,16 +111,38 @@ public class ProcessPacketView {
     
     CanvasFrame.tile(frames);
     rgbFrame = new ImageFrame("RGB", 
-                              new RGBComponent(new Dimension(width, height)));
+                              new RGBView(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
     rgbFrame.setLocation(0, rect.y + rect.height);
 
     histogram = new float[HandAnalyzer.MAX_DEPTH];
     
-    KeyController kc = new KeyController();
-    for (CanvasFrame f : frames)
-      f.addKeyListener(kc);
-    rgbFrame.addKeyListener(kc);
+    addKeyListener(this);
+  }
+  
+  public void keyPressed(KeyEvent ke) {
+    switch (ke.getKeyCode()) {
+    case KeyEvent.VK_B:
+      showBoundingBox = !showBoundingBox;
+      break;
+    case KeyEvent.VK_D:
+      showConvexityDefects = !showConvexityDefects;
+      break;
+    case KeyEvent.VK_F:
+      // Shows all the detected fingertips.
+      System.out.println("Toggled show fingertip.");
+      showFingertip = !showFingertip;
+      break;
+    case KeyEvent.VK_H:
+      showHull = !showHull;
+      break;
+    case KeyEvent.VK_M:
+      showMorphed = !showMorphed;
+      break;
+    case KeyEvent.VK_S:
+    default: 
+      break;
+    }
   }
   
   /**
@@ -156,8 +154,6 @@ public class ProcessPacketView {
     
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
-    else
-      cvConvertImage(packet.derivativeImage, analysisImage, 0);
     
     for (ForelimbFeatures ff : packet.forelimbFeatures){
       if (showBoundingBox) {
@@ -188,9 +184,12 @@ public class ProcessPacketView {
     frames[0].showImage(analysisImage);
     fpsCounter.computeFPS();
 
-    rgbFrame.show(packet.morphedImage.getBufferedImage());
-
-    showAppImage(packet);
+    showRGBImage();
+    showAppImage();
+  }
+  
+  public void showRGBImage() {
+    rgbFrame.show(packet.depthImage32F.getBufferedImage());
   }
   
   public void drawCircle(int x, int y) {
@@ -228,7 +227,7 @@ public class ProcessPacketView {
    * Displays the application image.
    * @param packet
    */
-  private void showAppImage(ProcessPacket packet) {
+  private void showAppImage() {
     ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
     ByteBuffer ib = appImage.getByteBuffer();
     int widthStep = appImage.widthStep();

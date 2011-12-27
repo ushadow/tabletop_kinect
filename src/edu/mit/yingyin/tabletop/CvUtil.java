@@ -10,6 +10,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -147,5 +148,11 @@ public class CvUtil {
         float depth = (float)raw[h * width + w] / scale;
         fb.put(h * widthStep + w, depth > 1 ? 1 : depth);
     }
+  }
+  
+  public static void saveImage(PrintWriter pw, IplImage image) {
+    for (int h = 0; h < image.height(); h++)
+      for (int w = 0; w < image.width(); w++) {
+      }
   }
 }

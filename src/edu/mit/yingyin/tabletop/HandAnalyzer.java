@@ -102,6 +102,10 @@ public class HandAnalyzer {
       prevForelimbsFeatures.add(new Forelimb(forelimb));
     packet.clear();
     
+    CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
+                           MAX_DEPTH);
+    cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 5);
+    
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
