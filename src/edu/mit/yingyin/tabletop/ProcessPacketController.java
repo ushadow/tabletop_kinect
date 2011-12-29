@@ -14,6 +14,9 @@ import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
@@ -40,8 +43,8 @@ import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
  * @author yingyin
  *
  */
-public class ProcessPacketController extends KeyAdapter {
-  
+public class ProcessPacketController extends KeyAdapter implements MouseListener 
+{
   private class RGBView extends ImageComponent {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
@@ -95,6 +98,7 @@ public class ProcessPacketController extends KeyAdapter {
   private boolean showBoundingBox = true;
   private ImageFrame rgbFrame;
   private ProcessPacket packet;
+  private BufferedImage derivative;
   
   /**
    * Initializes the data structures.
@@ -103,10 +107,12 @@ public class ProcessPacketController extends KeyAdapter {
    */
   public ProcessPacketController(int width, int height) {
     frames[0] = new CanvasFrame("Processed");
-    fpsCounter = new FPSCounter("Processed", frames[0]);
     frames[1] = new CanvasFrame("Depth");
     for (CanvasFrame frame : frames)
       frame.setCanvasSize(width, height);
+
+    fpsCounter = new FPSCounter("Processed", frames[0]);
+
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
@@ -115,10 +121,14 @@ public class ProcessPacketController extends KeyAdapter {
                               new RGBView(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
     rgbFrame.setLocation(0, rect.y + rect.height);
-
+    
     histogram = new float[HandAnalyzer.MAX_DEPTH];
     
     addKeyListener(this);
+    rgbFrame.addMouseListenerToImageComponent(this);
+    
+    derivative = new BufferedImage(width, height, 
+        BufferedImage.TYPE_USHORT_GRAY);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -202,10 +212,6 @@ public class ProcessPacketController extends KeyAdapter {
     showAppImage();
   }
   
-  public void showRGBImage() {
-    rgbFrame.show(packet.depthImage32F.getBufferedImage());
-  }
-  
   public void drawCircle(int x, int y) {
     cvCircle(appImage, new CvPoint(x, y), 3, CvScalar.WHITE, 1, 8, 0);
     frames[1].showImage(appImage);
@@ -252,5 +258,44 @@ public class ProcessPacketController extends KeyAdapter {
       }
     frames[1].showImage(appImage);
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
+  }
+  
+  private void showRGBImage() {
+    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
+        packet.derivative.getFloatBuffer(), derivative, 
+        packet.derivative.widthStep() / 4);
+    rgbFrame.show(derivative);
+  }
+
+  @Override
+  public void mouseClicked(MouseEvent me) {
+    Point p = me.getPoint();
+    IplImage image = packet.derivative;
+    float value = image.getFloatBuffer().get(p.y * image.widthStep() / 4 + p.x);
+    rgbFrame.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
+  }
+
+  @Override
+  public void mouseEntered(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseExited(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mousePressed(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
   }
 }    

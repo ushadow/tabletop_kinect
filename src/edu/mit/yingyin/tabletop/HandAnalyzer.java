@@ -104,7 +104,7 @@ public class HandAnalyzer {
     
     CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
                            MAX_DEPTH);
-    cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 5);
+    cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
     
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);

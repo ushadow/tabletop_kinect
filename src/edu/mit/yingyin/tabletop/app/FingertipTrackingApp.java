@@ -195,7 +195,7 @@ public class FingertipTrackingApp {
     String labelFile = MAIN_DIR + config.getProperty("label-file", null);
     String displayOnProperty = config.getProperty("display-on", "true");
     String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 
-          "data/derivative/");
+        "data/derivative/");
     
     try {
       if (labelFile != null)

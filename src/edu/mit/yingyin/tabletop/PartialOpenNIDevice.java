@@ -31,7 +31,8 @@ public class PartialOpenNIDevice implements OpenNIDevice {
    * @param fileName file name of the .raw file with depth values.
    * @param width width of the BufferedImage.
    * @param height height of the BufferedImage.
-   * @return a gray BufferedImage with colors proportional to the depth values.
+   * @return a gray UShort BufferedImage with colors proportional to the depth 
+   *    values.
    */
   static public BufferedImage rawDepthToBufferedImage(String fileName, 
       int width, int height) {

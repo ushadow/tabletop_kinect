@@ -10,6 +10,7 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -27,19 +28,12 @@ import edu.mit.yingyin.util.Vector2fUtil;
 
 public class ForelimbFeatureDetector {
   
-  private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
-  
   // Around 45 deg.
-  private static final float FINGERTIP_ANGLE_THRESH2 = (float)0.8;
+  private static final float FINGERTIP_ANGLE = (float)0.8;
   
-  /**
-   * Structuring elements for skeletonization by morphological thinning.
-   */
-  private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
-  private static int[] THINNING_KERNEL_DIAG = {2, 0, 0, 1, 1, 0, 2, 1, 2};
-  private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
-  private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
+  private static final float FINGERTIP_WIDTH = 7;
   
+ 
   public void extractFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion == null)
@@ -61,7 +55,7 @@ public class ForelimbFeatureDetector {
             Vector2f v2 = new Vector2f(
                 defect2.depth_point().x() - defect2.start().x(),
                 defect2.depth_point().y() - defect2.start().y());
-            if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE_THRESH2) {
+            if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE) {
               int mx = (defect1.end().x() + defect2.start().x()) / 2;
               int my = (defect1.end().y() + defect2.start().y()) / 2;
               
@@ -101,37 +95,23 @@ public class ForelimbFeatureDetector {
   
   private Point2f searchFingertip(Point2f start, Vector2f unitDir, 
                                   ProcessPacket packet) {
-    Point2f p1 = new Point2f();
-    Point2f p2 = new Point2f();
-    List<Point2f> points = new ArrayList<Point2f>(3);
-
-    p1.sub(start, unitDir);
-    p2.add(start, unitDir);
-    points.add(p1);
-    points.add(start);
-    points.add(p2);
-    float gradient = (packet.getDepthRaw(Math.round(p1.x), Math.round(p1.y)) - 
-        packet.getDepthRaw(Math.round(p2.x), Math.round(p2.y))) / (float)2.0;
+    Point2f p = new Point2f(start);
+    FloatBuffer fb = packet.derivative.getFloatBuffer();
+    int widthStep = packet.derivative.widthStep() / 4;
     
-    int index = 2;
-    while (index <= 6) {
-      points.remove(0);
-      Point2f newPoint = new Point2f();
-      newPoint.scaleAdd(index, unitDir, start);
-      points.add(newPoint);
-      p1 = points.get(0);
-      p2 = points.get(2);
-      float newGradient = 
-          (packet.getDepthRaw(Math.round(p1.x), Math.round(p1.y)) - 
-          packet.getDepthRaw(Math.round(p2.x), Math.round(p2.y))) / (float)2.0;
-    
-      if (Math.abs(newGradient - gradient) > 1)
-        return points.get(1);
-      gradient = newGradient;
-      index++;
+    int count = 0;
+    while (count <= FINGERTIP_WIDTH) {
+      float gradient = fb.get((int)p.y * widthStep + (int)p.x);
+      if (gradient > 0.05 || gradient < -0.05) {
+        break;
+      }
+      p.add(unitDir);
+      count++;
     }
     
-    return points.get(1);
+    Point2f result = new Point2f();
+    result.scaleAdd(-FINGERTIP_WIDTH / 2, unitDir, p);
+    return result;
   }
   
   /**
@@ -176,9 +156,23 @@ public class ForelimbFeatureDetector {
     }
   }
   
+  private static final float FINGERTIP_ANGLE_THRESH = (float)1.6;
+  
+  /**
+   * Extracts fingertips based on thinning of fingers.
+   * @param packet
+   */
   public void extractFeaturesThinning(ProcessPacket packet) {
     thinningHands(packet);
   }
+  
+  /**
+   * Structuring elements for skeletonization by morphological thinning.
+   */
+  private static int[] THINNING_KERNEL_ORTH = {0, 0, 0, 2, 1, 2, 1, 1, 1};
+  private static int[] THINNING_KERNEL_DIAG = {2, 0, 0, 1, 1, 0, 2, 1, 2};
+  private static int[] PRUNING_KERNEL1 = {0, 0, 0, 0, 1, 0, 0, 2, 2};
+  private static int[] PRUNING_KERNEL2 = {0, 0, 0, 0, 1, 0, 2, 2, 0};
   
   /**
    * Applies thinning mophological operation to hand regions.
@@ -233,7 +227,7 @@ public class ForelimbFeatureDetector {
         if (!finger.isEmpty()) {
           forelimb.fingers.add(finger);
           forelimb.fingertips.add(new ValConfiPair<Point3f>(
-                                  new Point3f(finger.get(finger.size() - 1)), 1));
+              new Point3f(finger.get(finger.size() - 1)), 1));
         }
         forelimb.center = new Point(rect.x + rect.width / 2, 
                                     rect.y + rect.height / 2);
