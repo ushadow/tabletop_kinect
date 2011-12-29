@@ -9,7 +9,6 @@ import static com.googlecode.javacv.cpp.opencv_core.cvInitFont;
 import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -21,6 +20,7 @@ import javax.vecmath.Point2f;
 import com.googlecode.javacv.cpp.opencv_core.CvFont;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
+import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
@@ -43,9 +43,9 @@ public class CvUtil {
     return new CvPoint((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2 );
   }
   
-  public static boolean pointInRect(CvPoint p, Rectangle rect) {
-    if (p.x() >= rect.x && p.x() <= rect.x + rect.width && p.y() >= rect.y &&
-        p.y() <= rect.y + rect.height)
+  public static boolean pointInRect(CvPoint p, CvRect rect) {
+    if (p.x() >= rect.x() && p.x() <= rect.x() + rect.width() && 
+        p.y() >= rect.y() && p.y() <= rect.y() + rect.height())
       return true;
     return false;
   }

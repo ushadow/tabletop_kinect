@@ -107,7 +107,6 @@ if __FILE__ == $0
   detected_file = ARGV[1]
   detected = File.read(detected_file).split("\n")[1..-1]
   detected.map! { |l| l.split.map(&:to_i) }
-  detected.reject! { |l| l.first == 812 }
   
   result = eval_fingertips groundtruth, detected
   puts <<EOS

@@ -175,39 +175,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void show(ProcessPacket packet) {
     this.packet = packet;
-    
-    if (showMorphed)
-      cvCopy(packet.morphedImage, analysisImage);
-    
-    for (ForelimbFeatures ff : packet.forelimbFeatures){
-      if (showBoundingBox) {
-        CvRect rect = ff.boundingBox;
-        cvRectangle(analysisImage, 
-            new CvPoint(rect.x(), rect.y()), 
-            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
-            CvScalar.WHITE, 1, 8, 0);
-      }
-    
-      if (showConvexityDefects) {
-         CvUtil.drawConvexityDefects(ff.convexityDefects, analysisImage);
-      }
-      
-      if (showHull) {
-        CvUtil.drawHullCorners(ff.hull, ff.approxPoly, analysisImage);
-      }
-    }
-
-    if (showFingertip)
-      for (Forelimb forelimb : packet.foreLimbs)
-        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-          if (p.confidence > 0.5)
-            cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
-                3, CvScalar.WHITE, 1, 8, 0);
-        }
-
-    frames[0].showImage(analysisImage);
-    fpsCounter.computeFPS();
-
+    showAnalysisImage();
     showRGBImage();
     showAppImage();
   }
@@ -242,30 +210,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     for (CanvasFrame frame: frames)
       frame.setVisible(false);
   }
-  
-  /**
-   * Displays the application image.
-   * @param packet
-   */
-  private void showAppImage() {
-    ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
-    ByteBuffer ib = appImage.getByteBuffer();
-    int widthStep = appImage.widthStep();
-    for (int h = 0; h < packet.height; h++) 
-      for (int w = 0; w < packet.width; w++) {
-        int depth = packet.depthRawData[h * packet.width + w];
-        ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
-      }
-    frames[1].showImage(appImage);
-    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
-  }
-  
-  private void showRGBImage() {
-    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
-        packet.derivative.getFloatBuffer(), derivative, 
-        packet.derivative.widthStep() / 4);
-    rgbFrame.show(derivative);
-  }
 
   @Override
   public void mouseClicked(MouseEvent me) {
@@ -297,5 +241,63 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   public void mouseReleased(MouseEvent arg0) {
     // TODO Auto-generated method stub
     
+  }
+  
+  private void showAnalysisImage() {
+    if (showMorphed)
+      cvCopy(packet.morphedImage, analysisImage);
+    
+    for (ForelimbFeatures ff : packet.forelimbFeatures){
+      if (showBoundingBox) {
+        CvRect rect = ff.boundingBox;
+        cvRectangle(analysisImage, 
+            new CvPoint(rect.x(), rect.y()), 
+            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
+            CvScalar.WHITE, 1, 8, 0);
+      }
+    
+      if (showConvexityDefects) {
+         CvUtil.drawConvexityDefects(ff.convexityDefects, analysisImage);
+      }
+      
+      if (showHull) {
+        CvUtil.drawHullCorners(ff.hull, ff.approxPoly, analysisImage);
+      }
+    }
+
+    if (showFingertip)
+      for (Forelimb forelimb : packet.foreLimbs)
+        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
+          if (p.confidence > 0.5)
+            cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
+                3, CvScalar.WHITE, 1, 8, 0);
+        }
+
+    frames[0].showImage(analysisImage);
+    fpsCounter.computeFPS();
+  }
+  
+  /**
+   * Displays the application image.
+   * @param packet
+   */
+  private void showAppImage() {
+    ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
+    ByteBuffer ib = appImage.getByteBuffer();
+    int widthStep = appImage.widthStep();
+    for (int h = 0; h < packet.height; h++) 
+      for (int w = 0; w < packet.width; w++) {
+        int depth = packet.depthRawData[h * packet.width + w];
+        ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
+      }
+    frames[1].showImage(appImage);
+    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
+  }
+  
+  private void showRGBImage() {
+    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
+        packet.derivative.getFloatBuffer(), derivative, 
+        packet.derivative.widthStep() / 4);
+    rgbFrame.show(derivative);
   }
 }    

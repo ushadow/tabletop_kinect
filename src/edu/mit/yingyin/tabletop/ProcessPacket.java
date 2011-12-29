@@ -8,7 +8,6 @@ import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class ProcessPacket {
     CvMat approxPoly, hull;
     CvRect boundingBox;
     CvSeq convexityDefects;
-    Rectangle handRegion;
+    CvRect handRegion;
     
     public void release() {
       if (approxPoly != null)
@@ -42,6 +41,7 @@ public class ProcessPacket {
         cvReleaseMat(hull);
     }
   }
+  
   /**
    * Integer array of raw depth values from Kinect.
    */

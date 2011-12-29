@@ -2,21 +2,20 @@ package edu.mit.yingyin.tabletop;
 
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 
-import com.googlecode.javacv.cpp.opencv_core.CvMat;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
-import com.googlecode.javacv.cpp.opencv_core.CvSeq;
-import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
-
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
+
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
+import com.googlecode.javacv.cpp.opencv_core.CvRect;
+import com.googlecode.javacv.cpp.opencv_core.CvSeq;
+import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
 
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
@@ -96,6 +95,7 @@ public class ForelimbFeatureDetector {
   private Point2f searchFingertip(Point2f start, Vector2f unitDir, 
                                   ProcessPacket packet) {
     Point2f p = new Point2f(start);
+    
     FloatBuffer fb = packet.derivative.getFloatBuffer();
     int widthStep = packet.derivative.widthStep() / 4;
     
@@ -120,7 +120,7 @@ public class ForelimbFeatureDetector {
    */
   public void extractFingertipsConvexHull(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
-      Rectangle handRect = ff.handRegion;
+      CvRect handRect = ff.handRegion;
       if (handRect != null) {
         Forelimb forelimb = new Forelimb();
         
@@ -141,8 +141,8 @@ public class ForelimbFeatureDetector {
                               (int)approxPoly.get(sdx * 2 + 1));
           
           float angle = (float)Geometry.getAngleC(A, B, C);
-          if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y && 
-              C.y <= handRect.y + handRect.height) {
+          if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y() && 
+              C.y <= handRect.y() + handRect.height()) {
             float z = packet.depthRawData[C.y * packet.width + C.x];
             forelimb.fingertips.add(new ValConfiPair<Point3f>(
                 new Point3f(C.x, C.y, z), 1));
@@ -183,19 +183,19 @@ public class ForelimbFeatureDetector {
     ByteBuffer bb = packet.morphedImage.getByteBuffer();
     int widthStep = packet.morphedImage.widthStep();
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
-      Rectangle rect = ff.handRegion;
+      CvRect rect = ff.handRegion;
       Forelimb forelimb = new Forelimb();
       
       if (rect != null) {
-        byte[][] pixels = new byte[rect.height][rect.width];
-        for (int dy = 0; dy < rect.height; dy++) 
-          for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * widthStep + rect.x + dx;
+        byte[][] pixels = new byte[rect.height()][rect.width()];
+        for (int dy = 0; dy < rect.height(); dy++) 
+          for (int dx = 0; dx < rect. width(); dx++) {
+            int index = (rect.y() + dy) * widthStep + rect.x() + dx;
             if (bb.get(index) == 0)
               pixels[dy][dx] = BinaryFast.background;
             else pixels[dy][dx] = BinaryFast.foreground;
           }
-        BinaryFast bf = new BinaryFast(pixels, rect.width, rect.height);
+        BinaryFast bf = new BinaryFast(pixels, rect.width(), rect.height());
         
         for (int i = 0; i < 20; i++) {
           ThinningTransform.thinBinaryOnce(bf, THINNING_KERNEL_ORTH);
@@ -209,9 +209,9 @@ public class ForelimbFeatureDetector {
           Matrix.rot90(PRUNING_KERNEL1, 3);
           Matrix.rot90(PRUNING_KERNEL2, 3);
         }
-        for (int dy = 0; dy < rect.height; dy++) 
-          for (int dx = 0; dx < rect. width; dx++) {
-            int index = (rect.y + dy) * widthStep + rect.x + dx;
+        for (int dy = 0; dy < rect.height(); dy++) 
+          for (int dx = 0; dx < rect. width(); dx++) {
+            int index = (rect.y() + dy) * widthStep + rect.x() + dx;
             if (pixels[dy][dx] == BinaryFast.background)
               bb.put(index, (byte)0);
             else bb.put(index, (byte)255);
@@ -219,8 +219,8 @@ public class ForelimbFeatureDetector {
         
         List<Point3f> finger = new ArrayList<Point3f>();
         for (Point p : extractFinger(pixels)) {
-          int x = rect.x + p.x; 
-          int y = rect.y + p.y;
+          int x = rect.x() + p.x; 
+          int y = rect.y() + p.y;
           float z = packet.depthRawData[y * packet.width + x];
           finger.add(new Point3f(x, y, z));
         }
@@ -229,8 +229,8 @@ public class ForelimbFeatureDetector {
           forelimb.fingertips.add(new ValConfiPair<Point3f>(
               new Point3f(finger.get(finger.size() - 1)), 1));
         }
-        forelimb.center = new Point(rect.x + rect.width / 2, 
-                                    rect.y + rect.height / 2);
+        forelimb.center = new Point(rect.x() + rect.width() / 2, 
+                                    rect.y() + rect.height() / 2);
         
         packet.foreLimbs.add(forelimb);
       }
