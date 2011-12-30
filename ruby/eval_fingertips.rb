@@ -57,9 +57,6 @@ def eval_fingertips(groundtruth, detected)
     if gf == df 
       frame_error = eval_error g_fingertips, d_fingertips
       error += frame_error
-      if frame_error > 6
-        puts "Error: #{gf}, #{frame_error}"
-      end
       total_groundtruth += g_fingertips.length
       total_detected += d_fingertips.length
       true_pos += [g_fingertips.length, d_fingertips.length].min
@@ -74,6 +71,7 @@ def eval_fingertips(groundtruth, detected)
       total_groundtruth += g_fingertips.length
       false_neg += g_fingertips.length
       gi += 1
+      puts "false negative: #{gf}"
     else # Groundtruth frame id is greater than that of detected frame ID.
       total_detected += d_fingertips.length
       false_pos += d_fingertips.length
