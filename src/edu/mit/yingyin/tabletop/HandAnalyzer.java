@@ -28,8 +28,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point3f;
-
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
@@ -38,7 +36,6 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
-import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 
 public class HandAnalyzer {
@@ -67,7 +64,6 @@ public class HandAnalyzer {
    * is in the view.
    */
   private static final int HAND_HEIGHT_SCALE = 11;
-  private static final float TEMPORAL_FILTER_PARAM = (float)0.16;
   
   private Background background;
   private IplImage tempImage;
@@ -113,7 +109,6 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     ffd.extractFingertipsConvexityDefects(packet);
-    //temporalSmooth(packet);
   }
   
   public void release() {
@@ -221,28 +216,5 @@ public class HandAnalyzer {
         ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
       } 
     }
-  }
-  
-  /**
-   * Exponentially weighted moving average filter, i.e. low pass filter.
-   * @param packet
-   */
-  private void temporalSmooth(ProcessPacket packet) {
-    for (Forelimb forelimb : packet.foreLimbs) 
-      for (Forelimb prevForelimb : prevForelimbsFeatures) {
-        if (forelimb.center.distanceSq(prevForelimb.center) < 100) {
-          for (ValConfiPair<Point3f> fingertip : forelimb.fingertips) { 
-            fingertip.confidence *= TEMPORAL_FILTER_PARAM;
-            for (ValConfiPair<Point3f> prevTip : prevForelimb.fingertips) {
-              if (fingertip.value.distanceSquared(prevTip.value) < 64) {
-                fingertip.confidence += (1 - TEMPORAL_FILTER_PARAM) *
-                                        prevTip.confidence;
-                break;
-              }
-            }
-          }
-          break;
-        }
-      }
   }
 }
