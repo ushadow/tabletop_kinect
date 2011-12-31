@@ -1,5 +1,7 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
+import static com.googlecode.javacv.cpp.opencv_core.cvCreateMat;
 import static com.googlecode.javacv.cpp.opencv_video.cvCreateKalman;
 
 import java.util.ArrayList;
@@ -7,6 +9,7 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_video.CvKalman;
 
 import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
@@ -35,10 +38,19 @@ public class HandTracker {
     }
   }
   
+  private static final float[] F = {1, 0, 1, 0, 
+                                    0, 1, 0, 1,
+                                    0, 0, 1, 0,
+                                    0, 0, 0, 1};
+
   private Table table;
   private List<HandTrackerListener> listeners = 
       new ArrayList<HandTrackerListener>();
+  
   private CvKalman kalman = cvCreateKalman(4, 2, 0);
+  private CvMat xk = cvCreateMat(4, 1, CV_32FC1);
+  private CvMat wk = cvCreateMat(4, 1, CV_32FC1);
+  private CvMat zk = cvCreateMat(2, 1, CV_32FC1);
   
   public HandTracker(Table table) { 
     this.table = table; 
