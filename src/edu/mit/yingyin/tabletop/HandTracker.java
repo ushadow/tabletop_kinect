@@ -4,6 +4,7 @@ import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
 import static com.googlecode.javacv.cpp.opencv_core.cvCreateMat;
 import static com.googlecode.javacv.cpp.opencv_video.cvCreateKalman;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +55,11 @@ public class HandTracker {
   
   public HandTracker(Table table) { 
     this.table = table; 
+    
+    FloatBuffer fb = kalman.transition_matrix().getFloatBuffer();
+    fb.put(F);
+    
+    
   }
   
   /**
