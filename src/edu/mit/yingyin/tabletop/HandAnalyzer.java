@@ -25,8 +25,6 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
@@ -67,7 +65,6 @@ public class HandAnalyzer {
   
   private Background background;
   private IplImage tempImage;
-  private List<Forelimb> prevForelimbsFeatures = new ArrayList<Forelimb>();
   private IplImage foregroundMask;
   private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
   
@@ -87,9 +84,6 @@ public class HandAnalyzer {
    * @param packet contains all the relevant data for analysis.
    */
   public void analyzeData(ProcessPacket packet) {
-    prevForelimbsFeatures.clear();
-    for (Forelimb forelimb : packet.foreLimbs)
-      prevForelimbsFeatures.add(new Forelimb(forelimb));
     packet.clear();
     
     CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 

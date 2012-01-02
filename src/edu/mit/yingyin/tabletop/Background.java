@@ -11,7 +11,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
-import static com.googlecode.javacv.cpp.opencv_core.cvScalar;
+import static com.googlecode.javacv.cpp.opencv_core.cvRealScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
@@ -102,7 +102,7 @@ public class Background {
     // Makes sure diff is at least 1.
     cvCmpS(diffFI, 0.0, mask, CV_CMP_EQ);
     // Add S if mask(I) != 0
-    cvAddS(diffFI, cvScalar(1.0 / maxDepth, 0, 0, 0), diffFI, mask);
+    cvAddS(diffFI, cvRealScalar(1.0 / maxDepth), diffFI, mask);
     setHighThreshold(highScale);
     setLowThreshold(lowScale);
   }
@@ -118,7 +118,7 @@ public class Background {
     // lowFI is inclusive lower bound, and hiFI is exclusive higher bound.
     cvInRange(scratchI, lowFI, hiFI, mask);
     // Inverts the results.
-    cvSubRS(mask, cvScalar(255, 0, 0, 0), mask, null);
+    cvSubRS(mask, cvRealScalar(255), mask, null);
   }
   
   public void release() {

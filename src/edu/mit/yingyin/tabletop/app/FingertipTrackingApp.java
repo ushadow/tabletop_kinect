@@ -164,8 +164,8 @@ public class FingertipTrackingApp {
   private int rowToRecord = 0;
   private int prevDepthFrameID = -1;
   private HashMap<Integer, List<Point>> labels;
-  private Table table = new Table();
-  private HandTracker tracker = new HandTracker(table);
+  private Table table;
+  private HandTracker tracker;
   private HandAnalyzer analyzer;
   private String depthFilePrefix;
 
@@ -219,6 +219,7 @@ public class FingertipTrackingApp {
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
+    table = new Table(depthWidth, depthHeight);
 
     if (displayOn) {
       packetController = new ProcessPacketController(depthWidth, depthHeight);
@@ -228,6 +229,7 @@ public class FingertipTrackingApp {
     
    
     TrackerController trackerController = new TrackerController();
+    tracker = new HandTracker(table);
     tracker.addListener(trackerController);
 
     // A one thread process. Only one ProcessPacket present at all time.

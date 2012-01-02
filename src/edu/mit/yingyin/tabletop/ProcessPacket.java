@@ -9,6 +9,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
@@ -53,7 +54,7 @@ public class ProcessPacket {
   public CvMemStorage tempMem;
   public List<ForelimbFeatures> forelimbFeatures = 
       new ArrayList<ForelimbFeatures>();
-  public List<Forelimb> foreLimbs = new ArrayList<Forelimb>();
+  public List<Forelimb> foreLimbs;
   public int depthFrameID;
   public int width, height;
   public List<Point> labels;
@@ -69,6 +70,8 @@ public class ProcessPacket {
     tempMem = cvCreateMemStorage(0);
     this.width = width;
     this.height = height;
+    
+    foreLimbs = Collections.synchronizedList(new ArrayList<Forelimb>());
   }
   
   /**

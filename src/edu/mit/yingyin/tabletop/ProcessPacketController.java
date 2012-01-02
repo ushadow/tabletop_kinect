@@ -75,13 +75,15 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
               OVAL_WIDTH);
       }
       g2d.setColor(Color.red);
-      for (Forelimb forelimb : packet.foreLimbs)
-        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-          if (p.confidence > 0.5)
-            g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
-                (int)p.value.y - OVAL_WIDTH / 2, 
-                OVAL_WIDTH, OVAL_WIDTH);
-        }
+      synchronized (packet.foreLimbs) {
+        for (Forelimb forelimb : packet.foreLimbs)
+          for (ValConfiPair<Point3f> p : forelimb.fingertips) {
+            if (p.confidence > 0.5)
+              g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
+                  (int)p.value.y - OVAL_WIDTH / 2, 
+                  OVAL_WIDTH, OVAL_WIDTH);
+          }
+      }
     }
   }
   

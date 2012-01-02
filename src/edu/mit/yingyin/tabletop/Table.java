@@ -2,9 +2,15 @@ package edu.mit.yingyin.tabletop;
 
 public class Table {
   private int[] depthMap;
-  private int width;
+  /**
+   * Table width and height in depth image.
+   */
+  private int width, height;
 
-  public Table() { super(); }
+  public Table(int width, int height) {
+    this.width = width;
+    this.height = height;
+  }
   
   public Table(int[] depthMap, int width, int height) {
     init(depthMap, width, height);
@@ -23,9 +29,13 @@ public class Table {
    * @param y y coordinate of the point.
    * @return height of the table at (x, y).
    */
-  public int getHeight(int x, int y) {
+  public int getDepth(int x, int y) {
     return depthMap[y * width + x];
   }
+  
+  public int getWidth() { return width; }
+  
+  public int getHeight() { return height; }
   
   /**
    * @return average depth of the table after it is initialized.
