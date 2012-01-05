@@ -131,6 +131,13 @@ public class HandTracker {
     listeners.add(l);
   }
   
+  public String kalmanToString() {
+    StringBuffer sb = new StringBuffer("Kalman fiter:\n");
+    sb.append("Post state:\n");
+    sb.append(kalman.state_post().toString());
+    return sb.toString();
+  }
+  
   private Point3f findBestPoint(List<ValConfiPair<Point3f>> fingertips) {
     float bestY = table.getHeight();
     Point3f bestPoint = null;
@@ -148,6 +155,7 @@ public class HandTracker {
   }
   
   private void initKalman(float x, float y) {
+    // Initializes dx and dy to 0s.
     kalman.state_post().put(x, y, 0, 0);
     cvSetIdentity(kalman.error_cov_post(), cvRealScalar(1));
     initialized = true;
@@ -173,10 +181,12 @@ public class HandTracker {
     if (closest != null) {
       zk.put(closest.x, closest.y);
       CvMat statePost = cvKalmanCorrect(kalman, zk);
+      System.out.println(kalmanToString());
       return new Point3f((float)statePost.get(0), (float)statePost.get(1), 
           closest.z);
     }
     
     return null;
   }
+  
 }
