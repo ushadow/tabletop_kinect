@@ -181,7 +181,8 @@ public class FingertipTrackingApp {
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
-      fnfe.printStackTrace();
+      System.err.println(fnfe.getMessage());
+      System.exit(-1);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -233,8 +234,8 @@ public class FingertipTrackingApp {
     tracker.addListener(trackerController);
 
     // A one thread process. Only one ProcessPacket present at all time.
-    while ((packetController != null && packetController.isVisible() || displayOn == false) 
-           && !end) {
+    while ((packetController != null && packetController.isVisible() || 
+            displayOn == false) && !end) {
       if (packetController != null && pause)
         continue;
       step();
@@ -281,10 +282,11 @@ public class FingertipTrackingApp {
       table.init(packet.depthRawData, depthWidth, depthHeight);
     analyzer.analyzeData(packet);
     
+    tracker.update(packet.forelimbs, packet.depthFrameID);
+
     if (packetController != null)
       packetController.show(packet);
     
-    tracker.update(packet.foreLimbs, packet.depthFrameID);
 
     if (recording) {
       if (recorder == null) {

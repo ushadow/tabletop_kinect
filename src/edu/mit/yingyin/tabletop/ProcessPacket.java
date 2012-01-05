@@ -54,7 +54,7 @@ public class ProcessPacket {
   public CvMemStorage tempMem;
   public List<ForelimbFeatures> forelimbFeatures = 
       new ArrayList<ForelimbFeatures>();
-  public List<Forelimb> foreLimbs;
+  public List<Forelimb> forelimbs;
   public int depthFrameID;
   public int width, height;
   public List<Point> labels;
@@ -71,7 +71,7 @@ public class ProcessPacket {
     this.width = width;
     this.height = height;
     
-    foreLimbs = Collections.synchronizedList(new ArrayList<Forelimb>());
+    forelimbs = Collections.synchronizedList(new ArrayList<Forelimb>());
   }
   
   /**
@@ -92,7 +92,7 @@ public class ProcessPacket {
   public void clear() {
     // Empty the memory storage. This retrieves the memory from sequences.
     cvClearMemStorage(tempMem);
-    foreLimbs.clear();
+    forelimbs.clear();
     for (ForelimbFeatures ff : forelimbFeatures)
       ff.release();
     forelimbFeatures.clear();

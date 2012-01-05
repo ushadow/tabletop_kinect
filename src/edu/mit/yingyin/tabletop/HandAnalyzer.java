@@ -67,6 +67,7 @@ public class HandAnalyzer {
   private IplImage tempImage;
   private IplImage foregroundMask;
   private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
+  private KalmanFilter filter;
   
   /**
    * Initializes the data structures.
@@ -77,6 +78,7 @@ public class HandAnalyzer {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height, MAX_DEPTH);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    filter = new KalmanFilter(width, height);
   }
   
   /**
@@ -103,6 +105,7 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     ffd.extractFingertipsConvexityDefects(packet);
+    filter.filter(packet);
   }
   
   public void release() {

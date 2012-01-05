@@ -71,7 +71,7 @@ public class ForelimbFeatureDetector {
       CvRect bb = ff.boundingBox;
       forelimb.center = new Point(bb.x() + bb.width() / 2, 
                                   bb.y() + bb.height() / 2);
-      packet.foreLimbs.add(forelimb);
+      packet.forelimbs.add(forelimb);
     }
   }
   
@@ -151,7 +151,7 @@ public class ForelimbFeatureDetector {
         forelimb.center = new Point(rect.x() + rect.width() / 2, 
             rect.y() + rect.height() / 2);
         
-        packet.foreLimbs.add(forelimb);
+        packet.forelimbs.add(forelimb);
       }
     }
   }
@@ -232,7 +232,7 @@ public class ForelimbFeatureDetector {
         forelimb.center = new Point(rect.x() + rect.width() / 2, 
                                     rect.y() + rect.height() / 2);
         
-        packet.foreLimbs.add(forelimb);
+        packet.forelimbs.add(forelimb);
       }
     }
   }

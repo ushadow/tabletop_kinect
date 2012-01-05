@@ -26,9 +26,11 @@ public class Forelimb {
       new ArrayList<ValConfiPair<Point3f>>();
   public List<List<Point3f>> fingers = new ArrayList<List<Point3f>>();
   public Point center;
+  public List<Point3f> filteredFingertips = new ArrayList<Point3f>();
   
   public Forelimb() {}
   
+  // TODO(ushadow): make a deep copy.
   public Forelimb(Forelimb other) {
     center = new Point(other.center);
     for (ValConfiPair<Point3f> p: other.fingertips) {

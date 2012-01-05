@@ -62,27 +62,38 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.green);
-      for (Forelimb limb : packet.foreLimbs) {
+      for (Forelimb limb : packet.forelimbs) {
         for (List<Point3f> finger : limb.fingers) {
           for (Point3f p : finger) {
             g2d.drawLine((int)p.x, (int)p.y, (int)p.x, (int)p.y);
           }
         }
       }
+      
+      // Draws labeled points.
       if (packet.labels != null) {
         for (Point p : packet.labels)
           g2d.drawOval(p.x - OVAL_WIDTH / 2, p.y - OVAL_WIDTH / 2, OVAL_WIDTH,
               OVAL_WIDTH);
       }
-      g2d.setColor(Color.red);
-      synchronized (packet.foreLimbs) {
-        for (Forelimb forelimb : packet.foreLimbs)
+      
+      // Draws measured points.
+      synchronized (packet.forelimbs) {
+        for (Forelimb forelimb : packet.forelimbs){
+          g2d.setColor(Color.red);
           for (ValConfiPair<Point3f> p : forelimb.fingertips) {
             if (p.confidence > 0.5)
               g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
                   (int)p.value.y - OVAL_WIDTH / 2, 
                   OVAL_WIDTH, OVAL_WIDTH);
           }
+          g2d.setColor(Color.blue);
+          for (Point3f p : forelimb.filteredFingertips) {
+            g2d.drawOval((int)p.x - OVAL_WIDTH / 2, 
+                (int)p.y - OVAL_WIDTH / 2, 
+                OVAL_WIDTH, OVAL_WIDTH);
+          }
+        }
       }
     }
   }
@@ -268,7 +279,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     }
 
     if (showFingertip)
-      for (Forelimb forelimb : packet.foreLimbs)
+      for (Forelimb forelimb : packet.forelimbs)
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
             cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
