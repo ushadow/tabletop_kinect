@@ -60,25 +60,49 @@ public class KalmanFilter {
     fb.put(F);
 
     cvSetIdentity(kalman.measurement_matrix(), cvRealScalar(1));
-    cvSetIdentity(kalman.process_noise_cov(), cvRealScalar(1));
-    cvSetIdentity(kalman.measurement_noise_cov(), cvRealScalar(1e-5));
+    // Process noise is associated with random events or forices that directly
+    // affect the actual state of the system.
+    CvMat Q = kalman.process_noise_cov();
+    Q.put(0, 0, 1);
+    Q.put(1, 1, 1);
+    Q.put(2, 2, 10);
+    Q.put(3, 3, 10);
+    cvSetIdentity(kalman.measurement_noise_cov(), cvRealScalar(1));
   }
   
   public void filter(ProcessPacket packet) {
-    for (Forelimb forelimb : packet.forelimbs) {
-      if (forelimb.fingertips.isEmpty()) {
-        resetKalman();
-      } else if (initialized) {
-        Point3f tip = filter(forelimb);
-        if (tip != null)
-          forelimb.filteredFingertips.add(tip);
-        } else {
+    if (packet.forelimbs.isEmpty()) {
+      resetKalman();
+    } else {
+      // Hack(ushadow): assumes one forelimb only.
+      // TODO(ushadow): use multiple kalman filters for multiple forelimbs.
+      for (Forelimb forelimb : packet.forelimbs) {
+        if (initialized) {
+          Point3f tip = filter(forelimb, packet);
+          if (tip != null)
+            forelimb.filteredFingertips.add(tip);
+        } else if (!forelimb.fingertips.isEmpty()) {
           // Finds the best point to initialize Kalman filter.
           Point3f tip = findBestPoint(forelimb); 
           initKalman(tip.x, tip.y);
           forelimb.filteredFingertips.add(tip);
       }
+      }
     }
+  }
+  
+  /**
+   * Returns the string the contains the values in the kalman filter.
+   */
+  public String toString() {
+    StringBuffer sb = new StringBuffer("Kalman fiter:\n");
+    sb.append("Post state:\n");
+    sb.append(kalman.state_post());
+    sb.append("\nProcess noise cov:\n");
+    sb.append(kalman.process_noise_cov());
+    sb.append("\nPost error cov:\n");
+    sb.append(kalman.error_cov_post());
+    return sb.toString();
   }
   
   private void resetKalman() {
@@ -88,22 +112,31 @@ public class KalmanFilter {
   private void initKalman(float x, float y) {
     // Initializes dx and dy to 0s.
     kalman.state_post().put(x, y, 0, 0);
+    // Initializes the posterior error covariance to the identitiy (this is 
+    // required to gurantee the meaningfulness of the first iteration; it will
+    // subsequently be overwritten.
     cvSetIdentity(kalman.error_cov_post(), cvRealScalar(1));
     initialized = true;
   }
 
   /**
    * Returns a new point filtered from all the fingetips.
-   * @param forelimb
-   * @return
+   * @param forelimb the <code>Forelimb</code> that contains the fingertips.
+   * @param packet the <code>ProcessPacket</code> that contains all the 
+   *    processed information.
+   * @return a point that is most likely to be the fingertip based on the 
+   *    updated model.
    */
-  private Point3f filter(Forelimb forelimb) {
+  private Point3f filter(Forelimb forelimb, ProcessPacket packet) {
     Point3f closest = null;
+    Point3f result = null;
     float minDistance2 = Float.MAX_VALUE;
     
     // Predicted point position.
     CvMat yk = cvKalmanPredict(kalman, null);
-    Point2f p1 = new Point2f((float)yk.get(0), (float)yk.get(1));
+    float x = (float)yk.get(0);
+    float y = (float)yk.get(1);
+    Point2f p1 = new Point2f(x, y);
     
     for (ValConfiPair<Point3f> tip : forelimb.fingertips) {
       Point2f p2 = new Point2f(tip.value.x, tip.value.y);
@@ -118,34 +151,29 @@ public class KalmanFilter {
       zk.put(closest.x, closest.y);
       CvMat statePost = cvKalmanCorrect(kalman, zk);
       System.out.println(toString());
-      return new Point3f((float)statePost.get(0), (float)statePost.get(1), 
-          closest.z);
+      result = new Point3f((float)statePost.get(0), (float)statePost.get(1), 
+                           closest.z);
+    } else {
+      // Hack(ushadow): assumes the lack of measurement is due to mistake.
+      // TODO(ushadow): need to consider the case when there is actually no 
+      // fingertip.
+      float z = packet.getDepthRaw(Math.round(x), Math.round(y));
+      result = new Point3f(x, y, z);
     }
-    
-    return null;
-  }
-  
-  /**
-   * Returns the string the contains the values in the kalman filter.
-   */
-  public String toString() {
-    StringBuffer sb = new StringBuffer("Kalman fiter:\n");
-    sb.append("Post state:\n");
-    sb.append(kalman.state_post().toString());
-    sb.append("\nProcess noise:\n");
-    sb.append(kalman.process_noise_cov());
-    return sb.toString();
+    return result;
   }
   
   /**
    * Returns a new point which is the best canditate from all the fingertips in 
    * the forelimb.
-   * @param fingertips
-   * @return
+   * @param forelimb the <code>Forelimb</code> that contains the fingertips.
+   * @return a point that is most likely as the fingertip.
    */
   private Point3f findBestPoint(Forelimb forelimb) {
-    // Hack(ushadow): Assumes the hand is extended from the bottom of the image.
-    // TODO(ushadow): Need to consider different hand orientation.
+    // Hack(ushadow): assumes the point that is nearest to the center of the 
+    // of the image as the fintertip. Assumes hand is extended from the bottom 
+    // of the image.
+    // TODO(ushadow): need to consider different hand orientation.
     float bestY = height;
     Point3f bestPoint = null;
     for (ValConfiPair<Point3f> tip : forelimb.fingertips) {

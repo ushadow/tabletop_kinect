@@ -32,6 +32,9 @@ public class ForelimbFeatureDetector {
   
   private static final float FINGERTIP_WIDTH = 7;
   
+  private static final float FINGERTIP_WIDTH_THRESHOLD = 
+    FINGERTIP_WIDTH * FINGERTIP_WIDTH / 4;
+  
  
   public void extractFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
@@ -48,23 +51,10 @@ public class ForelimbFeatureDetector {
           CvConvexityDefect defect2 = new CvConvexityDefect(
               cvGetSeqElem(defects, (i + 1) % defects.total()));
           if (CvUtil.pointInRect(defect2.start(), ff.handRegion)) {
-            Vector2f v1 = new Vector2f(
-                defect1.depth_point().x() - defect1.end().x(),
-                defect1.depth_point().y() - defect1.end().y());
-            Vector2f v2 = new Vector2f(
-                defect2.depth_point().x() - defect2.start().x(),
-                defect2.depth_point().y() - defect2.start().y());
-            if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE) {
-              int mx = (defect1.end().x() + defect2.start().x()) / 2;
-              int my = (defect1.end().y() + defect2.start().y()) / 2;
-              
-              Vector2f unitDir = searchDir(defect1, defect2);
-              Point2f fp = searchFingertip(new Point2f(mx, my), unitDir, 
-                                           packet);
-              float z = packet.getDepthRaw(Math.round(fp.x), Math.round(fp.y));
-              forelimb.fingertips.add(new ValConfiPair<Point3f>(
-                  new Point3f(Math.round(fp.x), Math.round(fp.y), z), 1));
-            }
+            ValConfiPair<Point3f> fingertip = getFingertip(defect1, defect2, 
+                                                           packet);
+            if (fingertip != null)  
+              forelimb.fingertips.add(fingertip);
           }
         }
       }
@@ -73,6 +63,30 @@ public class ForelimbFeatureDetector {
                                   bb.y() + bb.height() / 2);
       packet.forelimbs.add(forelimb);
     }
+  }
+  
+  private ValConfiPair<Point3f> getFingertip(CvConvexityDefect defect1, 
+      CvConvexityDefect defect2, ProcessPacket packet) {
+    Vector2f v1 = new Vector2f(
+        defect1.depth_point().x() - defect1.end().x(),
+        defect1.depth_point().y() - defect1.end().y());
+    Vector2f v2 = new Vector2f(
+        defect2.depth_point().x() - defect2.start().x(),
+        defect2.depth_point().y() - defect2.start().y());
+    float distance2 = CvUtil.distance2(defect1.depth_point(), 
+                                       defect2.depth_point());
+    if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE && 
+        distance2 >= FINGERTIP_WIDTH_THRESHOLD) {
+      int mx = (defect1.end().x() + defect2.start().x()) / 2;
+      int my = (defect1.end().y() + defect2.start().y()) / 2;
+      
+      Vector2f unitDir = searchDir(defect1, defect2);
+      Point2f fp = searchFingertip(new Point2f(mx, my), unitDir, packet);
+      float z = packet.getDepthRaw(Math.round(fp.x), Math.round(fp.y));
+      return new ValConfiPair<Point3f>(new Point3f(Math.round(fp.x), 
+          Math.round(fp.y), z), 1);
+    }
+    return null;
   }
   
   private Vector2f searchDir(CvConvexityDefect d1, CvConvexityDefect d2) {
