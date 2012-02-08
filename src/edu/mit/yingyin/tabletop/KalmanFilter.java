@@ -60,7 +60,7 @@ public class KalmanFilter {
     fb.put(F);
 
     cvSetIdentity(kalman.measurement_matrix(), cvRealScalar(1));
-    // Process noise is associated with random events or forices that directly
+    // Process noise is associated with random events or forces that directly
     // affect the actual state of the system.
     CvMat Q = kalman.process_noise_cov();
     Q.put(0, 0, 1);
