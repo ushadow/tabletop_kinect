@@ -22,7 +22,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 public class CalibrationExample {
 
-  public enum CalibMethod {EXTRINSIC, HOMOGRAPHY, DISTORTION};
+  public enum CalibMethod {EXTRINSIC, HOMOGRAPHY, UNDISTORT};
   
   private static final float[][] INTRINSIC_MATRIX = {
       {(float)5.9421434211923247e+02, 0, (float)3.3930780975300314e+02},
@@ -141,7 +141,7 @@ public class CalibrationExample {
   
   private Point2f imageToDisplayCoords2Homography(Point2f imagePoint) {
     CvMat imageCoords = null;
-    if (method == CalibMethod.DISTORTION) {
+    if (method == CalibMethod.UNDISTORT) {
       imageCoords = CvMat.create(1, 1, CV_32FC2);
       imageCoords.put(0, imagePoint.x);
       imageCoords.put(1, imagePoint.y);
@@ -293,6 +293,16 @@ public class CalibrationExample {
     rodrigues.release();
   }
   
+  /**
+   * Given the correspondence of points in two planes, finds the projective 
+   * mapping from one plane to another.
+   * 
+   * If the calibration is UNDISTORT, apply undistortion to the camera image 
+   * points first.
+   * 
+   * @param objectPoints points in the projected display.
+   * @param imagePoints corresponding points in the camera image plane.
+   */
   private void findHomography(List<Point2f> objectPoints,
       List<Point2f> imagePoints) {
     if (homograhy == null)
@@ -309,7 +319,7 @@ public class CalibrationExample {
       imagePointsMat.put(i * 2 + 1, imagePoints.get(i).y);
     }
     
-    if (method == CalibMethod.DISTORTION)
+    if (method == CalibMethod.UNDISTORT)
       cvUndistortPoints(imagePointsMat, imagePointsMat, intrinsicMatrixMat, 
           distortionCoeffsMat, null, null);
     cvFindHomography(imagePointsMat, objectPointsMat, homograhy);

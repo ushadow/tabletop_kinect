@@ -63,17 +63,21 @@ public class CalibrationApp {
   public CalibrationApp(String args[]) {
     Properties config = new Properties();
     FileInputStream in = null;
+    if (args.length < 1) {
+      System.out.println("Usage: CalibrationApp <config_file_name>");
+      System.exit(-1);
+    }
+      
     try {
-      in = new FileInputStream(
-          "./config/calibration.config");
+      in = new FileInputStream(args[0]);
       config.load(in);
       in.close();
-    } catch (FileNotFoundException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
+    } catch (FileNotFoundException fnfe) {
+      System.err.println(fnfe.getMessage());
+      System.exit(-1);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+      System.exit(-1);
     } 
     
     String camImgPath = config.getProperty("cam-depth-image", null);
@@ -154,6 +158,9 @@ public class CalibrationApp {
     return points;
   }
   
+  /**
+   * Calibrates the extrinsic parameters of the camera.
+   */
   private void calibrate() {
     if (screenPoints != null && !screenPoints.isEmpty() && 
         cameraPoints != null && !cameraPoints.isEmpty()) {
