@@ -256,9 +256,14 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     
   }
   
+  /**
+   * Displays the image for analysis.
+   */
   private void showAnalysisImage() {
     if (showMorphed)
       cvCopy(packet.morphedImage, analysisImage);
+    else
+      cvCopy(packet.depthImage8U, analysisImage);
     
     for (ForelimbFeatures ff : packet.forelimbFeatures){
       if (showBoundingBox) {
