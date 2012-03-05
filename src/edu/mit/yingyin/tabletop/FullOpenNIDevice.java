@@ -34,6 +34,9 @@ public class FullOpenNIDevice implements OpenNIDevice {
   private DepthMetaData depthMD;
   private ImageMetaData imageMD;
   private int depthWidth, depthHeight, imageWidth, imageHeight;
+  /**
+   * Preallocated buffers for depth and RGB data.
+   */
   private ByteBuffer depthBuffer, imageBuffer;
   private int depthByteBufferSize, imageByteBufferSize;
   
