@@ -36,6 +36,12 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
 import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
 
+/**
+ * HandAnalyzer estimates the parameters of the hand model using measurements 
+ * from the video images.
+ * @author yingyin
+ *
+ */
 public class HandAnalyzer {
   /**
    * Maximum depth in mm for the tabletop application.
@@ -64,6 +70,8 @@ public class HandAnalyzer {
   private static final int HAND_HEIGHT_SCALE = 11;
   
   private Background background;
+  private Table table;
+  private ContactDetector contactDetector;
   private IplImage tempImage;
   private IplImage foregroundMask;
   private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
@@ -97,6 +105,8 @@ public class HandAnalyzer {
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float)6.0, (float)7.0);
+      table = new Table(background);
+      contactDetector = new ContactDetector(table);
       System.out.println(background.stats());
     }
     

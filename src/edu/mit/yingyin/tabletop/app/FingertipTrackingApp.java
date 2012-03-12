@@ -278,8 +278,6 @@ public class FingertipTrackingApp {
       System.exit(-1);
     }
 
-    if (!table.isInitialized())
-      table.init(packet.depthRawData, depthWidth, depthHeight);
     analyzer.analyzeData(packet);
     
     tracker.update(packet.forelimbs, packet.depthFrameID);

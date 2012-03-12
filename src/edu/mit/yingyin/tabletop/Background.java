@@ -141,6 +141,17 @@ public class Background {
     return sb.toString();
   }
   
+  public IplImage avg() {
+    return avgFI;
+  }
+  
+  public IplImage diff() {
+    return diffFI;
+  }
+  
+  /**
+   * @return the average background depth value.
+   */
   public float avgDepth() {
     return (float)(cvAvg(avgFI, null).val(0) * maxDepth);
   }

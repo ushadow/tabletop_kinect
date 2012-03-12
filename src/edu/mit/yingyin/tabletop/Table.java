@@ -1,26 +1,23 @@
 package edu.mit.yingyin.tabletop;
 
+import com.googlecode.javacv.cpp.opencv_core.IplImage;
+
+/**
+ * Model of the table.
+ * @author yingyin
+ *
+ */
 public class Table {
   private int[] depthMap;
   /**
    * Table width and height in depth image.
    */
   private int width, height;
+  private IplImage avg, diff;
 
-  public Table(int width, int height) {
-    this.width = width;
-    this.height = height;
-  }
-  
-  public Table(int[] depthMap, int width, int height) {
-    init(depthMap, width, height);
-  }
-  
-  public boolean isInitialized() { return depthMap != null; }
-  
-  public void init(int[] depthMap, int width, int height) {
-    this.depthMap = depthMap.clone();
-    this.width = width;
+  public Table(Background background) {
+    avg = background.avg();
+    diff = background.diff();
   }
   
   /**
