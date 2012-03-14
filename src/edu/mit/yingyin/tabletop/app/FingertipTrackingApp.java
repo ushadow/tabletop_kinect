@@ -29,7 +29,7 @@ import edu.mit.yingyin.tabletop.Recorder;
 import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.HandTracker;
 import edu.mit.yingyin.tabletop.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.HandTracker.HandTrackerListener;
+import edu.mit.yingyin.tabletop.HandTracker.IHandEventListener;
 
 /**
  * Application that tracks the fingertips in data from an OpenNI device. Saves
@@ -112,7 +112,12 @@ public class FingertipTrackingApp {
     }
   }
 
-  private class TrackerController implements HandTrackerListener {
+  /**
+   * Listens to hand events.
+   * @author yingyin
+   *
+   */
+  private class HandEventListener implements IHandEventListener {
     /**
      * List of finger events detected in a frame.
      */
@@ -220,7 +225,6 @@ public class FingertipTrackingApp {
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight);
-    table = new Table(depthWidth, depthHeight);
 
     if (displayOn) {
       packetController = new ProcessPacketController(depthWidth, depthHeight);
@@ -229,9 +233,9 @@ public class FingertipTrackingApp {
     }
     
    
-    TrackerController trackerController = new TrackerController();
-    tracker = new HandTracker(table);
-    tracker.addListener(trackerController);
+    HandEventListener handEventListener = new HandEventListener();
+    tracker = new HandTracker();
+    tracker.addListener(handEventListener);
 
     // A one thread process. Only one ProcessPacket present at all time.
     while ((packetController != null && packetController.isVisible() || 
@@ -245,7 +249,7 @@ public class FingertipTrackingApp {
     PrintWriter pw = null;
     try {
       pw = new PrintWriter(fingertipFile);
-      trackerController.toOutput(pw);
+      handEventListener.toOutput(pw);
       System.out.println("Tracker controller output done.");
     } catch (FileNotFoundException e) {
       e.printStackTrace();

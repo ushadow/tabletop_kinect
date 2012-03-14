@@ -17,6 +17,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
@@ -141,12 +142,26 @@ public class Background {
     return sb.toString();
   }
   
-  public IplImage avg() {
-    return avgFI;
+  /**
+   * @return a buffer of average depth of the background.
+   */
+  public FloatBuffer avgBuffer() {
+    return avgFI.getFloatBuffer();
   }
   
-  public IplImage diff() {
-    return diffFI;
+  public int avgBufferWidthStep() {
+    return avgFI.widthStep();
+  }
+  
+  /**
+   * @return a buffer of average absolute difference of the background.
+   */
+  public FloatBuffer avgDiffBuffer() {
+    return diffFI.getFloatBuffer();
+  }
+  
+  public int avgDiffBufferWidthStep() {
+    return diffFI.widthStep();
   }
   
   /**

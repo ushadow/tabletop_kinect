@@ -16,7 +16,7 @@ public class HandTracker {
    * @author yingyin
    *
    */
-  public static interface HandTrackerListener {
+  public static interface IHandEventListener {
     public void fingerPressed(List<FingerEvent> feList);
   }
   
@@ -29,13 +29,8 @@ public class HandTracker {
     }
   }
 
-  private Table table;
-  private List<HandTrackerListener> listeners = 
-      new ArrayList<HandTrackerListener>();
-  
-  public HandTracker(Table table) { 
-    this.table = table; 
-  }
+  private List<IHandEventListener> listeners = 
+      new ArrayList<IHandEventListener>();
   
   /**
    * Updates forelimbs information and generates events.
@@ -45,21 +40,30 @@ public class HandTracker {
   public void update(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = noFilter(forelimbs, frameID);
     if (!fingerEventList.isEmpty()) {
-      for (HandTrackerListener l : listeners) 
+      for (IHandEventListener l : listeners) 
         l.fingerPressed(fingerEventList);
     }
   }
   
+  public void addListener(IHandEventListener l) {
+    listeners.add(l);
+  }
+
   private List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 
       for (Point3f tip : forelimb.filteredFingertips)
-          fingerEventList.add(new FingerEvent(tip, frameID));
-    return fingerEventList;
+        fingerEventList.add(new FingerEvent(tip, frameID));
+          return fingerEventList;
   }
-  
-  public void addListener(HandTrackerListener l) {
-    listeners.add(l);
+
+  private List<FingerEvent> filterPressed(List<Forelimb> forelimbs, 
+                                          int frameID) {
+    List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
+    for (Forelimb forelimb : forelimbs)
+      for (Point3f tip : forelimb.filteredFingertips) {
+        float tableDepth = Table.instance().depthAt((int)tip.x, (int)tip.y);
+        if (tip.z + Hand.FINGER_THICKNESS < )
+      }
   }
-  
 }

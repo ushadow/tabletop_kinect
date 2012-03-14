@@ -12,8 +12,6 @@ import static com.googlecode.javacv.cpp.opencv_video.cvKalmanCorrect;
 import static com.googlecode.javacv.cpp.opencv_video.cvKalmanPredict;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -150,7 +148,6 @@ public class KalmanFilter {
     if (closest != null) {
       zk.put(closest.x, closest.y);
       CvMat statePost = cvKalmanCorrect(kalman, zk);
-      System.out.println(toString());
       result = new Point3f((float)statePost.get(0), (float)statePost.get(1), 
                            closest.z);
     } else {
