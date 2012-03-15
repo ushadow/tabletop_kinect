@@ -78,4 +78,11 @@ public class BackgroundTest {
       for (int w = 0; w < WIDTH; w++)
         assertEquals(0, bb.get(h * widthStep + w) & 0xff);
   }
+  
+  @Test
+  public void testWidthSteps() {
+    Background bg = new Background(WIDTH, HEIGHT, MAX_DEPTH);
+    assertEquals(WIDTH, bg.avgBufferWidthStep());
+    assertEquals(WIDTH, bg.diffBufferWidthStep());
+  }
 }

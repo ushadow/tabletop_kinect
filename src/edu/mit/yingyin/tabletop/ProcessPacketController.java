@@ -193,11 +193,19 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     showAppImage();
   }
   
+  /**
+   * Draws a circle at (x, y).
+   * @param x
+   * @param y
+   */
   public void drawCircle(int x, int y) {
     cvCircle(appImage, new CvPoint(x, y), 3, CvScalar.WHITE, 1, 8, 0);
     frames[1].showImage(appImage);
   }
   
+  /**
+   * Releases memory.
+   */
   public void release() {
     analysisImage.release();
     appImage.release();

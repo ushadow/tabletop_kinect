@@ -8,12 +8,17 @@ import java.nio.FloatBuffer;
  *
  */
 public class Table {
+  private static final int DIFF_SCALE = 5;
+  
   static private Table table;
+
   /**
-   * Table width and height in depth image.
+   * Average depth and depth difference scaled between 0 and 1.
    */
-  private int avgWidthStep, diffWidthStep;
   private FloatBuffer avg, diff;
+  private int avgWidthStep, diffWidthStep;
+  private boolean initialized = false;
+  private int scale;
 
   public static Table instance() {
     if (table == null)
@@ -21,26 +26,67 @@ public class Table {
     return table;
   }
   
+  /**
+   * Initializes the table statistics.
+   * @param avg
+   * @param diff
+   * @param avgWidthStep
+   * @param diffWidthStep
+   * @param scale used to scale the depth value.
+   */
   public void init(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-                   int diffWidthStep) {
+                   int diffWidthStep, int scale) {
     this.avg = avg;
     this.diff = diff;
     this.avgWidthStep = avgWidthStep;
     this.diffWidthStep = diffWidthStep;
+    this.scale = scale;
+    initialized = true;
+  }
+  
+  public void init(Background background) {
+    init(background.avgBuffer(), background.diffBuffer(), 
+         background.avgBufferWidthStep(), background.diffBufferWidthStep(),
+         background.getScale());
   }
   
   /**
-   * Gets the height of the table at point(x, y);
+   * Checks if the depth value of z at (x, y) is in contact with the table 
+   * surface.
+   * @param x
+   * @param y
+   * @param z physical depth in millimeter.
+   * @return
+   */
+  public boolean isInContact(int x, int y, float z) {
+    if (!initialized)
+      return false;
+    float tableDepth = depthAt(x, y);
+    float tableDiff = diffAt(x, y);
+    float scaledZ = z / scale; 
+    return scaledZ < tableDepth + tableDiff * DIFF_SCALE && 
+        scaledZ > tableDepth - tableDiff * DIFF_SCALE;
+  }
+
+  /**
+   * Gets the height of the table at point(x, y). The table must be initialized.
    * @param x x coordinate of the point.
    * @param y y coordinate of the point.
    * @return average depth of the table at (x, y).
    */
-  public float depthAt(int x, int y) {
-    return avg.get(x * avgWidthStep + y);
+  private float depthAt(int x, int y) {
+    return avg.get(y * avgWidthStep + x);
   }
   
-  public float diffAt(int x, int y) {
-    return diff.get(x * diffWidthStep + y);
+  /**
+   * Gets the average height difference of the table at point(x, y). The table
+   * must be initialized.
+   * @param x
+   * @param y
+   * @return
+   */
+  private float diffAt(int x, int y) {
+    return diff.get(y * diffWidthStep + x);
   }
   
   private Table() {}

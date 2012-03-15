@@ -1,23 +1,22 @@
 package edu.mit.yingyin.tabletop;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_CMP_EQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
-import static com.googlecode.javacv.cpp.opencv_core.CV_CMP_EQ;
 import static com.googlecode.javacv.cpp.opencv_core.cvAbsDiff;
 import static com.googlecode.javacv.cpp.opencv_core.cvAdd;
 import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
+import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvCmpS;
-import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
 import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
 import static com.googlecode.javacv.cpp.opencv_core.cvRealScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
-import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
+import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
-import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
@@ -31,7 +30,7 @@ public class Background {
   /**
    * Maximum depth of the background. 
    */
-  private int maxDepth; 
+  private int scale; 
   /**
    * Float, 1-channel images.
    * All the depth values are scaled between 0 and 1 according to <code>maxDepth
@@ -57,9 +56,10 @@ public class Background {
    * Initializes the background model.
    * @param width
    * @param height
+   * @param
    */
-  public Background(int width, int height, int maxDepth) {
-    this.maxDepth = maxDepth;
+  public Background(int width, int height, int scale) {
+    this.scale = scale;
     scratchI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     scratchI2 = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     avgFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
@@ -99,11 +99,11 @@ public class Background {
   public void createModelsFromStats(float lowScale, float highScale) {
     cvConvertScale(avgFI, avgFI, 1.0/count, 0);
     cvConvertScale(diffFI, diffFI, 1.0/count, 0);
-    avgDiff = (float)(cvAvg(diffFI, null).val(0) * maxDepth);
+    avgDiff = (float)(cvAvg(diffFI, null).val(0) * scale);
     // Makes sure diff is at least 1.
     cvCmpS(diffFI, 0.0, mask, CV_CMP_EQ);
     // Add S if mask(I) != 0
-    cvAddS(diffFI, cvRealScalar(1.0 / maxDepth), diffFI, mask);
+    cvAddS(diffFI, cvRealScalar(1.0 / scale), diffFI, mask);
     setHighThreshold(highScale);
     setLowThreshold(lowScale);
   }
@@ -122,6 +122,11 @@ public class Background {
     cvSubRS(mask, cvRealScalar(255), mask, null);
   }
   
+  public int getScale() { return scale; }
+  
+  /**
+   * Releases memory.
+   */
   public void release() {
     scratchI.release();
     scratchI2.release();
@@ -134,6 +139,9 @@ public class Background {
     System.out.println("Background relesed.");
   }
   
+  /**
+   * @return statistics of the background as a string.
+   */
   public String stats() {
     StringBuffer sb = new StringBuffer();
     sb.append(String.format("Average background depth: %f\n", avgDepth()));
@@ -143,32 +151,38 @@ public class Background {
   }
   
   /**
-   * @return a buffer of average depth of the background.
+   * @return a buffer of average scaled depth of the background.
    */
   public FloatBuffer avgBuffer() {
     return avgFI.getFloatBuffer();
   }
   
+  /**
+   * @return number of values per row in the average depth buffer.
+   */
   public int avgBufferWidthStep() {
-    return avgFI.widthStep();
+    return avgFI.widthStep() * 8 / avgFI.depth();
   }
   
   /**
-   * @return a buffer of average absolute difference of the background.
+   * @return a buffer of average scaled absolute difference of the background.
    */
-  public FloatBuffer avgDiffBuffer() {
+  public FloatBuffer diffBuffer() {
     return diffFI.getFloatBuffer();
   }
   
-  public int avgDiffBufferWidthStep() {
-    return diffFI.widthStep();
+  /**
+   * @return number of values per row in the average diff buffer.
+   */
+  public int diffBufferWidthStep() {
+    return diffFI.widthStep() * 8 / diffFI.depth();
   }
   
   /**
    * @return the average background depth value.
    */
   public float avgDepth() {
-    return (float)(cvAvg(avgFI, null).val(0) * maxDepth);
+    return (float)(cvAvg(avgFI, null).val(0) * scale);
   }
   
   /**
@@ -207,7 +221,7 @@ public class Background {
    *    as the depth array.
    */
   private void scale(int[] depthRawData, IplImage image) {
-    CvUtil.intToFloatImage(depthRawData, image, maxDepth);
+    CvUtil.intToFloatImage(depthRawData, image, scale);
   }
   
   /**
@@ -228,5 +242,4 @@ public class Background {
     cvConvertScale(diffFI, scratchI, scale, 0);
     cvSub(avgFI, scratchI, lowFI, null);
   }
-  
 }

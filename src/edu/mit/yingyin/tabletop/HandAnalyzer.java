@@ -103,7 +103,7 @@ public class HandAnalyzer {
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float)6.0, (float)7.0);
-      Table.instance().init(background.avg(), background.diff());
+      Table.instance().init(background);
       System.out.println(background.stats());
     }
     
@@ -115,6 +115,9 @@ public class HandAnalyzer {
     filter.filter(packet);
   }
   
+  /**
+   * Releases memory.
+   */
   public void release() {
     tempImage.release();
     background.release();

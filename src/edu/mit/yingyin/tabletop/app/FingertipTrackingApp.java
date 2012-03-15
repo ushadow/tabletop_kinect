@@ -11,25 +11,26 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Date;
 import java.util.Properties;
 
 import org.OpenNI.GeneralException;
 
 import rywang.util.ObjectIO;
-
-import edu.mit.yingyin.tabletop.ProcessPacketController;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
-import edu.mit.yingyin.tabletop.OpenNIDevice;
-import edu.mit.yingyin.tabletop.ProcessPacket;
-import edu.mit.yingyin.tabletop.Recorder;
-import edu.mit.yingyin.tabletop.Table;
 import edu.mit.yingyin.tabletop.HandTracker;
 import edu.mit.yingyin.tabletop.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.HandTracker.IHandEventListener;
+import edu.mit.yingyin.tabletop.OpenNIDevice;
+import edu.mit.yingyin.tabletop.ProcessPacket;
+import edu.mit.yingyin.tabletop.ProcessPacketController;
+import edu.mit.yingyin.tabletop.Recorder;
 
 /**
  * Application that tracks the fingertips in data from an OpenNI device. Saves
@@ -169,7 +170,6 @@ public class FingertipTrackingApp {
   private int rowToRecord = 0;
   private int prevDepthFrameID = -1;
   private HashMap<Integer, List<Point>> labels;
-  private Table table;
   private HandTracker tracker;
   private HandAnalyzer analyzer;
   private String depthFilePrefix;
@@ -196,8 +196,9 @@ public class FingertipTrackingApp {
                                                        "config/config.xml");
     depthFilePrefix = MAIN_DIR + config.getProperty("depth-file-prefix", 
         "data/depth_raw/depth_row");
+    
     String fingertipFile = MAIN_DIR + config.getProperty("fingertip-file", 
-        "data/fingertip/fingertip.txt");
+        String.format("data/fingertip/%s.txt", timestampedFilename()));
     String labelFile = MAIN_DIR + config.getProperty("label-file", null);
     String displayOnProperty = config.getProperty("display-on", "true");
     String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 
@@ -288,7 +289,6 @@ public class FingertipTrackingApp {
 
     if (packetController != null)
       packetController.show(packet);
-    
 
     if (recording) {
       if (recorder == null) {
@@ -304,5 +304,11 @@ public class FingertipTrackingApp {
       recorder.print(packet.depthFrameID, 
                      packet.getDepthRaw(depthHeight / 2));
     }
+  }
+  
+  private String timestampedFilename() {
+    DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    Date date = new Date();
+    return dateFormat.format(date);
   }
 }

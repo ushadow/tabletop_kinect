@@ -6,7 +6,8 @@ import java.util.List;
 import javax.vecmath.Point3f;
 
 /**
- * <code>HandTracker</code> tracks hand events.
+ * <code>HandTracker</code> tracks hand events based on estimated hand model 
+ * parameters.
  * @author yingyin
  *
  */
@@ -33,12 +34,21 @@ public class HandTracker {
       new ArrayList<IHandEventListener>();
   
   /**
+   * Reference to the table.
+   */
+  private Table table;
+  
+  public HandTracker() {
+    table = Table.instance();
+  }
+  
+  /**
    * Updates forelimbs information and generates events.
    * @param forelimbs information for all the forlimbs detected.
    * @param frameID frame ID for the current update.
    */
   public void update(List<Forelimb> forelimbs, int frameID) {
-    List<FingerEvent> fingerEventList = noFilter(forelimbs, frameID);
+    List<FingerEvent> fingerEventList = filterPressed(forelimbs, frameID);
     if (!fingerEventList.isEmpty()) {
       for (IHandEventListener l : listeners) 
         l.fingerPressed(fingerEventList);
@@ -49,21 +59,29 @@ public class HandTracker {
     listeners.add(l);
   }
 
-  private List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
+  public List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 
       for (Point3f tip : forelimb.filteredFingertips)
         fingerEventList.add(new FingerEvent(tip, frameID));
-          return fingerEventList;
+    return fingerEventList;
   }
 
-  private List<FingerEvent> filterPressed(List<Forelimb> forelimbs, 
+  /**
+   * Filters out finger pressed events.
+   * @param forelimbs
+   * @param frameID
+   * @return
+   */
+  public List<FingerEvent> filterPressed(List<Forelimb> forelimbs, 
                                           int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs)
       for (Point3f tip : forelimb.filteredFingertips) {
-        float tableDepth = Table.instance().depthAt((int)tip.x, (int)tip.y);
-        if (tip.z + Hand.FINGER_THICKNESS < )
+        float tipDepth = tip.z + Hand.FINGER_THICKNESS; 
+        if (table.isInContact((int)tip.x, (int)tip.y, tipDepth))
+          fingerEventList.add(new FingerEvent(tip, frameID));
       }
+    return fingerEventList;
   }
 }
