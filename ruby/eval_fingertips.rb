@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
+
 MAX_INT = 2 ** (0.size * 8 - 1) - 1
 
 # Convert an array to an array of points with the specified dimension.
@@ -97,7 +99,14 @@ def eval_fingertips(groundtruth, detected)
     :error => error }
 end
 
+option_parser = OptionParser.new do |opts|
+  executable_name = File.basename($0)
+  opts.banner = "Usage: #{executable_name} groundtruth_file detected_file"
+end
+
 if __FILE__ == $0
+  option_parser.parse!
+  
   groundtruth_file = ARGV[0]
   groundtruth = File.read(groundtruth_file).split("\n")[1..-1]
   groundtruth.map! { |l| l.split.map(&:to_i) }

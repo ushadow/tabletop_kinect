@@ -153,7 +153,8 @@ public class FingertipTrackingApp {
   }
 
   private static String MAIN_DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static String CONFIG_FILE = MAIN_DIR + "config/fingertip_tracking.config";
+  private static String CONFIG_FILE = MAIN_DIR + 
+                                      "config/fingertip_tracking.config";
           
   public static void main(String[] args) {
     new FingertipTrackingApp();

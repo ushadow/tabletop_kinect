@@ -199,6 +199,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    * @param y
    */
   public void drawCircle(int x, int y) {
+    //cvCircle(img, center, radius, color, thickness, lineType, shift)
     cvCircle(appImage, new CvPoint(x, y), 3, CvScalar.WHITE, 1, 8, 0);
     frames[1].showImage(appImage);
   }
@@ -316,6 +317,11 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         int depth = packet.depthRawData[h * packet.width + w];
         ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
       }
+    // Draws labeled points.
+    if (packet.labels != null) {
+      for (Point p : packet.labels)
+        cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.GREEN, 1, 8, 0);
+    }
     frames[1].showImage(appImage);
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
   }
