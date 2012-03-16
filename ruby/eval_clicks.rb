@@ -31,12 +31,29 @@ def eval_detected_clicks(detected, groundtruth)
   gt_clicks = eval_gt_clicks groundtruth
   puts "Number of ground truth clicks: #{gt_clicks.size}"
   cursor = 0
-  false_pos = true_pos = false_neg = 0
+  false_pos = true_pos = false_neg = 0 
+  false_neg_duration = total_false_neg_duration = total_segment = 0
+  
   gt_clicks.each do |click|
     start_index = click[:start_index]
     end_index = click[:end_index]
+    prev = -1
     while cursor < detected.size && detected[cursor][0] < start_index
       false_pos += 1
+      
+      if prev != -1
+        if detected[cursor][0] == prev + 1
+          false_neg_duration += 1
+        else
+          total_false_neg_duration += false_neg_duration
+          total_segment +=1
+          prev = -1
+          false_neg_duration = 0
+        end
+      end
+      
+      prev = detected[cursor][0]
+      
       puts "false positive: #{detected[cursor][0]}, " +  
            "start index = #{start_index}"
       cursor += 1
@@ -54,7 +71,8 @@ def eval_detected_clicks(detected, groundtruth)
       puts "false negative: #{start_index} - #{end_index}"
     end
   end
-  {true_pos: true_pos, false_pos: false_pos, false_neg: false_neg}
+  {true_pos: true_pos, false_pos: false_pos, false_neg: false_neg, 
+   false_neg_duration: Float(total_false_neg_duration) / total_segment}
 end
 
 option_parser = OptionParser.new do |opts|
@@ -78,5 +96,6 @@ if __FILE__ == $0
 true positives: #{result[:true_pos]}
 false positivies: #{result[:false_pos]}
 false negative : #{result[:false_neg]}
+false negative duration: #{result[:false_neg_duration]}
 EOS
 end
