@@ -199,7 +199,7 @@ public class FingertipTrackingApp {
         "data/depth_raw/depth_row");
     
     String fingertipFile = MAIN_DIR + config.getProperty("fingertip-file", 
-        String.format("data/fingertip/%s.txt", timestampedFilename()));
+        String.format("data/fingertip/%s.txt", "detected"));
     String labelFile = MAIN_DIR + config.getProperty("label-file", null);
     String displayOnProperty = config.getProperty("display-on", "true");
     String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 

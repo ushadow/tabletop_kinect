@@ -24,6 +24,7 @@ public class HandTracker {
   public static class FingerEvent {
     public int frameID;
     public Point3f fingertip;
+    
     public FingerEvent(Point3f fingertip, int frameID) { 
       this.fingertip = fingertip;
       this.frameID = frameID;
@@ -37,6 +38,7 @@ public class HandTracker {
    * Reference to the table.
    */
   private Table table;
+  private int pressedCounter = 0, releasedCounter = 0;
   
   public HandTracker() {
     table = Table.instance();
@@ -79,7 +81,14 @@ public class HandTracker {
     for (Forelimb forelimb : forelimbs)
       for (Point3f tip : forelimb.filteredFingertips) {
         float tipDepth = tip.z + Hand.FINGER_THICKNESS; 
-        if (table.isInContact((int)tip.x, (int)tip.y, tipDepth))
+        if (table.isInContact((int)tip.x, (int)tip.y, tipDepth)) {
+          pressedCounter++;
+          releasedCounter = 0;
+        } else {
+          pressedCounter = 0;
+          releasedCounter++;
+        }
+        if (pressedCounter > 4)
           fingerEventList.add(new FingerEvent(tip, frameID));
       }
     return fingerEventList;

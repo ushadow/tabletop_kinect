@@ -45,7 +45,7 @@ def eval_detected_clicks(detected, groundtruth)
         if detected[cursor][0] == prev + 1
           false_neg_duration += 1
         else
-          total_false_neg_duration += false_neg_duration
+          total_false_neg_duration += false_neg_duration + 1
           total_segment +=1
           prev = -1
           false_neg_duration = 0
@@ -58,6 +58,12 @@ def eval_detected_clicks(detected, groundtruth)
            "start index = #{start_index}"
       cursor += 1
     end
+    
+    total_false_neg_duration += false_neg_duration + 1
+    total_segment += 1
+    prev = -1
+    false_neg_duration = 0
+          
     if cursor < detected.size && 
        (start_index..end_index) === detected[cursor][0]
       true_pos += 1
