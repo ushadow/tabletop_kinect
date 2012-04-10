@@ -22,9 +22,16 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 public class CalibrationExample {
 
-  public enum CalibMethod {EXTRINSIC, HOMOGRAPHY, UNDISTORT};
+  public enum CalibMethodName {EXTRINSIC, HOMOGRAPHY, UNDISTORT};
   
-  private class HomographyMethod {
+  private interface CalibrationMethod {
+    public void release();
+    public void save(PrintStream ps);
+    public String toString();
+    public Point2f imageToDisplayCoords(Point2f imagePoint);
+  }
+  
+  private class HomographyMethod implements CalibrationMethod {
     private CvMat homographyMat = CvMat.create(3, 3, CV_32FC1);
     
     /**
@@ -51,7 +58,7 @@ public class CalibrationExample {
         imagePointsMat.put(i * 2 + 1, imagePoints.get(i).y);
       }
       
-      if (method == CalibMethod.UNDISTORT)
+      if (methodName == CalibMethodName.UNDISTORT)
         cvUndistortPoints(imagePointsMat, imagePointsMat, intrinsicMatrixMat, 
             distortionCoeffsMat, null, null);
       cvFindHomography(imagePointsMat, objectPointsMat, homographyMat);
@@ -83,9 +90,36 @@ public class CalibrationExample {
           ps.print(homographyMat.get(i, j) + " ");
       ps.println();
     }
+    
+    public Point2f imageToDisplayCoords(Point2f imagePoint) {
+      CvMat imageCoords = null;
+      if (methodName == CalibMethodName.UNDISTORT) {
+        imageCoords = CvMat.create(1, 1, CV_32FC2);
+        imageCoords.put(0, imagePoint.x);
+        imageCoords.put(1, imagePoint.y);
+        cvUndistortPoints(imageCoords, imageCoords, intrinsicMatrixMat, 
+            distortionCoeffsMat, null, null);
+      } else {
+        imageCoords = CvMat.create(2, 1, CV_32FC1);
+        imageCoords.put(0, imagePoint.x);
+        imageCoords.put(1, imagePoint.y);
+      }
+      CvMat src = CvMat.create(3, 1, CV_32FC1);
+      CvMat dst = CvMat.create(3, 1, CV_32FC1);
+      src.put(0, imageCoords.get(0));
+      src.put(1, imageCoords.get(1));
+      src.put(2, 1);
+      cvGEMM(homographyMat, src, 1, null, 0, dst, 0);
+      Point2f displayPoint = new Point2f((float)(dst.get(0) / dst.get(2)), 
+                                         (float)(dst.get(1) / dst.get(2)));
+      src.release();
+      dst.release();
+      imageCoords.release();
+      return displayPoint;
+    }
   }
   
-  private class ExtrinsicMethod {
+  private class ExtrinsicMethod implements CalibrationMethod {
     private CvMat rotationMat = CvMat.create(3, 3, CV_32FC1);
     private CvMat translationMat = CvMat.create(3, 1, CV_32FC1);
     
@@ -162,7 +196,7 @@ public class CalibrationExample {
      * @param imagePoint 2D point in image coordinates.
      * @return 2D point in display coordinates.
      */
-    public Point2f imageToDisplayCoordsExtrinsic(Point2f imagePoint) {
+    public Point2f imageToDisplayCoords(Point2f imagePoint) {
       CvMat imageCoords = CvMat.create(1, 1, CV_32FC2);
       imageCoords.put(0, imagePoint.x);
       imageCoords.put(1, imagePoint.y);
@@ -215,9 +249,8 @@ public class CalibrationExample {
       (float)-1.3053628089976321e+00};
   
   private CvMat intrinsicMatrixMat, distortionCoeffsMat;
-  private CalibMethod method;
-  private HomographyMethod homographyMethod;
-  private ExtrinsicMethod extrinsicMethod;
+  private CalibMethodName methodName;
+  private CalibrationMethod method;
   
   /**
    * Constructs a CalibrationExample from corresponding object points and image
@@ -228,7 +261,7 @@ public class CalibrationExample {
    * @param method calibration method.
    */
   public CalibrationExample(List<Point2f> objectPoints, 
-      List<Point2f> imagePoints, CalibMethod method) {
+      List<Point2f> imagePoints, CalibMethodName methodName) {
     
     intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
     distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
@@ -240,11 +273,11 @@ public class CalibrationExample {
     for (int i = 0; i < 5; i++) {
       distortionCoeffsMat.put(i, DISTORTION_COEFFS[i]);
     }
-    this.method = method;
-    if (method == CalibMethod.EXTRINSIC) {
-      extrinsicMethod = new ExtrinsicMethod(objectPoints, imagePoints);
+    this.methodName = methodName;
+    if (methodName == CalibMethodName.EXTRINSIC) {
+      method = new ExtrinsicMethod(objectPoints, imagePoints);
     } else {
-      homographyMethod = new HomographyMethod(objectPoints, imagePoints);
+      method = new HomographyMethod(objectPoints, imagePoints);
     }
   }
   
@@ -255,11 +288,11 @@ public class CalibrationExample {
   public CalibrationExample(String fileName) {
     try {
       Scanner scanner = new Scanner(new File(fileName));
-      method = CalibMethod.valueOf(scanner.next());
-      if (method == CalibMethod.EXTRINSIC) {
-        extrinsicMethod = new ExtrinsicMethod(scanner);
+      methodName = CalibMethodName.valueOf(scanner.next());
+      if (methodName == CalibMethodName.EXTRINSIC) {
+        method = new ExtrinsicMethod(scanner);
       } else {
-        homographyMethod = new HomographyMethod(scanner);
+        method = new HomographyMethod(scanner);
       }
     } catch (FileNotFoundException e) {
       // TODO Auto-generated catch block
@@ -267,12 +300,8 @@ public class CalibrationExample {
     }
   }
   
-  public CalibMethod calibMethod() {
-    return method;
-  }
-  
-  public CvMat homographyMat() {
-    return homographyMat;
+  public CalibMethodName calibMethod() {
+    return methodName;
   }
   
   /**
@@ -282,9 +311,7 @@ public class CalibrationExample {
    * @return corresponding point in the display coordinate.
    */
   public Point2f imageToDisplayCoords(Point2f imagePoint) {
-    if (method == CalibMethod.EXTRINSIC)
-      return imageToDisplayCoordsExtrinsic(imagePoint);
-    else return imageToDisplayCoordsHomography(imagePoint);
+    return method.imageToDisplayCoords(imagePoint);
   }
   
   /**
@@ -322,19 +349,12 @@ public class CalibrationExample {
     if (distortionCoeffsMat != null)
       distortionCoeffsMat.release();
     
-    if (homographyMethod != null)
-      homographyMethod.release();
+    method.release();
     
-    if (extrinsicMethod != null)
-      extrinsicMethod.release();
   }
   
   public String toString() {
-    if (method == CalibMethod.EXTRINSIC) {
-     return extrinsicMethod.toString();
-    } else {
-      return homographyMethod.toString();
-    }
+    return method.toString();
   }
   
   /**
@@ -345,12 +365,8 @@ public class CalibrationExample {
     PrintStream ps = null;
     try {
       ps = new PrintStream(new File(fileName));
-      ps.println(method.toString());
-      if (method == CalibMethod.EXTRINSIC) {
-        extrinsicMethod.save(ps);
-      } else {
-        homographyMethod.save(ps);
-      }
+      ps.println(methodName.toString());
+      method.save(ps);
     } catch (IOException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
@@ -358,32 +374,5 @@ public class CalibrationExample {
       if (ps != null)
         ps.close();
     }
-  }
-  
-  private Point2f imageToDisplayCoordsHomography(Point2f imagePoint) {
-    CvMat imageCoords = null;
-    if (method == CalibMethod.UNDISTORT) {
-      imageCoords = CvMat.create(1, 1, CV_32FC2);
-      imageCoords.put(0, imagePoint.x);
-      imageCoords.put(1, imagePoint.y);
-      cvUndistortPoints(imageCoords, imageCoords, intrinsicMatrixMat, 
-          distortionCoeffsMat, null, null);
-    } else {
-      imageCoords = CvMat.create(2, 1, CV_32FC1);
-      imageCoords.put(0, imagePoint.x);
-      imageCoords.put(1, imagePoint.y);
-    }
-    CvMat src = CvMat.create(3, 1, CV_32FC1);
-    CvMat dst = CvMat.create(3, 1, CV_32FC1);
-    src.put(0, imageCoords.get(0));
-    src.put(1, imageCoords.get(1));
-    src.put(2, 1);
-    cvGEMM(homographyMat, src, 1, null, 0, dst, 0);
-    Point2f displayPoint = new Point2f((float)(dst.get(0) / dst.get(2)), 
-                                       (float)(dst.get(1) / dst.get(2)));
-    src.release();
-    dst.release();
-    imageCoords.release();
-    return displayPoint;
   }
 }

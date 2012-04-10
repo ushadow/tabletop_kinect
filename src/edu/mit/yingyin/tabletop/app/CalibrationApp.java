@@ -19,7 +19,7 @@ import javax.vecmath.Point2f;
 import edu.mit.yingyin.calib.CalibView;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.CalibrationExample;
-import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethod;
+import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethodName;
 import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
 import edu.mit.yingyin.util.FileUtil;
 
@@ -62,7 +62,7 @@ public class CalibrationApp {
   private List<Point2f> screenPointsTest;
   private List<Point2f> cameraPointsTest;
   private GeoCalibModel calibModel;
-  private CalibMethod calibMethod = CalibMethod.EXTRINSIC;
+  private CalibMethodName calibMethod = CalibMethodName.EXTRINSIC;
   private String calibMethodStr; 
   private String savePath;
   
@@ -108,7 +108,7 @@ public class CalibrationApp {
       cameraPointsTest = readPointsFromFile(camPtsTestPath);
     
     try {
-      calibMethod = CalibMethod.valueOf(calibMethodStr);
+      calibMethod = CalibMethodName.valueOf(calibMethodStr);
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
