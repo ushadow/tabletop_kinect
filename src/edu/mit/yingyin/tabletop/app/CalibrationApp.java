@@ -23,6 +23,12 @@ import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethod;
 import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
 import edu.mit.yingyin.util.FileUtil;
 
+/**
+ * Application for labeling the calibration images and computing the extrinsic
+ * camera parameters.
+ * @author yingyin
+ *
+ */
 public class CalibrationApp {
   private class CalibrationController extends KeyAdapter {
     public void keyPressed(KeyEvent ke) {

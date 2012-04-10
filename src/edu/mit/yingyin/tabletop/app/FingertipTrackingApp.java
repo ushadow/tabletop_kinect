@@ -14,9 +14,9 @@ import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Date;
 import java.util.Properties;
 
 import org.OpenNI.GeneralException;
@@ -129,7 +129,7 @@ public class FingertipTrackingApp {
     public void fingerPressed(List<FingerEvent> feList) {
       if (packetController != null) {
         for (FingerEvent fe : feList)
-          packetController.drawCircle((int)fe.fingertip.x, (int)fe.fingertip.y);
+          packetController.drawCircle((int)fe.position.x, (int)fe.position.y);
       }
       fingerEventList.add(feList);
     }
@@ -140,11 +140,11 @@ public class FingertipTrackingApp {
         for (int i = 0; i < list.size(); i++) {
           if (i == 0) {
             pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
-                (int)list.get(i).fingertip.x, (int)list.get(i).fingertip.y, 
-                (int)list.get(i).fingertip.z));
+                (int)list.get(i).position.x, (int)list.get(i).position.y, 
+                (int)list.get(i).position.z));
           } else {
-            pw.print(String.format("%d %d %d ", (int)list.get(i).fingertip.x, 
-                (int)list.get(i).fingertip.y, (int)list.get(i).fingertip.z));
+            pw.print(String.format("%d %d %d ", (int)list.get(i).position.x, 
+                (int)list.get(i).position.y, (int)list.get(i).position.z));
           }
         }
         pw.println();
@@ -305,11 +305,5 @@ public class FingertipTrackingApp {
       recorder.print(packet.depthFrameID, 
                      packet.getDepthRaw(depthHeight / 2));
     }
-  }
-  
-  private String timestampedFilename() {
-    DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-    Date date = new Date();
-    return dateFormat.format(date);
   }
 }
