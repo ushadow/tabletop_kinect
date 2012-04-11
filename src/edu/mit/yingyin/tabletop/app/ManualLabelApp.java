@@ -195,8 +195,8 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     try {
       model.update(forward);
       updateTitle();
-      depthViewer.show(model.depthImage());
-      rgbViewer.show(model.rgbImage());
+      depthViewer.updateImage(model.depthImage());
+      rgbViewer.updateImage(model.rgbImage());
     } catch (StatusException e) {
       System.err.println(e.getMessage());
       System.exit(-1);

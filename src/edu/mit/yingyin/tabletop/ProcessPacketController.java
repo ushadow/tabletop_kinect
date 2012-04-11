@@ -45,11 +45,11 @@ import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
  */
 public class ProcessPacketController extends KeyAdapter implements MouseListener 
 {
-  private class RGBView extends ImageComponent {
+  private class RgbImageComponent extends ImageComponent {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
     
-    public RGBView(Dimension d) {
+    public RgbImageComponent(Dimension d) {
       super(d);
     }
     
@@ -131,7 +131,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     
     CanvasFrame.tile(frames);
     rgbFrame = new ImageFrame("RGB", 
-                              new RGBView(new Dimension(width, height)));
+        new RgbImageComponent(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
     rgbFrame.setLocation(0, rect.y + rect.height);
     
@@ -241,30 +241,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     rgbFrame.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
   }
 
-  @Override
-  public void mouseEntered(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mouseExited(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mousePressed(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-  
   /**
    * Displays the image for analysis.
    */
@@ -330,6 +306,30 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
         packet.derivative.getFloatBuffer(), derivative, 
         packet.derivative.widthStep() / 4);
-    rgbFrame.show(derivative);
+    rgbFrame.updateImage(derivative);
+  }
+
+  @Override
+  public void mouseEntered(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseExited(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mousePressed(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
   }
 }    
