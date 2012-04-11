@@ -16,7 +16,7 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 import javax.vecmath.Point2f;
 
-import edu.mit.yingyin.calib.CalibView;
+import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.CalibrationExample;
 import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethodName;
@@ -140,9 +140,9 @@ public class CalibrationApp {
         }
       }
       calibModel = new GeoCalibModel(image, ptsFileName, isScrnCoord);
-      CalibView view = new CalibView(calibModel);
+      CalibFrame view = new CalibFrame(calibModel);
       view.addKeyListener(new CalibrationController());
-      view.showView();
+      view.showUI();
     } else {
       calibrate();
     }
