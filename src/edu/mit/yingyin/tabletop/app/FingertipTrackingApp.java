@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -22,6 +19,7 @@ import java.util.Properties;
 import org.OpenNI.GeneralException;
 
 import rywang.util.ObjectIO;
+import edu.mit.yingyin.tabletop.CalibrationExample;
 import edu.mit.yingyin.tabletop.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.HandAnalyzer;
 import edu.mit.yingyin.tabletop.HandTracker;
@@ -129,7 +127,7 @@ public class FingertipTrackingApp {
     public void fingerPressed(List<FingerEvent> feList) {
       if (packetController != null) {
         for (FingerEvent fe : feList)
-          packetController.drawCircle((int)fe.position.x, (int)fe.position.y);
+          packetController.drawCircle((int)fe.posImage.x, (int)fe.posImage.y);
       }
       fingerEventList.add(feList);
     }
@@ -140,11 +138,11 @@ public class FingertipTrackingApp {
         for (int i = 0; i < list.size(); i++) {
           if (i == 0) {
             pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
-                (int)list.get(i).position.x, (int)list.get(i).position.y, 
-                (int)list.get(i).position.z));
+                (int)list.get(i).posImage.x, (int)list.get(i).posImage.y, 
+                (int)list.get(i).posImage.z));
           } else {
-            pw.print(String.format("%d %d %d ", (int)list.get(i).position.x, 
-                (int)list.get(i).position.y, (int)list.get(i).position.z));
+            pw.print(String.format("%d %d %d ", (int)list.get(i).posImage.x, 
+                (int)list.get(i).posImage.y, (int)list.get(i).posImage.z));
           }
         }
         pw.println();
@@ -204,6 +202,8 @@ public class FingertipTrackingApp {
     String displayOnProperty = config.getProperty("display-on", "true");
     String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 
         "data/derivative/");
+    String calibrationFile = MAIN_DIR + config.getProperty("calibration-file",
+        "data/calibration.txt");
     
     try {
       if (labelFile != null)
@@ -233,10 +233,9 @@ public class FingertipTrackingApp {
       packetController.addKeyListener(new KeyController());
       packetController.derivativeSaveDir = derivativeSaveDir;
     }
-    
    
     HandEventListener handEventListener = new HandEventListener();
-    tracker = new HandTracker();
+    tracker = new HandTracker(new CalibrationExample(calibrationFile));
     tracker.addListener(handEventListener);
 
     // A one thread process. Only one ProcessPacket present at all time.

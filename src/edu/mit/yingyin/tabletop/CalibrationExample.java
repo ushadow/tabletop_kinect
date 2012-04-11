@@ -20,6 +20,11 @@ import javax.vecmath.Point2f;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
+/**
+ * A CalibrationExample with intrinsic and extrinsic camera parameters.
+ * @author yingyin
+ *
+ */
 public class CalibrationExample {
 
   public enum CalibMethodName {EXTRINSIC, HOMOGRAPHY, UNDISTORT};
@@ -28,7 +33,7 @@ public class CalibrationExample {
     public void release();
     public void save(PrintStream ps);
     public String toString();
-    public Point2f imageToDisplayCoords(Point2f imagePoint);
+    public Point2f imageToDisplayCoords(float x, float y);
   }
   
   private class HomographyMethod implements CalibrationMethod {
@@ -91,18 +96,21 @@ public class CalibrationExample {
       ps.println();
     }
     
-    public Point2f imageToDisplayCoords(Point2f imagePoint) {
+    /**
+     * Converts a point in the image coordinate to the display coordinate.
+     */
+    public Point2f imageToDisplayCoords(float x, float y) {
       CvMat imageCoords = null;
       if (methodName == CalibMethodName.UNDISTORT) {
         imageCoords = CvMat.create(1, 1, CV_32FC2);
-        imageCoords.put(0, imagePoint.x);
-        imageCoords.put(1, imagePoint.y);
+        imageCoords.put(0, x);
+        imageCoords.put(1, y);
         cvUndistortPoints(imageCoords, imageCoords, intrinsicMatrixMat, 
             distortionCoeffsMat, null, null);
       } else {
         imageCoords = CvMat.create(2, 1, CV_32FC1);
-        imageCoords.put(0, imagePoint.x);
-        imageCoords.put(1, imagePoint.y);
+        imageCoords.put(0, x);
+        imageCoords.put(1, y);
       }
       CvMat src = CvMat.create(3, 1, CV_32FC1);
       CvMat dst = CvMat.create(3, 1, CV_32FC1);
@@ -196,10 +204,10 @@ public class CalibrationExample {
      * @param imagePoint 2D point in image coordinates.
      * @return 2D point in display coordinates.
      */
-    public Point2f imageToDisplayCoords(Point2f imagePoint) {
+    public Point2f imageToDisplayCoords(float x, float y) {
       CvMat imageCoords = CvMat.create(1, 1, CV_32FC2);
-      imageCoords.put(0, imagePoint.x);
-      imageCoords.put(1, imagePoint.y);
+      imageCoords.put(0, x);
+      imageCoords.put(1, y);
       cvUndistortPoints(imageCoords, imageCoords, intrinsicMatrixMat, 
           distortionCoeffsMat, null, null);
       
@@ -248,7 +256,8 @@ public class CalibrationExample {
       (float)-7.6275862143610667e-04, (float)5.0350940090814270e-03,
       (float)-1.3053628089976321e+00};
   
-  private CvMat intrinsicMatrixMat, distortionCoeffsMat;
+  private CvMat intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
+  private CvMat distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
   private CalibMethodName methodName;
   private CalibrationMethod method;
   
@@ -262,17 +271,8 @@ public class CalibrationExample {
    */
   public CalibrationExample(List<Point2f> objectPoints, 
       List<Point2f> imagePoints, CalibMethodName methodName) {
-    
-    intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
-    distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
-    
-    for (int i = 0; i < 3; i++) 
-      for (int j = 0; j < 3; j++) {
-        intrinsicMatrixMat.put(i, j, INTRINSIC_MATRIX[i][j]);
-      }
-    for (int i = 0; i < 5; i++) {
-      distortionCoeffsMat.put(i, DISTORTION_COEFFS[i]);
-    }
+
+    initIntrinsicParameters();
     this.methodName = methodName;
     if (methodName == CalibMethodName.EXTRINSIC) {
       method = new ExtrinsicMethod(objectPoints, imagePoints);
@@ -286,6 +286,7 @@ public class CalibrationExample {
    * @param fileName
    */
   public CalibrationExample(String fileName) {
+    initIntrinsicParameters();
     try {
       Scanner scanner = new Scanner(new File(fileName));
       methodName = CalibMethodName.valueOf(scanner.next());
@@ -311,7 +312,11 @@ public class CalibrationExample {
    * @return corresponding point in the display coordinate.
    */
   public Point2f imageToDisplayCoords(Point2f imagePoint) {
-    return method.imageToDisplayCoords(imagePoint);
+    return method.imageToDisplayCoords(imagePoint.x, imagePoint.y);
+  }
+  
+  public Point2f imageToDisplayCoords(float x, float y) {
+    return method.imageToDisplayCoords(x, y);
   }
   
   /**
@@ -373,6 +378,25 @@ public class CalibrationExample {
     } finally {
       if (ps != null)
         ps.close();
+    }
+  }
+  
+  public void checkRI() {
+    assert intrinsicMatrixMat != null;
+    assert distortionCoeffsMat != null;
+    assert intrinsicMatrixMat.rows() == 3;
+    assert intrinsicMatrixMat.cols() == 3;
+    assert distortionCoeffsMat.rows() == 5;
+    assert distortionCoeffsMat.cols() == 1;
+  }
+  
+  private void initIntrinsicParameters() {
+    for (int i = 0; i < 3; i++) 
+      for (int j = 0; j < 3; j++) {
+        intrinsicMatrixMat.put(i, j, INTRINSIC_MATRIX[i][j]);
+      }
+    for (int i = 0; i < 5; i++) {
+      distortionCoeffsMat.put(i, DISTORTION_COEFFS[i]);
     }
   }
 }

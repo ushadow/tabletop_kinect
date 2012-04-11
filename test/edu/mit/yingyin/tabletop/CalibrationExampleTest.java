@@ -17,6 +17,7 @@ public class CalibrationExampleTest {
     		"2564.4052734375 958.1102294921875 -0.022282885387539864 " +
     		"-0.1364225298166275 1.0 ]";
     assertEquals(expected, ce.toString());
+    ce.checkRI();
   }
 
 }

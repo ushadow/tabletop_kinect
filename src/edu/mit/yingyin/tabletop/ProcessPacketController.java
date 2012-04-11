@@ -320,7 +320,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     // Draws labeled points.
     if (packet.labels != null) {
       for (Point p : packet.labels)
-        cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.GREEN, 1, 8, 0);
+        cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
     }
     frames[1].showImage(appImage);
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);

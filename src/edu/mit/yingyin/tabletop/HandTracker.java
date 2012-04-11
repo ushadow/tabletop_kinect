@@ -3,6 +3,7 @@ package edu.mit.yingyin.tabletop;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.tabletop.HandTracker.FingerEvent.FingerEventType;
@@ -32,11 +33,17 @@ public class HandTracker {
     public enum FingerEventType {PRESSED, RELEASED};
     
     public int frameID;
-    public Point3f position, posOnDisplay;
+    /**
+     * Position on depth image and position on display.
+     */
+    public Point3f posImage;
+    public Point2f posDisplay;
     public FingerEventType type;
     
-    public FingerEvent(Point3f fingertip, int frameID, FingerEventType type) { 
-      this.position = fingertip;
+    public FingerEvent(Point3f posImage, Point2f posDisplay,
+        int frameID, FingerEventType type) { 
+      this.posImage = posImage;
+      this.posDisplay = posDisplay;
       this.frameID = frameID;
       this.type = type;
     }
@@ -55,9 +62,11 @@ public class HandTracker {
   private int pressedCounter = 0, releasedCounter = 0;
   /** True if finger is pressed, false otherwise. */
   private boolean pressed = false;
+  private CalibrationExample calibExample;
   
-  public HandTracker() {
+  public HandTracker(CalibrationExample calibExample) {
     table = Table.instance();
+    this.calibExample = calibExample;
   }
   
   /**
@@ -81,7 +90,7 @@ public class HandTracker {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 
       for (Point3f tip : forelimb.filteredFingertips)
-        fingerEventList.add(new FingerEvent(tip, frameID, 
+        fingerEventList.add(createFingerEvent(tip, frameID, 
                                             FingerEventType.PRESSED));
     return fingerEventList;
   }
@@ -108,14 +117,22 @@ public class HandTracker {
         }
         if (pressedCounter == DEBOUNCE_COUNT && !pressed) {
           pressed = true;
-          fingerEventList.add(new FingerEvent(tip, frameID, 
-                                              FingerEventType.PRESSED));
+          fingerEventList.add(createFingerEvent(tip, frameID, 
+                                                FingerEventType.PRESSED));
         } else if (releasedCounter == DEBOUNCE_COUNT && pressed) {
           pressed = false;
-          fingerEventList.add(new FingerEvent(tip, frameID, 
-                                              FingerEventType.RELEASED));
+          fingerEventList.add(createFingerEvent(tip, frameID, 
+                                                FingerEventType.RELEASED));
         }
       }
     return fingerEventList;
   }
+  
+  private FingerEvent createFingerEvent(Point3f posImage, int frameID, 
+      FingerEventType type) {
+    return new FingerEvent(posImage, 
+        calibExample.imageToDisplayCoords(posImage.x, posImage.y),
+        frameID, type);
+  }
+  
 }
