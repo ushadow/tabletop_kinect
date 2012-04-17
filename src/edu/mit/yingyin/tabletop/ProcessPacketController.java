@@ -200,7 +200,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void drawCircle(int x, int y) {
     //cvCircle(img, center, radius, color, thickness, lineType, shift)
-    cvCircle(appImage, new CvPoint(x, y), 3, CvScalar.WHITE, 1, 8, 0);
+    cvCircle(appImage, new CvPoint(x, y), 4, CvScalar.WHITE, -1, 8, 0);
     frames[1].showImage(appImage);
   }
   
@@ -297,7 +297,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
             cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
-                3, CvScalar.WHITE, 1, 8, 0);
+                4, CvScalar.WHITE, -1, 8, 0);
         }
 
     frames[0].showImage(analysisImage);
