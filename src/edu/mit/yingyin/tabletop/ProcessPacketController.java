@@ -111,7 +111,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showBoundingBox = true;
   private ImageFrame rgbFrame;
   private ProcessPacket packet;
-  private BufferedImage derivative;
+  private BufferedImage bufferedImage;
   
   /**
    * Initializes the data structures.
@@ -140,7 +140,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     addKeyListener(this);
     rgbFrame.addMouseListenerToImageComponent(this);
     
-    derivative = new BufferedImage(width, height, 
+    bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
   }
   
@@ -304,9 +304,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   
   private void showRGBImage() {
     ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
-        packet.derivative.getFloatBuffer(), derivative, 
+        packet.derivative.getFloatBuffer(), bufferedImage, 
         packet.derivative.widthStep() / 4);
-    rgbFrame.updateImage(derivative);
+    rgbFrame.updateImage(bufferedImage);
   }
 
   @Override
