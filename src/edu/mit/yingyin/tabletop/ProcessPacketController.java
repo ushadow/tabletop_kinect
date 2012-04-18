@@ -45,6 +45,11 @@ import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
  */
 public class ProcessPacketController extends KeyAdapter implements MouseListener 
 {
+  /**
+   * Image component for visualizing RBG images.
+   * @author yingyin
+   *
+   */
   private class RgbImageComponent extends ImageComponent {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
