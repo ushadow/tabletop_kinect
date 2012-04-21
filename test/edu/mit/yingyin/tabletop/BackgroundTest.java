@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.tabletop.models.Background;
+
 public class BackgroundTest {
   private static final int MAX_DEPTH = 10;
   private static final int WIDTH = 10, HEIGHT = 10;

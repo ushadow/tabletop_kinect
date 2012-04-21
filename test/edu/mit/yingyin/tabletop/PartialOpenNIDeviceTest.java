@@ -8,6 +8,8 @@ import java.awt.image.DataBufferUShort;
 
 import org.junit.Test;
 
+import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
+
 public class PartialOpenNIDeviceTest {
 
   @Test

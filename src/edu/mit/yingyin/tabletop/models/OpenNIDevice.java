@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 public interface OpenNIDevice {
   public int getDepthWidth();

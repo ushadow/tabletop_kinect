@@ -10,6 +10,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
+
 public class FullOpenNIDeviceTest {
   private static final int WIDTH = 640;
   private static final int HEIGHT = 480;

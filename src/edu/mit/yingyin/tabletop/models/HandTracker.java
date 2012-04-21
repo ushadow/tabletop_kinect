@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 
-import edu.mit.yingyin.tabletop.HandTracker.FingerEvent.FingerEventType;
+import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent.FingerEventType;
 
 /**
  * <code>HandTracker</code> tracks hand events based on estimated hand model 

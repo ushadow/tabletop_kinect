@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
@@ -17,6 +17,7 @@ import org.OpenNI.Player;
 import org.OpenNI.PlayerSeekOrigin;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
+
 
 import rywang.util.DirectBufferUtils;
 

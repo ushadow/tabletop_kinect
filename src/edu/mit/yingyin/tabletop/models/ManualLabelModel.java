@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import java.awt.Point;
 import java.awt.image.BufferedImage;

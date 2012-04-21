@@ -4,7 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethodName;
+import edu.mit.yingyin.tabletop.models.CalibrationExample;
+import edu.mit.yingyin.tabletop.models.CalibrationExample.CalibMethodName;
 
 public class CalibrationExampleTest {
   private static final String CALIBRATION_FILE = "test_data/calibration.txt";

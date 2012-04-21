@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;

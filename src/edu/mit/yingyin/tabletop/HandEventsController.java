@@ -12,12 +12,12 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import edu.mit.yingyin.gui.ImageComponent;
-import edu.mit.yingyin.tabletop.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.HandTracker.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
 import edu.mit.yingyin.util.SystemUtil;
 
 /**
- * Listens to hand events.
+ * Controls interaction with hand events.
  * @author yingyin
  *
  */

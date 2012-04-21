@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
@@ -18,6 +18,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+
 /**
  * ProcessPacket contains the data related to the current frame.
  * @author yingyin
@@ -30,10 +31,10 @@ public class ProcessPacket {
    *
    */
   static public class ForelimbFeatures {
-    CvMat approxPoly, hull;
-    CvRect boundingBox;
-    CvSeq convexityDefects;
-    CvRect handRegion;
+    public CvMat approxPoly, hull;
+    public CvRect boundingBox;
+    public CvSeq convexityDefects;
+    public CvRect handRegion;
     
     public void release() {
       if (approxPoly != null)
@@ -59,6 +60,11 @@ public class ProcessPacket {
   public int width, height;
   public List<Point> labels;
   
+  /**
+   * Creates a new <code>ProcessPacket</code> and allocates memory.
+   * @param width
+   * @param height
+   */
   public ProcessPacket(int width, int height) {
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.

@@ -13,6 +13,8 @@ import org.junit.Test;
 
 import rywang.util.Timer;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
+import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
 
 public class PerformanceTest {
   @Test

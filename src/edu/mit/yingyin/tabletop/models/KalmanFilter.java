@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
 import static com.googlecode.javacv.cpp.opencv_core.CV_RAND_NORMAL;
@@ -20,7 +20,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRNG;
 import com.googlecode.javacv.cpp.opencv_video.CvKalman;
 
-import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 
 public class KalmanFilter {
   /**

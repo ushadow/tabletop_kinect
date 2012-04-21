@@ -35,8 +35,11 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.Forelimb.ValConfiPair;
-import edu.mit.yingyin.tabletop.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.tabletop.models.Forelimb;
+import edu.mit.yingyin.tabletop.models.HandAnalyzer;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 /**
  * Visualization for the ProcessPacket.

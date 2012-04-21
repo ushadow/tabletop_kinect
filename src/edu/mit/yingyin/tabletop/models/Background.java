@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_core.CV_CMP_EQ;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
@@ -20,6 +20,8 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 import java.nio.FloatBuffer;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
+
+import edu.mit.yingyin.tabletop.CvUtil;
 
 /**
  * Keeps track of statistics of the background model.
@@ -145,7 +147,7 @@ public class Background {
   public String stats() {
     StringBuffer sb = new StringBuffer();
     sb.append(String.format("Average background depth: %f\n", avgDepth()));
-    sb.append(String.format("Average backgournd absolute difference: %f\n",
+    sb.append(String.format("Average background absolute difference: %f\n",
                             avgDiff()));
     return sb.toString();
   }

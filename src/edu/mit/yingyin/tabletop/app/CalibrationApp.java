@@ -18,9 +18,9 @@ import javax.vecmath.Point2f;
 
 import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.calib.GeoCalibModel;
-import edu.mit.yingyin.tabletop.CalibrationExample;
-import edu.mit.yingyin.tabletop.CalibrationExample.CalibMethodName;
-import edu.mit.yingyin.tabletop.PartialOpenNIDevice;
+import edu.mit.yingyin.tabletop.models.CalibrationExample;
+import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
+import edu.mit.yingyin.tabletop.models.CalibrationExample.CalibMethodName;
 import edu.mit.yingyin.util.FileUtil;
 
 /**

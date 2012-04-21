@@ -23,7 +23,7 @@ import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
-import edu.mit.yingyin.tabletop.ManualLabelModel;
+import edu.mit.yingyin.tabletop.models.ManualLabelModel;
 
 /**
  * Application that allows manual labelling of points on an OpenNI recorded 
