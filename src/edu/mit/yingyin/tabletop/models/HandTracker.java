@@ -47,6 +47,12 @@ public class HandTracker {
       this.frameID = frameID;
       this.type = type;
     }
+    
+    public String toString()
+    {
+      return String.format("Image positon = " + posImage + 
+          " Display position = " + posDisplay + "\n");
+    }
   }
 
   private static final int DEBOUNCE_COUNT = 3;

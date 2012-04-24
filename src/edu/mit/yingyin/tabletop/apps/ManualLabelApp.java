@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop.app;
+package edu.mit.yingyin.tabletop.apps;
 
 import java.awt.Color;
 import java.awt.Dimension;

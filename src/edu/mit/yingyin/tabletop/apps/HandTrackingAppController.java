@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop.app;
+package edu.mit.yingyin.tabletop.apps;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import edu.mit.yingyin.tabletop.ProcessPacketController;
+import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
@@ -38,7 +38,7 @@ public class HandTrackingAppController extends KeyAdapter {
     new HandTrackingAppController();
   }
   
-  private HandTrackingEngine app;
+  private HandTrackingEngine engine;
   private ProcessPacketController packetController;
   private Recorder recorder;
   private String fingertipFile;
@@ -86,13 +86,14 @@ public class HandTrackingAppController extends KeyAdapter {
     if (displayOnProperty.equals("false"))
       displayOn = false;
     
-    app = new HandTrackingEngine(labelFile, openniConfigFile, calibrationFile);
+    engine = new HandTrackingEngine(labelFile, openniConfigFile, 
+        calibrationFile);
     handEventListener = new HandEventListener();
-    app.addListener(handEventListener);
+    engine.addListener(handEventListener);
     
     if (displayOn) {
-      packetController = new ProcessPacketController(app.depthWidth(), 
-                                                     app.depthHeight());
+      packetController = new ProcessPacketController(engine.depthWidth(), 
+                                                     engine.depthHeight());
       packetController.addKeyListener(this);
       packetController.derivativeSaveDir = derivativeSaveDir;
     }
@@ -100,12 +101,12 @@ public class HandTrackingAppController extends KeyAdapter {
     while (isRunning()) {
       if (isPaused())
         continue;
-      app.step();
+      engine.step();
       if (packetController != null)
-        packetController.show(app.packet());
+        packetController.show(engine.packet());
       if (recording) {
         if (recorder == null) {
-          rowToRecord = app.depthHeight() / 2;
+          rowToRecord = engine.depthHeight() / 2;
           String recordFileName = depthFilePrefix + rowToRecord;
           try {
             recorder = new Recorder(new FileOutputStream(recordFileName));
@@ -114,14 +115,14 @@ public class HandTrackingAppController extends KeyAdapter {
               System.exit(-1);
             }
         }
-        ProcessPacket packet = app.packet();
-        recorder.print(app.packet().depthFrameID, 
-                       packet.getDepthRaw(app.depthHeight() / 2));
+        ProcessPacket packet = engine.packet();
+        recorder.print(engine.packet().depthFrameID, 
+                       packet.getDepthRaw(engine.depthHeight() / 2));
       }
     }
 
     print();
-    app.release();
+    engine.release();
     System.exit(0);
   }
   
@@ -142,7 +143,7 @@ public class HandTrackingAppController extends KeyAdapter {
   
   public boolean isRunning() {
     return ((packetController != null && packetController.isVisible() || 
-        displayOn == false) && !app.isDone());
+        displayOn == false) && !engine.isDone());
   }
   
   public boolean isPaused() {
@@ -157,7 +158,7 @@ public class HandTrackingAppController extends KeyAdapter {
         break;
       case KeyEvent.VK_N:
         paused = true;
-        app.step();
+        engine.step();
         break;
       case KeyEvent.VK_P:
         paused = !paused;
@@ -181,13 +182,13 @@ public class HandTrackingAppController extends KeyAdapter {
     private void printDepthRaw() {
       PrintStream ps = null;
       try {
-        ProcessPacket packet = app.packet();
+        ProcessPacket packet = engine.packet();
         ps = new PrintStream(
             new File(String.format("data/depth_raw/depth_raw%03d", 
                                    packet.depthFrameID)));
         int index = 0;
-        for (int h = 0; h < app.depthHeight(); h++) {
-          for (int w = 0; w < app.depthWidth(); w++, index++)
+        for (int h = 0; h < engine.depthHeight(); h++) {
+          for (int w = 0; w < engine.depthWidth(); w++, index++)
             ps.print(packet.depthRawData[index] + " ");
           ps.println();
         }
@@ -204,15 +205,15 @@ public class HandTrackingAppController extends KeyAdapter {
      * Prints the current background subtracted depth frame to a file.
      */
     private void printDepthDiff() {
-      ProcessPacket packet = app.packet();
+      ProcessPacket packet = engine.packet();
       ByteBuffer bb = packet.depthImage8U.getByteBuffer();
       PrintStream ps = null;
       try {
         ps = new PrintStream(new File(String.format(
             "data/depth_diff/depth_diff%03d.txt", packet.depthFrameID)));
-        for (int h = 0; h < app.depthHeight(); h++) {
-          for (int w = 0; w < app.depthWidth(); w++)
-            ps.print((bb.get(h * app.depthWidth() + w) & 0xff) + " ");
+        for (int h = 0; h < engine.depthHeight(); h++) {
+          for (int w = 0; w < engine.depthWidth(); w++)
+            ps.print((bb.get(h * engine.depthWidth() + w) & 0xff) + " ");
           ps.println();
         }
       } catch (FileNotFoundException e) {

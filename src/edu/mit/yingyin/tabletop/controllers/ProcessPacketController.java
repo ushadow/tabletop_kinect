@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.controllers;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
@@ -35,6 +35,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.HandAnalyzer;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
@@ -42,7 +43,7 @@ import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 /**
- * Visualization for the ProcessPacket.
+ * Controls the interaction on the visualization for the ProcessPacket.
  * @author yingyin
  *
  */

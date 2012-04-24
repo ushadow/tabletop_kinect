@@ -1,6 +1,9 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.controllers;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -10,6 +13,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.vecmath.Point2f;
 
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
@@ -23,6 +27,42 @@ import edu.mit.yingyin.util.SystemUtil;
  */
 public class HandEventsController extends KeyAdapter 
     implements IHandEventListener {
+  
+  private class HandEventsImageComponent extends ImageComponent {
+    private static final long serialVersionUID = 5617635233634459251L;
+    private static final int OVAL_WIDTH = 20;
+    private static final int DISPLAY_WIDTH = 2560;
+    private static final int DISPLAY_HEIGHT = 2048;
+    
+    public HandEventsImageComponent(Dimension d) {
+      super(d);
+    }
+    
+    @Override
+    public void paint(Graphics g) {
+      super.paint(g);
+      
+      if (feList == null)
+        return;
+      
+      Graphics2D g2d = (Graphics2D) g;
+      g2d.setColor(Color.red);
+      for (FingerEvent fe : feList)
+      {
+        Point2f p = scale(fe.posDisplay);
+        g2d.drawOval((int) p.x - OVAL_WIDTH, 
+            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+        g2d.fillOval((int) p.x - OVAL_WIDTH, 
+            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+      }
+    }
+    
+    private Point2f scale(Point2f p) {
+      Rectangle bounds = getBounds();
+      return new Point2f(p.x * bounds.width / DISPLAY_WIDTH,
+          p.y * bounds.height / DISPLAY_HEIGHT);
+    }
+  }
   
   /**
    * A frame to show visualization of hand events.
@@ -45,7 +85,7 @@ public class HandEventsController extends KeyAdapter
       this.setBounds(new Rectangle(screenSize));
       this.setLocation(0, 0);
     
-      ic = new ImageComponent(screenSize);
+      ic = new HandEventsImageComponent(screenSize);
       try {
         ic.setImage(ImageIO.read(new File(IMAGE_FILE_NAME)));
       } catch (IOException e) {
@@ -81,10 +121,13 @@ public class HandEventsController extends KeyAdapter
       case KeyEvent.VK_ESCAPE:
       case KeyEvent.VK_Q:
         handEventView.setVisible(false);
-        System.exit(0);
         break;
       default:
         break;
     }
+  }
+  
+  public boolean isViewVisible() {
+    return handEventView.isVisible();
   }
 }
