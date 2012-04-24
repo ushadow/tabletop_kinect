@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static org.junit.Assert.assertEquals;

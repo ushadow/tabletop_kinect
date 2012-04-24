@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.OpenNI.GeneralException;
+
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
@@ -86,8 +88,13 @@ public class HandTrackingAppController extends KeyAdapter {
     if (displayOnProperty.equals("false"))
       displayOn = false;
     
-    engine = new HandTrackingEngine(labelFile, openniConfigFile, 
-        calibrationFile);
+    try {
+      engine = new HandTrackingEngine(labelFile, openniConfigFile, 
+          calibrationFile);
+    } catch (GeneralException ge) {
+      System.err.println(ge.getMessage());
+      System.exit(-1);
+    }
     handEventListener = new HandEventListener();
     engine.addListener(handEventListener);
     

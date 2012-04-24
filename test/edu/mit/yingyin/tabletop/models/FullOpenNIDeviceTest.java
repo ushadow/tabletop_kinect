@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop;
+package edu.mit.yingyin.tabletop.models;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

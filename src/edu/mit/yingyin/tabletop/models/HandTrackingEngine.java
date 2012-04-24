@@ -22,7 +22,7 @@ public class HandTrackingEngine {
 
   @SuppressWarnings("unchecked")
   public HandTrackingEngine(String labelFile, String openniConfigFile, 
-      String calibrationFile) {
+      String calibrationFile) throws GeneralException {
     
     try {
       if (labelFile != null)
@@ -32,12 +32,8 @@ public class HandTrackingEngine {
       System.exit(-1);
     }
     
-    try {
-      openni = new FullOpenNIDevice(openniConfigFile);
-    } catch (GeneralException ge) {
-      ge.printStackTrace();
-      System.exit(-1);
-    }
+    openni = new FullOpenNIDevice(openniConfigFile);
+    
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight);

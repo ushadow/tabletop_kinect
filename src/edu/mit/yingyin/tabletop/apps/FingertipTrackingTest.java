@@ -1,12 +1,16 @@
 package edu.mit.yingyin.tabletop.apps;
 
+import org.OpenNI.GeneralException;
+
 import edu.mit.yingyin.tabletop.controllers.HandEventsController;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 
 public class FingertipTrackingTest {
-  private static String MAIN_DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static String OPENNI_CONFIG_FILE = MAIN_DIR + "config/config.xml";
-  private static String CALIB_FILE = MAIN_DIR + "data/calibration.txt";
+  private static final String MAIN_DIR = 
+      "/afs/csail/u/y/yingyin/research/kinect/";
+  private static final String OPENNI_CONFIG_FILE = 
+      MAIN_DIR + "config/config.xml";
+  private static final String CALIB_FILE = MAIN_DIR + "data/calibration.txt";
   
   public static void main(String[] args) {
     new FingertipTrackingTest();
@@ -16,7 +20,12 @@ public class FingertipTrackingTest {
   
   public FingertipTrackingTest() {
     HandEventsController heController = new HandEventsController();
-    engine = new HandTrackingEngine(null, OPENNI_CONFIG_FILE, CALIB_FILE);
+    try {
+      engine = new HandTrackingEngine(null, OPENNI_CONFIG_FILE, CALIB_FILE);
+    } catch (GeneralException ge) {
+      System.err.println(ge.getMessage());
+      System.exit(-1);
+    }
     engine.addListener(heController);
     while (!engine.isDone() && heController.isViewVisible())
       engine.step();
