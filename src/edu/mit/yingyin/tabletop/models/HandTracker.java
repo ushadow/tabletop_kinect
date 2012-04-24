@@ -75,7 +75,7 @@ public class HandTracker {
    * @param frameID frame ID for the current update.
    */
   public void update(List<Forelimb> forelimbs, int frameID) {
-    List<FingerEvent> fingerEventList = filterPressed(forelimbs, frameID);
+    List<FingerEvent> fingerEventList = noFilter(forelimbs, frameID);
     if (!fingerEventList.isEmpty()) {
       for (IHandEventListener l : listeners) 
         l.fingerPressed(fingerEventList);

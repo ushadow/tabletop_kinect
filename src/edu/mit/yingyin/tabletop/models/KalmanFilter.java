@@ -42,10 +42,9 @@ public class KalmanFilter {
   /**
    * Depth image width and height.
    */
-  private int width, height;
+  private int height;
   
   public KalmanFilter(int width, int height) {
-    this.width = width;
     this.height = height;
     kalman = cvCreateKalman(4, 2, 0);
     

@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop.app;
 
-import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -12,24 +11,15 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import org.OpenNI.GeneralException;
-
-import rywang.util.ObjectIO;
-import edu.mit.yingyin.tabletop.models.CalibrationExample;
-import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
-import edu.mit.yingyin.tabletop.models.HandAnalyzer;
-import edu.mit.yingyin.tabletop.models.HandTracker;
-import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
-import edu.mit.yingyin.tabletop.models.OpenNIDevice;
-import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.Recorder;
+import edu.mit.yingyin.tabletop.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
-import edu.mit.yingyin.tabletop.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
+import edu.mit.yingyin.tabletop.models.Recorder;
 
 /**
  * Application that tracks the fingertips in data from an OpenNI device. Saves
