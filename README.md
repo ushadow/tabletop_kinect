@@ -10,9 +10,16 @@
  * javacv.jar
 * org.OpenNI.jar
 * vecmath.jar
-* org.OpenNI.jar - Compiled from https://github.com/OpenNI/OpenNI master branch 
-			(Version 1.3.3.6 Stable version)
+* org.OpenNI.jar - Compiled from https://github.com/OpenNI/OpenNI unstable branch 
+			(Version 1.5.2.23 - Dec 28th 2011)
 
 ## Other:
 * OpenCV 2.3.1 http://sourceforge.net/projects/opencvlibrary/files/
  * For compilation instruction, follow this guide: http://opencv.willowgarage.com/wiki/InstallGuide%20%3A%20Debian
+	 
+	 There are a few changes needed to install all the necessary libaries:
+	 
+	 ```
+	 sudo apt-get install libavcodec-dev libavcodec53 libavformat53 libavformat-dev
+	 sudo apt-get libtbb2 libtbb-dev
+	 ```
