@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.vecmath.Point2f;
 
 import edu.mit.yingyin.gui.ImageComponent;
@@ -39,8 +40,8 @@ public class HandEventsController extends KeyAdapter
     }
     
     @Override
-    public void paint(Graphics g) {
-      super.paint(g);
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
       
       if (feList == null)
         return;
@@ -76,6 +77,9 @@ public class HandEventsController extends KeyAdapter
     
     private ImageComponent ic;
     
+    /**
+     *  Creates a full screen frame.
+     */
     public HandEventsFrame() {
       super("Hand events view");
       setUndecorated(true);
@@ -106,7 +110,11 @@ public class HandEventsController extends KeyAdapter
   
   public HandEventsController() {
     handEventView.addKeyListener(this);
-    handEventView.showUI();
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        handEventView.showUI();
+      }
+    });
   }
   
   @Override

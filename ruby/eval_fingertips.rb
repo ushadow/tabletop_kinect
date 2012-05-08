@@ -15,30 +15,37 @@ def to_point_array(array, dim)
   (0...num_points).map { |i| array[i * dim ... (i + 1) * dim] } 
 end
 
-# Evaluates the error between the detected points and the groundtruth points.
+# Evaluates the error (Euclidean distance) between the detected points and the 
+# groundtruth points.
 #
 # @param [Array] groundtruth points.
 # @param [Array] detected points.
 # @return [Fixnum] total error.
 def eval_error(gt, detected)
   total_error = 0
+  total_xoffset = 0
+  total_yoffset = 0
   detected = Array.new detected 
   gt.each do |gp|
-    return total_error if detected.empty?
+    return total_error, total_xoffset, total_yoffset if detected.empty?
     gx, gy = gp[0], gp[1]
-    min_error = MAX_INT
+    min_error = min_xoffset = min_yoffset = MAX_INT
     min_index = 0
     detected.each_with_index do |dp, i|
       dx, dy = dp[0], dp[1]
-      point_error = Math.sqrt (gx - dx) * (gx - dx) + (gy - dy) * (gy - dy)
+      point_error = Math.sqrt((gx - dx) * (gx - dx) + (gy - dy) * (gy - dy))
       if point_error < min_error
         min_error, min_index = point_error, i
+        min_xoffset = dx - gx
+        min_yoffset = dy - gy
       end 
     end
     detected.delete_at min_index
     total_error += min_error
+    total_xoffset = min_xoffset
+    total_yoffset = min_yoffset
   end
-  total_error
+  return total_error, total_xoffset, total_yoffset
 end
 
 # Evaluate the accuracy of fingertip detection results.
@@ -51,14 +58,17 @@ def eval_fingertips(groundtruth, detected)
   gi = di = 0
   false_pos = true_pos = false_neg = 0
   total_groundtruth = total_detected = 0
-  error = 0
+  error = xoffset = yoffset = 0
   while gi < groundtruth.length && di < detected.length
     gf, df = groundtruth[gi][0], detected[di][0] 
     g_fingertips = to_point_array groundtruth[gi][1..-1], 2
     d_fingertips = to_point_array detected[di][1..-1], 3
     if gf == df 
-      frame_error = eval_error g_fingertips, d_fingertips
+      frame_error, frame_xoffset, frame_yoffset = 
+          eval_error g_fingertips, d_fingertips
       error += frame_error
+      xoffset += frame_xoffset
+      yoffset += frame_yoffset
       total_groundtruth += g_fingertips.length
       total_detected += d_fingertips.length
       true_pos += [g_fingertips.length, d_fingertips.length].min
@@ -94,9 +104,11 @@ def eval_fingertips(groundtruth, detected)
   end
   
   error /= true_pos
+  xoffset /= true_pos
+  yoffset /= true_pos
   { :total_groundtruth => total_groundtruth, :total_detected => total_detected, 
     :true_pos => true_pos, :false_pos => false_pos, :false_neg => false_neg, 
-    :error => error }
+    :error => error, :xoffset => xoffset, :yoffset => yoffset }
 end
 
 option_parser = OptionParser.new do |opts|
@@ -121,6 +133,8 @@ total fingertips in groundtruth: #{result[:total_groundtruth]}
 total fingertips in detected: #{result[:total_detected]}
 true positives: #{result[:true_pos]}
 error for true positives: #{result[:error]}
+xoffset for true positives: #{result[:xoffset]}
+yoffset for true positives: #{result[:yoffset]}
 false positives: #{result[:false_pos]}
 false negatives: #{result[:false_neg]}
 EOS
