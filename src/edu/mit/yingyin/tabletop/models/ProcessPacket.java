@@ -8,9 +8,12 @@ import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.OpenNI.GeneralException;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
@@ -60,12 +63,17 @@ public class ProcessPacket {
   public int width, height;
   public List<Point> labels;
   
+  private BufferedImage rgbImage;
+  private HandTrackingEngine engine;
+  
   /**
    * Creates a new <code>ProcessPacket</code> and allocates memory.
    * @param width
    * @param height
+   * @param engine the <code>HandTrackingEngine</code> that updates this <code>
+   *    ProcessPacket</code>.
    */
-  public ProcessPacket(int width, int height) {
+  public ProcessPacket(int width, int height, HandTrackingEngine engine) {
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.
     depthImage8U = IplImage.create(width, height, IPL_DEPTH_8U, 1);
@@ -76,6 +84,8 @@ public class ProcessPacket {
     tempMem = cvCreateMemStorage(0);
     this.width = width;
     this.height = height;
+    
+    this.engine = engine;
     
     forelimbs = Collections.synchronizedList(new ArrayList<Forelimb>());
   }
@@ -117,5 +127,16 @@ public class ProcessPacket {
   
   public int getDepthRaw(int x, int y) {
     return depthRawData[y * width + x];
+  }
+  
+  /**
+   * Returns the current updated RGB image.
+   * @throws GeneralException
+   */
+  public  BufferedImage rgbImage() throws GeneralException {
+    if (rgbImage == null)
+      rgbImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+    engine.getRgbImage(rgbImage);
+    return rgbImage;
   }
 }

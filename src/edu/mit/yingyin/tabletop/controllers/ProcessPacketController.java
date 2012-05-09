@@ -24,6 +24,8 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
+import org.OpenNI.GeneralException;
+
 import rywang.viewer.FPSCounter;
 
 import com.googlecode.javacv.CanvasFrame;
@@ -108,6 +110,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   }
   
   public String derivativeSaveDir = "data/derivative/";
+  private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
+  
   private IplImage analysisImage;
   private IplImage appImage;
   private CanvasFrame[] frames = new CanvasFrame[2];
@@ -118,9 +122,11 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showMorphed = true;
   private boolean showFingertip = true;
   private boolean showBoundingBox = true;
-  private ImageFrame rgbFrame;
+  private boolean showRgbImage = false;
+  private ImageFrame diagnosticFrame, rgbFrame;
   private ProcessPacket packet;
   private BufferedImage bufferedImage;
+  private int width, height;
   
   /**
    * Initializes the data structures.
@@ -128,6 +134,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    * @param height
    */
   public ProcessPacketController(int width, int height) {
+    this.width = width;
+    this.height = height;
+    
     frames[0] = new CanvasFrame("Processed");
     frames[1] = new CanvasFrame("Depth");
     for (CanvasFrame frame : frames)
@@ -139,15 +148,15 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
     CanvasFrame.tile(frames);
-    rgbFrame = new ImageFrame("RGB", 
+    diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, 
         new RgbImageComponent(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
-    rgbFrame.setLocation(0, rect.y + rect.height);
+    diagnosticFrame.setLocation(0, rect.y + rect.height);
     
     histogram = new float[HandAnalyzer.MAX_DEPTH];
     
     addKeyListener(this);
-    rgbFrame.addMouseListenerToImageComponent(this);
+    diagnosticFrame.addMouseListenerToImageComponent(this);
     
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
@@ -186,6 +195,10 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
           pw.close();
       }
       break;
+    case KeyEvent.VK_R:
+      // Showing RGB image.
+      showRgbImage = true;
+      break;
     default: 
       break;
     }
@@ -194,12 +207,15 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   /**
    * Shows different visualizations of the ProcessPacket.
    * @param packet
+   * @throws GeneralException 
    */
-  public void show(ProcessPacket packet) {
+  public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
     showAnalysisImage();
-    showRGBImage();
+    showDiagnosticImage();
     showAppImage();
+    if (showRgbImage)
+      showRgbImage();
   }
   
   /**
@@ -227,7 +243,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   public void addKeyListener(KeyListener kl) {
     for (CanvasFrame frame : frames)
       frame.addKeyListener(kl);
-    rgbFrame.addKeyListener(kl);
+    diagnosticFrame.addKeyListener(kl);
   }
   
   public boolean isVisible() {
@@ -247,9 +263,33 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     Point p = me.getPoint();
     IplImage image = packet.derivative;
     float value = image.getFloatBuffer().get(p.y * image.widthStep() / 4 + p.x);
-    rgbFrame.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
+    diagnosticFrame.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
   }
 
+  @Override
+  public void mouseEntered(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseExited(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mousePressed(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+  
   /**
    * Displays the image for analysis.
    */
@@ -311,34 +351,21 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
   }
   
-  private void showRGBImage() {
+  private void showDiagnosticImage() {
     ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
         packet.derivative.getFloatBuffer(), bufferedImage, 
         packet.derivative.widthStep() / 4);
-    rgbFrame.updateImage(bufferedImage);
+    diagnosticFrame.updateImage(bufferedImage);
   }
 
-  @Override
-  public void mouseEntered(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
+  private void showRgbImage() throws GeneralException {
+    if (rgbFrame == null) {
+      rgbFrame = new ImageFrame("RGB", new Dimension(width, height));
+      Rectangle bounds = diagnosticFrame.getBounds();
+      rgbFrame.setLocation(bounds.x + bounds.width, bounds.y);
+      rgbFrame.showUI();
+    }
+    rgbFrame.updateImage(packet.rgbImage());
   }
-
-  @Override
-  public void mouseExited(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mousePressed(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
+  
 }    

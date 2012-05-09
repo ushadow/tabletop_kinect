@@ -119,6 +119,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
     }
   }
   
+  /**
+   * Returns the image <code>ByteBuffer</code>.
+   * @return
+   * @throws GeneralException
+   */
   public ByteBuffer getImageBuffer() throws GeneralException {
     updateImageBuffer();
     return imageBuffer;

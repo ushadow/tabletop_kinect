@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
@@ -31,6 +32,9 @@ import edu.mit.yingyin.tabletop.models.Recorder;
  *
  */
 public class HandTrackingAppController extends KeyAdapter {
+  
+  private static Logger logger = Logger.getLogger(
+      HandTrackingAppController.class.getName());
   
   private static String MAIN_DIR = "/afs/csail/u/y/yingyin/research/kinect/";
   private static String CONFIG_FILE = MAIN_DIR + 
@@ -61,10 +65,11 @@ public class HandTrackingAppController extends KeyAdapter {
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println(fnfe.getMessage());
+      logger.severe(fnfe.getMessage());
       System.exit(-1);
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException ioe) {
+      logger.severe(ioe.getMessage());
+      System.exit(-1);
     }
     
     String openniConfigFile = MAIN_DIR + config.getProperty("openni-config", 
@@ -84,7 +89,7 @@ public class HandTrackingAppController extends KeyAdapter {
         "data/derivative/");
     String calibrationFile = MAIN_DIR + config.getProperty("calibration-file",
         "data/calibration.txt");
-
+    
     if (displayOnProperty.equals("false"))
       displayOn = false;
     
@@ -92,7 +97,7 @@ public class HandTrackingAppController extends KeyAdapter {
       engine = new HandTrackingEngine(labelFile, openniConfigFile, 
           calibrationFile);
     } catch (GeneralException ge) {
-      System.err.println(ge.getMessage());
+      logger.severe(ge.getMessage());
       System.exit(-1);
     }
     handEventListener = new HandEventListener();
@@ -109,8 +114,13 @@ public class HandTrackingAppController extends KeyAdapter {
       if (isPaused())
         continue;
       engine.step();
+      
       if (packetController != null)
-        packetController.show(engine.packet());
+        try {
+          packetController.show(engine.packet());
+        } catch (GeneralException ge) {
+          logger.severe(ge.getMessage());
+        }
       if (recording) {
         if (recorder == null) {
           rowToRecord = engine.depthHeight() / 2;

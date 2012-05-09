@@ -1,18 +1,23 @@
 package edu.mit.yingyin.tabletop.models;
 
-import java.awt.Point;
+import java.awt.Point;	 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
+import rywang.util.ObjectIO;
+import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
 
-import rywang.util.ObjectIO;
-
 public class HandTrackingEngine {
-  private OpenNIDevice openni;
+  private static Logger logger = Logger.getLogger(
+      HandTrackingEngine.class.getName());
+  
+  private FullOpenNIDevice openni;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   private int prevDepthFrameID = -1;
@@ -37,7 +42,7 @@ public class HandTrackingEngine {
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight);
-    packet = new ProcessPacket(depthWidth, depthHeight);
+    packet = new ProcessPacket(depthWidth, depthHeight, this);
 
     tracker = new HandTracker(new CalibrationExample(calibrationFile));
   }
@@ -72,12 +77,16 @@ public class HandTrackingEngine {
       if (labels != null)
         packet.labels = labels.get(packet.depthFrameID);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.severe(e.getMessage());
       System.exit(-1);
     }
 
     analyzer.analyzeData(packet);
     
     tracker.update(packet.forelimbs, packet.depthFrameID);
+  }
+  
+  public void getRgbImage(BufferedImage bi) throws GeneralException {
+    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
   }
 }
