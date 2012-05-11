@@ -72,7 +72,7 @@ public class CvUtil {
       CvFont font = new CvFont();
       cvInitFont(font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5, 0, 1, CV_AA);
       cvPutText(image, String.format("%d", i), points.position(0), font, 
-                CvScalar.WHITE);
+                CvScalar.RED);
     }
   }
   

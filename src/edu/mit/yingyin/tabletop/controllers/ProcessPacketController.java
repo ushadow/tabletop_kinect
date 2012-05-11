@@ -2,8 +2,9 @@ package edu.mit.yingyin.tabletop.controllers;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GRAY2BGR;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -144,7 +145,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
 
     fpsCounter = new FPSCounter("Processed", frames[0]);
 
-    analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
     CanvasFrame.tile(frames);
@@ -295,9 +296,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   private void showAnalysisImage() {
     if (showMorphed)
-      cvCopy(packet.morphedImage, analysisImage);
+      cvCvtColor(packet.morphedImage, analysisImage, CV_GRAY2BGR);
     else
-      cvCopy(packet.depthImage8U, analysisImage);
+      cvCvtColor(packet.depthImage8U, analysisImage, CV_GRAY2BGR);
     
     for (ForelimbFeatures ff : packet.forelimbFeatures){
       if (showBoundingBox) {
