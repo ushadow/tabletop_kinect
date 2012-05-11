@@ -56,8 +56,14 @@ public class CvUtil {
   }
   
   // Drawing methods.
+  /**
+   * Draws the convexity defects on the image.
+   * @param seqConvexityDefects
+   * @param image
+   * @param showLabels if true, display the convexity defect index.
+   */
   public static void drawConvexityDefects(CvSeq seqConvexityDefects, 
-                                          IplImage image) {
+      IplImage image, boolean showLabels) {
     for (int i = 0; i < seqConvexityDefects.total(); i++) {
       CvConvexityDefect defect = new CvConvexityDefect(
           cvGetSeqElem(seqConvexityDefects, i));
@@ -69,10 +75,13 @@ public class CvUtil {
       // CV_AA: antialiased.
       cvFillConvexPoly(image, points.position(0), 3, CvScalar.WHITE, CV_AA, 0);
       
-      CvFont font = new CvFont();
-      cvInitFont(font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5, 0, 1, CV_AA);
-      cvPutText(image, String.format("%d", i), points.position(0), font, 
-                CvScalar.RED);
+      if (showLabels)
+      {
+        CvFont font = new CvFont();
+        cvInitFont(font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5, 0, 1, CV_AA);
+        cvPutText(image, String.format("%d", i), points.position(0), font, 
+                  CvScalar.RED);
+      }
     }
   }
   

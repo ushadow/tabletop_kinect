@@ -124,6 +124,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showFingertip = true;
   private boolean showBoundingBox = true;
   private boolean showRgbImage = false;
+  private boolean showLabels = false;
   private ImageFrame diagnosticFrame, rgbFrame;
   private ProcessPacket packet;
   private BufferedImage bufferedImage;
@@ -181,6 +182,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       break;
     case KeyEvent.VK_M:
       showMorphed = !showMorphed;
+      break;
+    case KeyEvent.VK_L:
+      showLabels = !showLabels;
       break;
     case KeyEvent.VK_S:
       PrintWriter pw = null;
@@ -310,7 +314,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
     
       if (showConvexityDefects) {
-         CvUtil.drawConvexityDefects(ff.convexityDefects, analysisImage);
+         CvUtil.drawConvexityDefects(ff.convexityDefects, analysisImage, 
+             showLabels);
       }
       
       if (showHull) {
@@ -323,7 +328,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
           if (p.confidence > 0.5)
             cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
-                4, CvScalar.WHITE, -1, 8, 0);
+                4, CvScalar.GREEN, -1, 8, 0);
         }
 
     frames[0].showImage(analysisImage);
