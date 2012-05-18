@@ -82,10 +82,8 @@ public class HandTracker {
    */
   public void update(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = noFilter(forelimbs, frameID);
-    if (!fingerEventList.isEmpty()) {
-      for (IHandEventListener l : listeners) 
-        l.fingerPressed(fingerEventList);
-    }
+    for (IHandEventListener l : listeners) 
+      l.fingerPressed(fingerEventList);
   }
   
   public void addListener(IHandEventListener l) {

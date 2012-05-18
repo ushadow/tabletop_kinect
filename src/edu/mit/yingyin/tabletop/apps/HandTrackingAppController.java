@@ -55,8 +55,8 @@ public class HandTrackingAppController extends KeyAdapter {
   private int rowToRecord = 0;
 
   public HandTrackingAppController()  {
-    System.out.println("java.library.path = "
-        + System.getProperty("java.library.path"));
+    logger.info("java.library.path = " + 
+        System.getProperty("java.library.path"));
     
     Properties config = new Properties();
     FileInputStream in = null;

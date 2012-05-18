@@ -7,6 +7,9 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -29,48 +32,48 @@ import edu.mit.yingyin.util.SystemUtil;
 public class HandEventsController extends KeyAdapter 
     implements IHandEventListener {
   
-  private class HandEventsImageComponent extends ImageComponent {
-    private static final long serialVersionUID = 5617635233634459251L;
-    private static final int OVAL_WIDTH = 20;
-    private static final int DISPLAY_WIDTH = 2560;
-    private static final int DISPLAY_HEIGHT = 2048;
-    
-    public HandEventsImageComponent(Dimension d) {
-      super(d);
-    }
-    
-    @Override
-    protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      
-      if (feList == null)
-        return;
-      
-      Graphics2D g2d = (Graphics2D) g;
-      g2d.setColor(Color.red);
-      for (FingerEvent fe : feList)
-      {
-        Point2f p = scale(fe.posDisplay);
-        g2d.drawOval((int) p.x - OVAL_WIDTH, 
-            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
-        g2d.fillOval((int) p.x - OVAL_WIDTH, 
-            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
-      }
-    }
-    
-    private Point2f scale(Point2f p) {
-      Rectangle bounds = getBounds();
-      return new Point2f(p.x * bounds.width / DISPLAY_WIDTH,
-          p.y * bounds.height / DISPLAY_HEIGHT);
-    }
-  }
-  
   /**
    * A frame to show visualization of hand events.
    * @author yingyin
    *
    */
   private class HandEventsFrame extends JFrame {
+    
+    private class HandEventsImageComponent extends ImageComponent {
+      private static final long serialVersionUID = 5617635233634459251L;
+      private static final int OVAL_WIDTH = 20;
+      
+      public HandEventsImageComponent(Dimension d) {
+        super(d);
+      }
+      
+      @Override
+      public void paint(Graphics g) {
+        super.paint(g);
+        
+        if (feList == null)
+          return;
+        
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setColor(Color.red);
+        for (FingerEvent fe : feList) {
+          Point2f p = scale(fe.posDisplay);
+          g2d.drawOval((int) p.x - OVAL_WIDTH, 
+              (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+          g2d.fillOval((int) p.x - OVAL_WIDTH, 
+              (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+        }
+      }
+      
+      private Point2f scale(Point2f p) {
+        Rectangle bounds = getBounds();
+        return new Point2f(p.x * bounds.width / DISPLAY_WIDTH,
+            p.y * bounds.height / DISPLAY_HEIGHT);
+      }
+    }
+    private static final int DISPLAY_WIDTH = 2560;
+    private static final int DISPLAY_HEIGHT = 2048;
+    
     private static final long serialVersionUID = 1L;
     private static final String IMAGE_FILE_NAME = 
         "/afs/csail/u/y/yingyin/research/kinect/data/checkerboard.png";
@@ -91,7 +94,7 @@ public class HandEventsController extends KeyAdapter
     
       ic = new HandEventsImageComponent(screenSize);
       try {
-        ic.setImage(ImageIO.read(new File(IMAGE_FILE_NAME)));
+        ic.setImage(scaledImage());
       } catch (IOException e) {
         e.printStackTrace();
         System.exit(-1);
@@ -102,6 +105,19 @@ public class HandEventsController extends KeyAdapter
     public void showUI() {
       pack();
       setVisible(true);
+    }
+    
+    private BufferedImage scaledImage() throws IOException {
+      BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
+      AffineTransform at = new AffineTransform();
+      Rectangle bounds = getBounds();
+      at.scale(bounds.width / DISPLAY_WIDTH, bounds.height / DISPLAY_HEIGHT);
+      AffineTransformOp scaleOp = new AffineTransformOp(at, 
+          AffineTransformOp.TYPE_BILINEAR);
+      BufferedImage after = new BufferedImage(image.getWidth(), 
+          image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      scaleOp.filter(image, after);
+      return after;
     }
   }
   

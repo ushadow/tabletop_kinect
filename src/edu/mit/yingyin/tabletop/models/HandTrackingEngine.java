@@ -13,6 +13,11 @@ import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
 
+/**
+ * Tracks the hand events and updates the hand event listeners with the events.
+ * @author yingyin
+ *
+ */
 public class HandTrackingEngine {
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
