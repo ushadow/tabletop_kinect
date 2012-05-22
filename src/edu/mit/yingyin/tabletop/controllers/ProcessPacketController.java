@@ -3,8 +3,8 @@ package edu.mit.yingyin.tabletop.controllers;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GRAY2BGR;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,9 +40,9 @@ import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.Forelimb;
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.HandAnalyzer;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 /**
@@ -123,12 +123,18 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showMorphed = true;
   private boolean showFingertip = true;
   private boolean showBoundingBox = true;
-  private boolean showRgbImage = false;
   private boolean showLabels = false;
   private ImageFrame diagnosticFrame, rgbFrame;
   private ProcessPacket packet;
   private BufferedImage bufferedImage;
   private int width, height;
+  
+  /**
+   * Toggles for viewing different diagnostic frames.
+   */
+  private boolean showRgbImage = false;
+  private boolean showDepthImage = true;
+  private boolean showDiagnosticeImage = true;
   
   /**
    * Initializes the data structures.
@@ -149,7 +155,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
-    CanvasFrame.tile(frames);
     diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, 
         new RgbImageComponent(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
@@ -162,6 +167,20 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
+  }
+  
+  public void showUI(){
+    CanvasFrame.tile(frames);
+    if (showDiagnosticeImage)
+      diagnosticFrame.showUI();
+  }
+  
+  public void showDepthImage(boolean show) {
+    frames[1].setVisible(show);
+  }
+  
+  public void showDiagnosticImage(boolean show) {
+    diagnosticFrame.setVisible(show);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -217,8 +236,12 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
     showAnalysisImage();
-    showDiagnosticImage();
-    showAppImage();
+    if (showDiagnosticeImage)
+      showDiagnosticImage();
+    
+    if (showDepthImage)
+      showDepthImage();
+    
     if (showRgbImage)
       showRgbImage();
   }
@@ -339,7 +362,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    * Displays the application image.
    * @param packet
    */
-  private void showAppImage() {
+  private void showDepthImage() {
     ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
     ByteBuffer ib = appImage.getByteBuffer();
     int widthStep = appImage.widthStep();

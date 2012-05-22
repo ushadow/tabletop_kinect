@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Point2f;
 
-import edu.mit.yingyin.calib.CalibFrame;
+import edu.mit.yingyin.calib.CalibController;
 import edu.mit.yingyin.calib.GeoCalibModel;
 import edu.mit.yingyin.tabletop.models.CalibrationExample;
 import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
@@ -25,35 +26,38 @@ import edu.mit.yingyin.util.FileUtil;
 
 /**
  * Application for labeling the calibration images and computing the extrinsic
- * camera parameters.
+ * camera parameters. 
+ *
+ * After labeling, calibration is run once the user hits "Q" or Escape.
  * @author yingyin
  *
  */
-public class CalibrationApp {
-  private class CalibrationController extends KeyAdapter {
-    public void keyPressed(KeyEvent ke) {
-      switch (ke.getKeyCode()) {
-      case KeyEvent.VK_Q:
-      case KeyEvent.VK_ESCAPE:
-        if (calibModel != null) {
-          List<Point2f> points = new ArrayList<Point2f>(
-              calibModel.getImagePoints().size());
-          for (Point p : calibModel.getImagePoints()) 
-            points.add(new Point2f(p.x, p.y));
-          if (isScrnCoord)
-            screenPoints = points;
-          else cameraPoints = points;
-          calibrate();
-        }
-        System.exit(0);
-        break;
-      default: break;
-      }
-    }
-  }
+public class CalibrationAppController extends KeyAdapter {
+  private static Logger logger = Logger.getLogger(
+      CalibrationAppController.class.getName());
   
   public static void main(String args[]) {
-    new CalibrationApp(args);
+    new CalibrationAppController(args);
+  }
+
+  public void keyPressed(KeyEvent ke) {
+    switch (ke.getKeyCode()) {
+    case KeyEvent.VK_Q:
+    case KeyEvent.VK_ESCAPE:
+      if (calibModel != null) {
+        List<Point2f> points = new ArrayList<Point2f>(
+            calibModel.getImagePoints().size());
+        for (Point p : calibModel.getImagePoints()) 
+          points.add(new Point2f(p.x, p.y));
+        if (isScrnCoord)
+          screenPoints = points;
+        else cameraPoints = points;
+        calibrate();
+      }
+      System.exit(0);
+      break;
+    default: break;
+    }
   }
   
   private boolean isScrnCoord = true;
@@ -66,7 +70,7 @@ public class CalibrationApp {
   private String calibMethodStr; 
   private String savePath;
   
-  public CalibrationApp(String args[]) {
+  public CalibrationAppController(String args[]) {
     Properties config = new Properties();
     FileInputStream in = null;
     if (args.length < 1) {
@@ -140,9 +144,9 @@ public class CalibrationApp {
         }
       }
       calibModel = new GeoCalibModel(image, ptsFileName, isScrnCoord);
-      CalibFrame view = new CalibFrame(calibModel);
-      view.addKeyListener(new CalibrationController());
-      view.showUI();
+      CalibController controller = new CalibController(calibModel);
+      controller.addKeyListener(this);
+      controller.showUI();
     } else {
       calibrate();
     }
@@ -170,7 +174,14 @@ public class CalibrationApp {
   private void calibrate() {
     if (screenPoints != null && !screenPoints.isEmpty() && 
         cameraPoints != null && !cameraPoints.isEmpty()) {
-      System.out.println("Calibration method: " + calibMethodStr);
+      
+      if (screenPoints.size() != cameraPoints.size()) {
+        logger.warning("Dispaly image points and camera image points sizes " +
+        		"are not the same. No calibraiton is done.");
+        return;
+      }
+      
+      logger.info("Calibration method: " + calibMethodStr);
       CalibrationExample example = 
         new CalibrationExample(screenPoints, cameraPoints, calibMethod);
       System.out.println(example.toString());
