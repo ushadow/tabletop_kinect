@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.vecmath.Point3f;
@@ -83,8 +84,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
       
       // Draws labeled points.
-      if (packet.labels != null) {
-        for (Point p : packet.labels)
+      if (label != null) {
+        for (Point p : label)
           g2d.drawOval(p.x - OVAL_WIDTH / 2, p.y - OVAL_WIDTH / 2, OVAL_WIDTH,
               OVAL_WIDTH);
       }
@@ -125,6 +126,10 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showBoundingBox = true;
   private boolean showLabels = false;
   private ImageFrame diagnosticFrame, rgbFrame;
+  
+  /**
+   * Current packet to view.
+   */
   private ProcessPacket packet;
   private BufferedImage bufferedImage;
   private int width, height;
@@ -136,14 +141,19 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showDepthImage = true;
   private boolean showDiagnosticeImage = true;
   
+  private HashMap<Integer, List<Point>> labels;
+  private List<Point> label;
+  
   /**
    * Initializes the data structures.
    * @param width
    * @param height
    */
-  public ProcessPacketController(int width, int height) {
+  public ProcessPacketController(int width, int height, 
+      HashMap<Integer, List<Point>> labels) {
     this.width = width;
     this.height = height;
+    this.labels = labels;
     
     frames[0] = new CanvasFrame("Processed");
     frames[1] = new CanvasFrame("Depth");
@@ -235,6 +245,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
+    if (labels != null)
+      label = labels.get(packet.depthFrameID);
+    
     showAnalysisImage();
     if (showDiagnosticeImage)
       showDiagnosticImage();
@@ -372,8 +385,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
       }
     // Draws labeled points.
-    if (packet.labels != null) {
-      for (Point p : packet.labels)
+    if (label != null) {
+      for (Point p : label)
         cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
     }
     frames[1].showImage(appImage);

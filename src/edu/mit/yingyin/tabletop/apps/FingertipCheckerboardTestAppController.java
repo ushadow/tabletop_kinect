@@ -34,9 +34,9 @@ public class FingertipCheckerboardTestAppController {
   public FingertipCheckerboardTestAppController() {
     try {
       HandEventsController heController = new HandEventsController();
-      engine = new HandTrackingEngine(null, OPENNI_CONFIG_FILE, CALIB_FILE);
+      engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE);
       ProcessPacketController packetController = new ProcessPacketController(
-          engine.depthWidth(), engine.depthHeight());
+          engine.depthWidth(), engine.depthHeight(), null);
       packetController.showDepthImage(false);
       packetController.showDiagnosticImage(false);
       

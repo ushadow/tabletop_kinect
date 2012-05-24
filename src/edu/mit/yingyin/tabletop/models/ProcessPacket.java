@@ -7,7 +7,6 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCreateMemStorage;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMat;
 import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +60,6 @@ public class ProcessPacket {
   public List<Forelimb> forelimbs;
   public int depthFrameID;
   public int width, height;
-  public List<Point> labels;
   
   private BufferedImage rgbImage;
   private HandTrackingEngine engine;
