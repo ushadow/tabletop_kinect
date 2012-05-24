@@ -118,6 +118,7 @@ public class HandTrackingAppController extends KeyAdapter {
             engine.depthHeight(), labels);
         packetController.addKeyListener(this);
         packetController.derivativeSaveDir = derivativeSaveDir;
+        packetController.showUI();
       } catch (IOException e) {
         System.err.println(e.getMessage());
         System.exit(-1);
@@ -180,7 +181,6 @@ public class HandTrackingAppController extends KeyAdapter {
   public boolean isPaused() {
     return packetController != null && paused;
   }
-
     
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
