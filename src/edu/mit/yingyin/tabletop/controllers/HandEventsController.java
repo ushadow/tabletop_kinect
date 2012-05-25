@@ -19,7 +19,7 @@ import javax.vecmath.Point2f;
 import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
 /**
  * Controls interaction with hand events.

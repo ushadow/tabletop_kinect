@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import edu.mit.yingyin.tabletop.CvUtil;
-import edu.mit.yingyin.tabletop.apps.HandTrackingAppController;
 
 /**
  * Keeps track of statistics of the background model.

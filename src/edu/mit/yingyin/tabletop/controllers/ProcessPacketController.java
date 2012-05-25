@@ -359,6 +359,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
     }
 
+    // Shows unfiltered fingertips.
     if (showFingertip)
       for (Forelimb forelimb : packet.forelimbs)
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {

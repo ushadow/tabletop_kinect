@@ -16,7 +16,6 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.text.html.InlineView;
 import javax.vecmath.Point2f;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;

@@ -22,8 +22,8 @@ import org.OpenNI.GeneralException;
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.Recorder;
 

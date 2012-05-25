@@ -1,12 +1,13 @@
 package edu.mit.yingyin.tabletop.models;
 
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 
 /**
  * Main interface to the handtracking module that tracks the hand events and 
@@ -15,6 +16,15 @@ import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
  *
  */
 public class HandTrackingEngine {
+  /**
+   * The listener interface for recieving finger events.
+   * @author yingyin
+   *
+   */
+  public static interface IHandEventListener {
+    public void fingerPressed(List<FingerEvent> feList);
+  }
+  
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
@@ -50,6 +60,10 @@ public class HandTrackingEngine {
 
   public void addListener(IHandEventListener l) {
     tracker.addListener(l);
+  }
+  
+  public void removeListener(IHandEventListener l) {
+    tracker.removeListener(l);
   }
   
   public ProcessPacket packet() { return packet; }
