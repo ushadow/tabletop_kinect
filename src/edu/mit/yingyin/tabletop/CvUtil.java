@@ -7,6 +7,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_core.cvInitFont;
 import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
+import static com.googlecode.javacv.cpp.opencv_core.cvPolyLine;
 
 import java.awt.Point;
 import java.io.PrintWriter;
@@ -87,13 +88,28 @@ public class CvUtil {
   
   public static void drawHullCorners(CvMat hullIndices, CvMat points, 
                                      IplImage image) {
+    int numChannels = points.channels();
     for (int i = 0; i < hullIndices.length(); i++) {
-      int idx = (int)hullIndices.get(i);
-      Point p = new Point((int)points.get(idx * points.channels()),
-                          (int)points.get(idx * points.channels() + 1));
+      int idx = (int) hullIndices.get(i);
+      Point p = new Point((int) points.get(idx * numChannels),
+                          (int) points.get(idx * numChannels + 1));
       cvCircle(image, new CvPoint(p.x, p.y), 4, CvScalar.WHITE, 1, 8, 0);
     }
   }
+  
+  public static void drawHull(CvMat hullIndices, CvMat points, IplImage image) {
+    CvPoint[] polygons = new CvPoint[1];
+    polygons[0] = new CvPoint(hullIndices.length());
+    int numChannels = points.channels();
+    for (int i = 0; i < hullIndices.length(); i++) {
+      int idx = (int) hullIndices.get(i);
+      polygons[0].position(i).x((int) points.get(idx * numChannels)).
+                              y((int) points.get(idx * numChannels + 1));
+    }
+    cvPolyLine(image, polygons, new int[]{hullIndices.length()}, 1, 1, 
+        CvScalar.RED, 2, CV_AA, 0); 
+  }
+  
   
   // Image conversion methods.
   

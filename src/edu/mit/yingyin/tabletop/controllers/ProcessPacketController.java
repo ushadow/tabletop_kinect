@@ -319,7 +319,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
       
       if (showHull) {
-        CvUtil.drawHullCorners(ff.hull, ff.approxPoly, analysisImage);
+        CvUtil.drawHull(ff.hull, ff.approxPoly, analysisImage);
       }
     }
 
