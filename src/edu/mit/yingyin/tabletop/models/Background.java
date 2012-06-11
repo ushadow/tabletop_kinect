@@ -18,6 +18,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
 import java.nio.FloatBuffer;
+import java.util.logging.Logger;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -29,6 +30,9 @@ import edu.mit.yingyin.tabletop.CvUtil;
  *
  */
 public class Background {
+  
+  private static Logger logger = Logger.getLogger(Background.class.getName());
+  
   /**
    * Maximum depth of the background. 
    */
@@ -138,7 +142,7 @@ public class Background {
     hiFI.release();
     lowFI.release();
     mask.release();
-    System.out.println("Background relesed.");
+    logger.info("Background relesed.");
   }
   
   /**

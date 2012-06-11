@@ -272,6 +272,10 @@ public class CalibrationExample {
   public CalibrationExample(List<Point2f> objectPoints, 
       List<Point2f> imagePoints, CalibMethodName methodName) {
 
+    if (objectPoints.size() != imagePoints.size())
+      throw new IllegalArgumentException(
+          "Size of objectPoints and imagePoints should be the same.");
+    
     initIntrinsicParameters();
     this.methodName = methodName;
     if (methodName == CalibMethodName.EXTRINSIC) {

@@ -25,6 +25,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
@@ -44,6 +45,8 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
  *
  */
 public class HandAnalyzer {
+  private static Logger logger = Logger.getLogger(HandAnalyzer.class.getName());
+  
   /**
    * Maximum depth in mm for the tabletop application.
    */
@@ -105,7 +108,7 @@ public class HandAnalyzer {
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float)6.0, (float)7.0);
       Table.instance().init(background);
-      System.out.println(background.stats());
+      logger.info(background.stats());
     }
     
     subtractBackground(packet);
@@ -123,7 +126,7 @@ public class HandAnalyzer {
     tempImage.release();
     background.release();
     foregroundMask.release();
-    System.out.println("HandAnalyzer released.");
+    logger.info("HandAnalyzer released.");
   } 
   
   protected void subtractBackground(ProcessPacket packet) {

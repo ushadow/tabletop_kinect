@@ -2,6 +2,7 @@ package edu.mit.yingyin.tabletop.models;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.util.logging.Logger;
 
 import org.OpenNI.Context;
 import org.OpenNI.DepthGenerator;
@@ -27,6 +28,9 @@ import rywang.util.DirectBufferUtils;
  *
  */
 public class FullOpenNIDevice implements OpenNIDevice {
+  private static Logger logger = Logger.getLogger(
+      FullOpenNIDevice.class.getName());
+  
   private Context context;
   private OutArg<ScriptNode> scriptNode = new OutArg<ScriptNode>();
   private DepthGenerator depthGen = null;
@@ -172,7 +176,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
   
   public void release() { 
     context.release(); 
-    System.out.println("OpenNI released.");
+    logger.info("OpenNI released.");
   }
   
   /**

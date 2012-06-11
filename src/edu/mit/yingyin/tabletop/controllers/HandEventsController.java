@@ -7,19 +7,19 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.vecmath.Point2f;
 
+import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
-import edu.mit.yingyin.util.SystemUtil;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
 /**
  * Controls interaction with hand events.
@@ -29,27 +29,28 @@ import edu.mit.yingyin.util.SystemUtil;
 public class HandEventsController extends KeyAdapter 
     implements IHandEventListener {
   
-  private class HandEventsImageComponent extends ImageComponent {
+  private class TestImageComponent extends ImageComponent {
     private static final long serialVersionUID = 5617635233634459251L;
     private static final int OVAL_WIDTH = 20;
-    private static final int DISPLAY_WIDTH = 2560;
-    private static final int DISPLAY_HEIGHT = 2048;
     
-    public HandEventsImageComponent(Dimension d) {
+    public TestImageComponent(Dimension d) {
       super(d);
     }
     
+    public TestImageComponent(BufferedImage bi) {
+      super(bi);
+    }
+    
     @Override
-    protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
+    public void paint(Graphics g) {
+      super.paint(g);
       
       if (feList == null)
         return;
       
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.red);
-      for (FingerEvent fe : feList)
-      {
+      for (FingerEvent fe : feList) {
         Point2f p = scale(fe.posDisplay);
         g2d.drawOval((int) p.x - OVAL_WIDTH, 
             (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
@@ -64,55 +65,38 @@ public class HandEventsController extends KeyAdapter
           p.y * bounds.height / DISPLAY_HEIGHT);
     }
   }
+  private static final int DISPLAY_WIDTH = 2560;
+  private static final int DISPLAY_HEIGHT = 2048;
+    
+    
+//    private BufferedImage scaledImage() throws IOException {
+//      BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
+//      AffineTransform at = new AffineTransform();
+//      Rectangle bounds = getBounds(); 
+//      at.scale((float) bounds.width / DISPLAY_WIDTH, 
+//               (float) bounds.height / DISPLAY_HEIGHT);
+//      AffineTransformOp scaleOp = new AffineTransformOp(at, 
+//          AffineTransformOp.TYPE_BILINEAR);
+//      BufferedImage after = new BufferedImage(image.getWidth(), 
+//          image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+//      scaleOp.filter(image, after);
+//      return after;
+//    }
   
-  /**
-   * A frame to show visualization of hand events.
-   * @author yingyin
-   *
-   */
-  private class HandEventsFrame extends JFrame {
-    private static final long serialVersionUID = 1L;
-    private static final String IMAGE_FILE_NAME = 
-        "/afs/csail/u/y/yingyin/research/kinect/data/checkerboard.png";
-    
-    private ImageComponent ic;
-    
-    /**
-     *  Creates a full screen frame.
-     */
-    public HandEventsFrame() {
-      super("Hand events view");
-      setUndecorated(true);
-      setResizable(false);
-      
-      Dimension screenSize = SystemUtil.getVirtualScreenBounds().getSize();
-      this.setBounds(new Rectangle(screenSize));
-      this.setLocation(0, 0);
-    
-      ic = new HandEventsImageComponent(screenSize);
-      try {
-        ic.setImage(ImageIO.read(new File(IMAGE_FILE_NAME)));
-      } catch (IOException e) {
-        e.printStackTrace();
-        System.exit(-1);
-      }
-      getContentPane().add(ic);
-    }
-    
-    public void showUI() {
-      pack();
-      setVisible(true);
-    }
-  }
+  private static final String IMAGE_FILE_NAME = 
+      "/afs/csail/u/y/yingyin/research/kinect/data/checkerboard.png";
   
-  private HandEventsFrame handEventView = new HandEventsFrame();
   private List<FingerEvent> feList;
+  private CalibFrame frame;
   
-  public HandEventsController() {
-    handEventView.addKeyListener(this);
+  public HandEventsController() throws IOException {
+    TestImageComponent ic = new TestImageComponent(ImageIO.read(
+        new File(IMAGE_FILE_NAME)));
+    frame = new CalibFrame(ic);
+    frame.addKeyListener(this);
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        handEventView.showUI();
+        frame.showUI();
       }
     });
   }
@@ -120,7 +104,7 @@ public class HandEventsController extends KeyAdapter
   @Override
   public void fingerPressed(List<FingerEvent> feList) {
     this.feList = feList;
-    handEventView.repaint();
+    frame.repaint();
   }
   
   @Override
@@ -128,7 +112,7 @@ public class HandEventsController extends KeyAdapter
     switch (ke.getKeyCode()) {
       case KeyEvent.VK_ESCAPE:
       case KeyEvent.VK_Q:
-        handEventView.setVisible(false);
+        frame.setVisible(false);
         break;
       default:
         break;
@@ -136,6 +120,6 @@ public class HandEventsController extends KeyAdapter
   }
   
   public boolean isViewVisible() {
-    return handEventView.isVisible();
+    return frame.isVisible();
   }
 }

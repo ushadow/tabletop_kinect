@@ -1,19 +1,30 @@
 package edu.mit.yingyin.tabletop.models;
 
-import java.awt.Point;	 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
-import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.HandTracker.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 
+/**
+ * Main interface to the handtracking module that tracks the hand events and 
+ * updates the hand event listeners with the events.
+ * @author yingyin
+ *
+ */
 public class HandTrackingEngine {
+  /**
+   * The listener interface for recieving finger events.
+   * @author yingyin
+   *
+   */
+  public static interface IHandEventListener {
+    public void fingerPressed(List<FingerEvent> feList);
+  }
+  
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
@@ -21,21 +32,11 @@ public class HandTrackingEngine {
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   private int prevDepthFrameID = -1;
-  private HashMap<Integer, List<Point>> labels;
   private HandTracker tracker;
   private HandAnalyzer analyzer;
 
-  @SuppressWarnings("unchecked")
-  public HandTrackingEngine(String labelFile, String openniConfigFile, 
+  public HandTrackingEngine(String openniConfigFile, 
       String calibrationFile) throws GeneralException {
-    
-    try {
-      if (labelFile != null)
-        labels = (HashMap<Integer, List<Point>>) ObjectIO.readObject(labelFile);
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      System.exit(-1);
-    }
     
     openni = new FullOpenNIDevice(openniConfigFile);
     
@@ -61,6 +62,10 @@ public class HandTrackingEngine {
     tracker.addListener(l);
   }
   
+  public void removeListener(IHandEventListener l) {
+    tracker.removeListener(l);
+  }
+  
   public ProcessPacket packet() { return packet; }
   
   public boolean isDone() {
@@ -73,9 +78,6 @@ public class HandTrackingEngine {
       openni.getDepthArray(packet.depthRawData);
       prevDepthFrameID = packet.depthFrameID;
       packet.depthFrameID = openni.getDepthFrameID();
-      
-      if (labels != null)
-        packet.labels = labels.get(packet.depthFrameID);
     } catch (Exception e) {
       logger.severe(e.getMessage());
       System.exit(-1);

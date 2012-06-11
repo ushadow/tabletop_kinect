@@ -3,8 +3,8 @@ package edu.mit.yingyin.tabletop.controllers;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GRAY2BGR;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.vecmath.Point3f;
@@ -40,9 +41,9 @@ import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.Forelimb;
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.HandAnalyzer;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 /**
@@ -83,8 +84,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
       
       // Draws labeled points.
-      if (packet.labels != null) {
-        for (Point p : packet.labels)
+      if (label != null) {
+        for (Point p : label)
           g2d.drawOval(p.x - OVAL_WIDTH / 2, p.y - OVAL_WIDTH / 2, OVAL_WIDTH,
               OVAL_WIDTH);
       }
@@ -123,21 +124,36 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   private boolean showMorphed = true;
   private boolean showFingertip = true;
   private boolean showBoundingBox = true;
-  private boolean showRgbImage = false;
   private boolean showLabels = false;
   private ImageFrame diagnosticFrame, rgbFrame;
+  
+  /**
+   * Current packet to view.
+   */
   private ProcessPacket packet;
   private BufferedImage bufferedImage;
   private int width, height;
+  
+  /**
+   * Toggles for viewing different diagnostic frames.
+   */
+  private boolean showRgbImage = false;
+  private boolean showDepthImage = true;
+  private boolean showDiagnosticeImage = true;
+  
+  private HashMap<Integer, List<Point>> labels;
+  private List<Point> label;
   
   /**
    * Initializes the data structures.
    * @param width
    * @param height
    */
-  public ProcessPacketController(int width, int height) {
+  public ProcessPacketController(int width, int height, 
+      HashMap<Integer, List<Point>> labels) {
     this.width = width;
     this.height = height;
+    this.labels = labels;
     
     frames[0] = new CanvasFrame("Processed");
     frames[1] = new CanvasFrame("Depth");
@@ -149,7 +165,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
-    CanvasFrame.tile(frames);
     diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, 
         new RgbImageComponent(new Dimension(width, height)));
     Rectangle rect = frames[0].getBounds();
@@ -162,6 +177,20 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
+  }
+  
+  public void showUI(){
+    CanvasFrame.tile(frames);
+    if (showDiagnosticeImage)
+      diagnosticFrame.showUI();
+  }
+  
+  public void showDepthImage(boolean show) {
+    frames[1].setVisible(show);
+  }
+  
+  public void showDiagnosticImage(boolean show) {
+    diagnosticFrame.setVisible(show);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -216,9 +245,16 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
+    if (labels != null)
+      label = labels.get(packet.depthFrameID);
+    
     showAnalysisImage();
-    showDiagnosticImage();
-    showAppImage();
+    if (showDiagnosticeImage)
+      showDiagnosticImage();
+    
+    if (showDepthImage)
+      showDepthImage();
+    
     if (showRgbImage)
       showRgbImage();
   }
@@ -323,6 +359,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       }
     }
 
+    // Shows unfiltered fingertips.
     if (showFingertip)
       for (Forelimb forelimb : packet.forelimbs)
         for (ValConfiPair<Point3f> p : forelimb.fingertips) {
@@ -339,7 +376,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    * Displays the application image.
    * @param packet
    */
-  private void showAppImage() {
+  private void showDepthImage() {
     ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
     ByteBuffer ib = appImage.getByteBuffer();
     int widthStep = appImage.widthStep();
@@ -349,8 +386,8 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
       }
     // Draws labeled points.
-    if (packet.labels != null) {
-      for (Point p : packet.labels)
+    if (label != null) {
+      for (Point p : label)
         cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
     }
     frames[1].showImage(appImage);
