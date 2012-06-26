@@ -15,7 +15,8 @@
   </Log>
   <ProductionNodes>
     <Recording file="./data/sample.oni" />
-    <!-- <Node type="Depth" name="Depth1">
+    <!-- 
+    <Node type="Depth" name="Depth1">
       <Configuration>
         <Mirror on="true"/>
       </Configuration>
