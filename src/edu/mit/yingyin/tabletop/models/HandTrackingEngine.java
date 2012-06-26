@@ -35,6 +35,13 @@ public class HandTrackingEngine {
   private HandTracker tracker;
   private HandAnalyzer analyzer;
 
+  /**
+   * Creates a new <code>HandTrackingEngine</code>.
+   * 
+   * @param openniConfigFile
+   * @param calibrationFile
+   * @throws GeneralException
+   */
   public HandTrackingEngine(String openniConfigFile, 
       String calibrationFile) throws GeneralException {
     

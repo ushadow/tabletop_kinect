@@ -1,7 +1,9 @@
-# Environment
+# Environment 
 * Ubuntu 11.10
 
 # Prerequisites
+
+## Install OpenNI framework and Kinect driver
 
 ## Jars:
 * JavaCV (20110820) http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20110820.zip&can=2&q=

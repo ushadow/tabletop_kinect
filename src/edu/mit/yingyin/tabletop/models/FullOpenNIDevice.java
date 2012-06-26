@@ -75,7 +75,6 @@ public class FullOpenNIDevice implements OpenNIDevice {
             * imageMD.getData().getBytesPerPixel();
         imageBuffer = DirectBufferUtils.allocateByteBuffer(
             imageByteBufferSize);
-        
       }
     }
   }

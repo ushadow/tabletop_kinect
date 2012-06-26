@@ -3,14 +3,10 @@ package edu.mit.yingyin.tabletop.apps;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,14 +14,15 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 
 import rywang.util.ObjectIO;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
-import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.Recorder;
+import edu.mit.yingyin.util.CommandLineOptions;
 
 /**
  * Application that tracks the fingertips in data from an OpenNI device. Saves
@@ -39,36 +36,41 @@ public class HandTrackingAppController extends KeyAdapter {
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
-  private static String MAIN_DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static String CONFIG_FILE = MAIN_DIR + 
-                                      "config/fingertip_tracking.config";
+  private static String CONFIG_FILE = "config/fingertip_tracking.config";
   
+  @SuppressWarnings("static-access")
   public static void main(String[] args) {
-    new HandTrackingAppController();
+    Option mainDirOpt = OptionBuilder.withArgName("main directory").
+        withLongOpt("dir").
+        hasArg().withDescription("The main directory for input and output. " +
+        "The configuration file should be in <dir>/config/folder." + 
+        "The default dir is the current directory.").create("d");
+    CommandLineOptions.addOption(mainDirOpt);
+    CommandLineOptions.parse(args);
+    String mainDir = CommandLineOptions.getOptionValue("d", "./");
+    new HandTrackingAppController(mainDir);
   }
   
   private HandTrackingEngine engine;
   private ProcessPacketController packetController;
-  private Recorder recorder;
   private String fingertipFile;
   private HandEventListener handEventListener;
-  private boolean recording = false;
   private boolean displayOn = true;
   private boolean paused = false;
-  private int rowToRecord = 0;
 
   @SuppressWarnings("unchecked")
-  public HandTrackingAppController()  {
+  public HandTrackingAppController(String mainDir)  {
     logger.info("java.library.path = " + 
         System.getProperty("java.library.path"));
     
     Properties config = new Properties();
     FileInputStream in = null;
     try {
-      in = new FileInputStream(CONFIG_FILE);
+      in = new FileInputStream(mainDir + CONFIG_FILE);
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
+      logger.info("congfig file not found: " + mainDir + CONFIG_FILE);
       logger.severe(fnfe.getMessage());
       System.exit(-1);
     } catch (IOException ioe) {
@@ -76,31 +78,30 @@ public class HandTrackingAppController extends KeyAdapter {
       System.exit(-1);
     }
     
-    String openniConfigFile = MAIN_DIR + config.getProperty("openni-config", 
+    String openniConfigFile = mainDir + config.getProperty("openni-config", 
         "config/config.xml");
-    String depthFilePrefix = MAIN_DIR + config.getProperty("depth-file-prefix", 
-        "data/depth_raw/depth_row");
     
-    fingertipFile = MAIN_DIR + config.getProperty("fingertip-file", 
-        String.format("data/fingertip/%s.txt", "detected"));
+    fingertipFile = config.getProperty("fingertip-file", null);
+    if (fingertipFile != null)
+      fingertipFile = mainDir + fingertipFile;
     
     String labelFile = config.getProperty("label-file", null);
     if (labelFile != null)
-      labelFile = MAIN_DIR + labelFile;
+      labelFile = mainDir + labelFile;
     
     String displayOnProperty = config.getProperty("display-on", "true");
-    String derivativeSaveDir = MAIN_DIR + config.getProperty("derivative-dir", 
+    String derivativeSaveDir = mainDir + config.getProperty("derivative-dir", 
         "data/derivative/");
-    String calibrationFile = MAIN_DIR + config.getProperty("calibration-file",
+    String calibrationFile = mainDir + config.getProperty("calibration-file",
         "data/calibration.txt");
     
     if (displayOnProperty.equals("false"))
       displayOn = false;
     
     try {
-      engine = new HandTrackingEngine(openniConfigFile, 
-          calibrationFile);
+      engine = new HandTrackingEngine(openniConfigFile, calibrationFile);
     } catch (GeneralException ge) {
+      logger.info("OpenNI config file = " + openniConfigFile);
       logger.severe(ge.getMessage());
       System.exit(-1);
     }
@@ -136,21 +137,6 @@ public class HandTrackingAppController extends KeyAdapter {
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
-      if (recording) {
-        if (recorder == null) {
-          rowToRecord = engine.depthHeight() / 2;
-          String recordFileName = depthFilePrefix + rowToRecord;
-          try {
-            recorder = new Recorder(new FileOutputStream(recordFileName));
-          } catch (FileNotFoundException e) {
-              System.err.println(e.getMessage());
-              System.exit(-1);
-            }
-        }
-        ProcessPacket packet = engine.packet();
-        recorder.print(engine.packet().depthFrameID, 
-                       packet.getDepthRaw(engine.depthHeight() / 2));
-      }
     }
 
     print();
@@ -158,8 +144,13 @@ public class HandTrackingAppController extends KeyAdapter {
     System.exit(0);
   }
   
+  /**
+   * Prints finger events for evaluation.
+   */
   public void print() {
-    // Prints finger events.
+    if (fingertipFile == null)
+      return;
+    
     PrintWriter pw = null;
     try {
       pw = new PrintWriter(fingertipFile);
@@ -184,9 +175,6 @@ public class HandTrackingAppController extends KeyAdapter {
     
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
-      case KeyEvent.VK_E:
-        printDepthDiff();
-        break;
       case KeyEvent.VK_N:
         paused = true;
         engine.step();
@@ -198,60 +186,8 @@ public class HandTrackingAppController extends KeyAdapter {
       case KeyEvent.VK_Q:
         packetController.hide();
         break;
-      case KeyEvent.VK_W:
-        printDepthRaw();
-        break;
-      case KeyEvent.VK_L:
-        recording = !recording;
-        if (recording == false && recorder.isRecording())
-          recorder.close();
       default:
         break;
-    }
-  }
-
-  private void printDepthRaw() {
-    PrintStream ps = null;
-    try {
-      ProcessPacket packet = engine.packet();
-      ps = new PrintStream(
-          new File(String.format("data/depth_raw/depth_raw%03d", 
-                                 packet.depthFrameID)));
-      int index = 0;
-      for (int h = 0; h < engine.depthHeight(); h++) {
-        for (int w = 0; w < engine.depthWidth(); w++, index++)
-          ps.print(packet.depthRawData[index] + " ");
-        ps.println();
-      }
-    } catch (FileNotFoundException e) {
-      System.err.println(e.getMessage());
-    } finally {
-      if (ps != null)
-        ps.close();
-    }
-    System.out.println("Wrote depth raw value to file.");
-  }
-
-  /**
-   * Prints the current background subtracted depth frame to a file.
-   */
-  private void printDepthDiff() {
-    ProcessPacket packet = engine.packet();
-    ByteBuffer bb = packet.depthImage8U.getByteBuffer();
-    PrintStream ps = null;
-    try {
-      ps = new PrintStream(new File(String.format(
-          "data/depth_diff/depth_diff%03d.txt", packet.depthFrameID)));
-      for (int h = 0; h < engine.depthHeight(); h++) {
-        for (int w = 0; w < engine.depthWidth(); w++)
-          ps.print((bb.get(h * engine.depthWidth() + w) & 0xff) + " ");
-        ps.println();
-      }
-    } catch (FileNotFoundException e) {
-      System.err.println(e.getMessage());
-    } finally {
-      if (ps != null)
-        ps.close();
     }
   }
 
