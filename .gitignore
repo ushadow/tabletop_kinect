@@ -2,10 +2,9 @@ bin
 *.so
 .settings
 data
-config/*
-!config/.gitkeep
 lib/*
 !lib/.gitkeep
 tmp/
 *~
 Log
+*.swp
