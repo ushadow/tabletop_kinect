@@ -1,9 +1,14 @@
+This code is part of the research project for gestural input on a tabletop 
+display. One Microsoft's Kinect is used for tracking hands. The Kinect is placed
+above the tabletop about 1.2m above. This [picture] (http://people.csail.mit.edu/yingyin/resources/image/setup2.png) 
+shows the setup. 
+
 # Environment 
-* Ubuntu 11.10
+* Tested on Ubuntu 11.10 and 12.04.
 
 # Prerequisites
 
-## Install OpenNI framework and Kinect driver
+## Install OpenNI framework and the corresponding Kinect driver
 
 ## Jars:
 * JavaCV (20110820) http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20110820.zip&can=2&q=
