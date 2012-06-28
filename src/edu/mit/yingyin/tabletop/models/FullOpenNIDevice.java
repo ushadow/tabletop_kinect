@@ -19,8 +19,7 @@ import org.OpenNI.PlayerSeekOrigin;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
 
-
-import rywang.util.DirectBufferUtils;
+import edu.mit.yingyin.util.DirectBufferUtils;
 
 /**
  * This class provides the full functionality of an OpenNI sensor device.

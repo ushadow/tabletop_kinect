@@ -11,10 +11,10 @@ import java.util.Arrays;
 import org.OpenNI.GeneralException;
 import org.junit.Test;
 
-import rywang.util.Timer;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
 import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
+import edu.mit.yingyin.util.Timer;
 
 public class PerformanceTest {
   @Test

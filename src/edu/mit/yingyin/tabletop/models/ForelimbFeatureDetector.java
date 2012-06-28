@@ -19,9 +19,9 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
 
 import edu.mit.yingyin.image.BinaryFast;
 import edu.mit.yingyin.image.ThinningTransform;
-import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 import edu.mit.yingyin.util.Vector2fUtil;

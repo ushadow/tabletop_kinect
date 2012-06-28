@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.OpenNI.GeneralException;
 
-import rywang.util.ObjectIO;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.util.ObjectIO;
 
 /**
  * Model for manual labeling of points per frame in a OpenNI recorded file.

@@ -35,8 +35,8 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvContourScanner;
 
-import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.util.CvUtil;
 
 /**
  * HandAnalyzer estimates the parameters of the hand model using measurements 

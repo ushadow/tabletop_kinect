@@ -28,8 +28,6 @@ import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
 
-import rywang.viewer.FPSCounter;
-
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
 import com.googlecode.javacv.cpp.opencv_core.CvRect;
@@ -39,12 +37,13 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.CvUtil;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.HandAnalyzer;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.util.CvUtil;
+import edu.mit.yingyin.util.FPSCounter;
 
 /**
  * Controls the interaction on the visualization for the ProcessPacket.

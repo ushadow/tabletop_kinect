@@ -7,8 +7,7 @@ import java.nio.FloatBuffer;
 import org.junit.Test;
 
 import edu.mit.yingyin.tabletop.models.Table;
-
-import rywang.util.DirectBufferUtils;
+import edu.mit.yingyin.util.DirectBufferUtils;
 
 public class TableTest {
   private static final int WIDTH  = 10;

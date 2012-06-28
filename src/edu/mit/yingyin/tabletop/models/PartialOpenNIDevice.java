@@ -8,8 +8,8 @@ import java.util.List;
 
 import javax.vecmath.Point3f;
 
-import rywang.util.DirectBufferUtils;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.util.DirectBufferUtils;
 
 public class PartialOpenNIDevice implements OpenNIDevice {
 

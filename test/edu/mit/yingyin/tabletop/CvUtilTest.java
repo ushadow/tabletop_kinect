@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.util.CvUtil;
+
 public class CvUtilTest {
 
   @Test
