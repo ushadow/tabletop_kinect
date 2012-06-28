@@ -1,7 +1,7 @@
 This code is part of the research project for gestural input on a tabletop 
 display. One Microsoft's Kinect is used for tracking hands. The Kinect is placed
 above the tabletop about 1.2m above. This [picture] 
-(http://people.csail.mit.edu/yingyin/resources/image/setup2.png) shows the setup. 
+(http://people.csail.mit.edu/yingyin/resources/image/tabletop.png) shows the setup. 
 
 # Environment 
 * Tested on Ubuntu 11.10 and 12.04
