@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="tabletop_kinect">
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <path id="tabletop_kinect.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="lib/vecmath.jar"/>
+        <pathelement location="lib/javacpp.jar"/>
+        <pathelement location="lib/javacv-linux-x86_64.jar"/>
+        <pathelement location="lib/javacv.jar"/>
+        <pathelement location="/usr/share/java/org.OpenNI.jar"/>
+        <pathelement location="lib/commons-cli-1.2.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="test">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="tabletop_kinect.classpath"/>
+        </javac>
+    </target>
+    <target name="HandTrackingAppController">
+        <java classname="edu.mit.yingyin.tabletop.apps.HandTrackingAppController" failonerror="true" fork="yes">
+            <classpath refid="tabletop_kinect.classpath"/>
+        </java>
+    </target>
+</project>
