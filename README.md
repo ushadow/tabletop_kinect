@@ -38,4 +38,4 @@ above the tabletop about 1.2m above. This [picture]
 # How to build and run
 * To build all the code, type `ant build` at the command under the main project directory.
 * The main class for hand tracking is `edu.mit.yingyin.tabletop.apps.HandTrackingAppController`. To run it, type `ant HandTrackingAppController`. The program assumes the *config* and *data* directories are under the main project direcotry.
-* For a sample .oni file, you can download it from [here] (http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. You need to specify the recording file name in the OpenNI config file *config/config.xml*.
+* For a sample .oni file, you can download it from [here] (http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. The default configuration for OpenNI is to run from the recording file *./data/sample.oni*. You can change it to run from other recordings or to use actual sensors in *config/config.xml*. 
