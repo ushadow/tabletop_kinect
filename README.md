@@ -17,7 +17,7 @@ above the tabletop about 1.2m above. This [picture]
   * Currently tested with unstable branch commit 2d139677f26c06fcd9fc8d4a7db033d70021624b
   * Follow the Linux installation instructions in README
   
-## Put the following jar files in the lib directory:
+## Put the following jar files in the *lib* directory:
 * JavaCV (20110820) http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20110820.zip&can=2&q=
   * javacpp.jar  
   * javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
