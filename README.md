@@ -35,6 +35,7 @@ above the tabletop about 1.2m above. This [picture]
 	  sudo apt-get libtbb2 libtbb-dev
 	  ```
 
-# How to run
-* The main class for hand tracking is `edu.mit.yingyin.tabletop.apps.HandTrackingAppController`.
+# How to build and run
+* To build all the code, type `ant build` at the command under the main project directory.
+* The main class for hand tracking is `edu.mit.yingyin.tabletop.apps.HandTrackingAppController`. To run it, type `ant HandTrackingAppController`. The program assumes the *config* and *data* directories are under the main project direcotry.
 * For a sample .oni file, you can download it from [here] (http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. You need to specify the recording file name in the OpenNI config file *config/config.xml*.
