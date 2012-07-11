@@ -1,7 +1,4 @@
-This code is part of the research project for gestural input on a tabletop 
-display. One Microsoft's Kinect is used for tracking hands. The Kinect is placed
-above the tabletop about 1.2m above. This [picture] 
-(http://people.csail.mit.edu/yingyin/resources/image/tabletop.png) shows the setup. 
+This code is part of the research project for gestural input on a tabletop display. One Microsoft's Kinect is used for tracking hands. The Kinect is placed above the tabletop about 1.2m above. This [picture] (http://people.csail.mit.edu/yingyin/resources/image/tabletop.png) shows the setup. Currently, the code is only tested with this setup. Certain parameters are set based on the assumptions according to this setup, e.g., the distance of the tabletop from the Kinect. A different setup may cause some issues.
 
 # Environment 
 * Tested on Ubuntu 11.10 and 12.04.
@@ -17,17 +14,21 @@ above the tabletop about 1.2m above. This [picture]
   * Currently tested with unstable branch commit 2d139677f26c06fcd9fc8d4a7db033d70021624b
   * Follow the Linux installation instructions in README
   
-## Put the following jar files in the *lib* directory:
-* JavaCV (20110820) http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20110820.zip&can=2&q=
+## Jar files
+### Put the following jar files in the *lib* directory:
+* [JavaCV (20110820)] (http://code.google.com/p/javacv/downloads/detail?name=javacv-bin-20110820.zip&can=2&q=)
   * javacpp.jar  
   * javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
   * javacv.jar
 * vecmath.jar
-* org.OpenNI.jar - compiled from OpenNI installation
+* [commons-cli-1.2.jar] (http://commons.apache.org/cli/)
+
+### Other jar files
+* org.OpenNI.jar - compiled from OpenNI installation and by default is in the */usr/share/java/* folder. The build.xml file assumes the jar file is in that folder.
 
 ## Other dependencies:
-* OpenCV 2.3.1 http://sourceforge.net/projects/opencvlibrary/files/
-  * For compilation instruction, follow this guide: http://opencv.willowgarage.com/wiki/InstallGuide%20%3A%20Debian
+* [OpenCV 2.3.1] (http://sourceforge.net/projects/opencvlibrary/files/)
+  * For compilation instruction, follow this [guide] (http://opencv.willowgarage.com/wiki/InstallGuide%20%3A%20Debian).
   * There are a few changes needed to install all the necessary libaries:
 	 
 	  ```
@@ -38,4 +39,4 @@ above the tabletop about 1.2m above. This [picture]
 # How to build and run
 * To build all the code, type `ant build` at the command under the main project directory.
 * The main class for hand tracking is `edu.mit.yingyin.tabletop.apps.HandTrackingAppController`. To run it, type `ant HandTrackingAppController`. The program assumes the *config* and *data* directories are under the main project direcotry.
-* For a sample .oni file, you can download it from [here] (http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. The default configuration for OpenNI is to run from the recording file *./data/sample.oni*. You can change it to run from other recordings or to use actual sensors in *config/config.xml*. 
+* For a sample .oni file, you can download it from [here](http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. The default configuration for OpenNI is to run from the recording file *./data/sample.oni*. You can change it to run from other recordings or to use actual sensors in *config/config.xml*. 
