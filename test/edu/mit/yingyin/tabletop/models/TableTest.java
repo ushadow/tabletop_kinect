@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 import org.junit.Test;
 
 import edu.mit.yingyin.tabletop.models.Table;
-import edu.mit.yingyin.util.DirectBufferUtils;
+import edu.mit.yingyin.util.DirectBufferUtil;
 
 public class TableTest {
   private static final int WIDTH  = 10;
@@ -16,8 +16,8 @@ public class TableTest {
   @Test
   public void testTableContact() {
     Table table = Table.instance();
-    FloatBuffer avg = DirectBufferUtils.allocateFloatBuffer(WIDTH * HEIGHT);
-    FloatBuffer diff = DirectBufferUtils.allocateFloatBuffer(WIDTH * HEIGHT);
+    FloatBuffer avg = DirectBufferUtil.allocateFloatBuffer(WIDTH * HEIGHT);
+    FloatBuffer diff = DirectBufferUtil.allocateFloatBuffer(WIDTH * HEIGHT);
     avg.rewind();
     diff.rewind();
     while(avg.remaining() > 0)

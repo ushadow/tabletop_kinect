@@ -6,7 +6,7 @@ This code is part of the research project for gestural input on a tabletop displ
 # Prerequisites
 
 ## Install OpenNI framework and the corresponding Kinect driver
-* [OpenNI] (https://github.com/OpenNI/OpenNI) (Version 1.3.2.1 Stable version - Jul 4th 2011)
+* [OpenNI] (https://github.com/OpenNI/OpenNI) (Version 1.5.4.0 unstable version - May 7th 2012)
   * Currently tested with master branch commit f8467404e3e433ded1c7e960200e54e7f6fc0ce5
   * Follow the Linux installation instructions in README
 * [SensorKinect] (https://github.com/avin2/SensorKinect) PrimeSense Sensor Module 

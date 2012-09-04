@@ -9,7 +9,7 @@ import java.util.List;
 import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.util.DirectBufferUtils;
+import edu.mit.yingyin.util.DirectBufferUtil;
 
 public class PartialOpenNIDevice implements OpenNIDevice {
 
@@ -43,7 +43,7 @@ public class PartialOpenNIDevice implements OpenNIDevice {
   }
   
   public static void loadFile(String fileName, int[] depthArray) {
-    IntBuffer buffer = DirectBufferUtils.allocateIntBuffer(depthArray.length);
+    IntBuffer buffer = DirectBufferUtil.allocateIntBuffer(depthArray.length);
     loadFile(fileName, buffer, depthArray.length);
     buffer.get(depthArray);
   }
@@ -71,13 +71,13 @@ public class PartialOpenNIDevice implements OpenNIDevice {
    * @return true if the initialization is successful; false otherwise.
    */
   private boolean initFromXmlFile(String configFile) {
-    ctrlBlock = DirectBufferUtils.allocateIntBuffer(2);
-    IntBuffer widthBuf = DirectBufferUtils.allocateIntBuffer(1);
-    IntBuffer heightBuf = DirectBufferUtils.allocateIntBuffer(1);
+    ctrlBlock = DirectBufferUtil.allocateIntBuffer(2);
+    IntBuffer widthBuf = DirectBufferUtil.allocateIntBuffer(1);
+    IntBuffer heightBuf = DirectBufferUtil.allocateIntBuffer(1);
     boolean ret = initFromXmlFile(ctrlBlock, configFile, widthBuf, heightBuf);
     width = widthBuf.get(0);
     height = heightBuf.get(0);
-    depthBuf = DirectBufferUtils.allocateIntBuffer(width * height);
+    depthBuf = DirectBufferUtil.allocateIntBuffer(width * height);
     return ret;
   }
   
@@ -112,7 +112,7 @@ public class PartialOpenNIDevice implements OpenNIDevice {
   }
   
   public List<Point3f> convertDepthProjectiveToWorld(List<Point3f> points) {
-    FloatBuffer fb = DirectBufferUtils.allocateFloatBuffer(3 * points.size());
+    FloatBuffer fb = DirectBufferUtil.allocateFloatBuffer(3 * points.size());
     convertDepthProjectiveToWorld(ctrlBlock, fb);
     List<Point3f> converted = new ArrayList<Point3f>(points.size());
     float[] pointArray = new float[3];

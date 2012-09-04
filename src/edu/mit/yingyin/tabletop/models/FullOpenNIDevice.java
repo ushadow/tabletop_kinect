@@ -19,7 +19,7 @@ import org.OpenNI.PlayerSeekOrigin;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
 
-import edu.mit.yingyin.util.DirectBufferUtils;
+import edu.mit.yingyin.util.DirectBufferUtil;
 
 /**
  * This class provides the full functionality of an OpenNI sensor device.
@@ -61,7 +61,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
         depthHeight = depthMD.getFullYRes();
         depthByteBufferSize = depthHeight * depthWidth * 
             depthMD.getData().getBytesPerPixel();
-        depthBuffer = DirectBufferUtils.allocateByteBuffer(
+        depthBuffer = DirectBufferUtil.allocateByteBuffer(
             depthByteBufferSize);
       } else if (type.equals(NodeType.PLAYER)) {
         player = (Player)node.getInstance();
@@ -72,7 +72,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
         imageHeight = imageMD.getFullYRes();
         imageByteBufferSize = imageHeight * imageWidth 
             * imageMD.getData().getBytesPerPixel();
-        imageBuffer = DirectBufferUtils.allocateByteBuffer(
+        imageBuffer = DirectBufferUtil.allocateByteBuffer(
             imageByteBufferSize);
       }
     }

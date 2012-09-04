@@ -9,7 +9,7 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-public class DirectBufferUtils {
+public class DirectBufferUtil {
   public static FloatBuffer allocateFloatBuffer(int numFloats) {
 
     ByteBuffer bb;
