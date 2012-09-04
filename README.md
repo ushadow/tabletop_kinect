@@ -10,7 +10,7 @@ This code is part of the research project for gestural input on a tabletop displ
   * Currently tested with master branch commit f8467404e3e433ded1c7e960200e54e7f6fc0ce5
   * Follow the Linux installation instructions in README
 * [SensorKinect] (https://github.com/avin2/SensorKinect) PrimeSense Sensor Module 
-  for OpenNI (Version 5.0.3.4 Unstable version - Jul 19th 2011) Kinect Mod:
+  for OpenNI (VVersion 5.1.2.1 unstable version - May 15th 2012) Kinect Mod:
   * Currently tested with unstable branch commit 2d139677f26c06fcd9fc8d4a7db033d70021624b
   * Follow the Linux installation instructions in README
   
