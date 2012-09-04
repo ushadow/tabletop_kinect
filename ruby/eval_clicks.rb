@@ -23,7 +23,7 @@ def eval_gt_clicks(groundtruth)
   clicks << eval_segment(segment)
 end
 
-# Evaluates the accurarcy of the detected clicks.
+# Evaluates the accuracy of the detected clicks.
 # @param [Array] detected detected fingertips sorted according to frame IDs. 
 # @param [Array] groundtruth each element is an array of numbers as groundtruth 
 #   true labels of fingertips sorted according to frame IDs.
