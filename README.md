@@ -13,6 +13,12 @@ This code is part of the research project for gestural input on a tabletop displ
   for OpenNI (VVersion 5.1.2.1 unstable version - May 15th 2012) Kinect Mod:
   * Currently tested with unstable branch commit 2d139677f26c06fcd9fc8d4a7db033d70021624b
   * Follow the Linux installation instructions in README
+* Test that the Kinect driver and OpenNI are installed properly by running the NiViewer which is in `Platform/Linux/Bin/x86-Release/` under the OpenNI directory. If you get a "failed to set USB inferface" error, you need to remove the `gspca_kinect` kernel module by adding the following line to the file `/etc/modprobe.d/blacklist.conf`. 
+
+  ```
+  blacklist gspcs_kinect  
+  ```
+  You need `sudo` permission to edit that file.
   
 ## Jar files
 ### Put the following jar files in the *lib* directory:
