@@ -39,7 +39,7 @@ This code is part of the research project for gestural input on a tabletop displ
 	 
 	  ```
 	  sudo apt-get install libavcodec-dev libavcodec53 libavformat53 libavformat-dev
-	  sudo apt-get libtbb2 libtbb-dev
+	  sudo apt-get install libtbb2 libtbb-dev
 	  ```
 
 # How to build and run
