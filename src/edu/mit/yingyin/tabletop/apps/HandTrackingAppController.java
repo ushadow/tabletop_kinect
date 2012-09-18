@@ -7,7 +7,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -36,7 +39,10 @@ public class HandTrackingAppController extends KeyAdapter {
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
-  private static String CONFIG_FILE = "config/fingertip_tracking.config";
+  private static String CONFIG_FILE = "/config/fingertip_tracking.config";
+  private static String DATA_DIR = "/data/";
+  private static String FINGERTIP_DIR = DATA_DIR + "fingertip/";
+  private static String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
   
   @SuppressWarnings("static-access")
   public static void main(String[] args) {
@@ -53,16 +59,18 @@ public class HandTrackingAppController extends KeyAdapter {
   
   private HandTrackingEngine engine;
   private ProcessPacketController packetController;
-  private String fingertipFile;
   private HandEventListener handEventListener;
-  private boolean displayOn = true;
+  private String mainDir;
+  private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
+  private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
 
   @SuppressWarnings("unchecked")
   public HandTrackingAppController(String mainDir)  {
     logger.info("java.library.path = " + 
         System.getProperty("java.library.path"));
     
+    this.mainDir = mainDir;
     Properties config = new Properties();
     FileInputStream in = null;
     try {
@@ -81,13 +89,13 @@ public class HandTrackingAppController extends KeyAdapter {
     String openniConfigFile = mainDir + config.getProperty("openni-config", 
         "config/config.xml");
     
-    fingertipFile = config.getProperty("fingertip-file", null);
-    if (fingertipFile != null)
-      fingertipFile = mainDir + fingertipFile;
+    String saveFingertipProperty = config.getProperty("save-fingertip-data", "false");
+    if (saveFingertipProperty.equals("true"))
+      saveFingertip = true;
     
-    String labelFile = config.getProperty("label-file", null);
+    String labelFile = config.getProperty("fingertip-label-file", null);
     if (labelFile != null)
-      labelFile = mainDir + labelFile;
+      labelFile = mainDir + FINGERTIP_DIR + labelFile;
     
     String displayOnProperty = config.getProperty("display-on", "true");
     String derivativeSaveDir = mainDir + config.getProperty("derivative-dir", 
@@ -148,11 +156,13 @@ public class HandTrackingAppController extends KeyAdapter {
    * Prints finger events for evaluation.
    */
   public void print() {
-    if (fingertipFile == null)
+    if (!saveFingertip)
       return;
     
     PrintWriter pw = null;
     try {
+      Date date =  new Date();
+      String fingertipFile = mainDir + FINGERTIP_DIR + dateFormat.format(date) + ".txt";
       pw = new PrintWriter(fingertipFile);
       handEventListener.toOutput(pw);
       logger.info("Tracker controller output done.");

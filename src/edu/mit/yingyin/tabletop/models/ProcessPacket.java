@@ -123,7 +123,17 @@ public class ProcessPacket {
     return rowData;
   }
   
+  /**
+   * Returns the raw depth value at (x, y).
+   * @param x the x coordinate.
+   * @param y the y coordinate.
+   * @return the raw depth value.
+   */
   public int getDepthRaw(int x, int y) {
+    if (x >= width)
+      x = width;
+    if (y >= height)
+      y = height;
     return depthRawData[y * width + x];
   }
   

@@ -75,6 +75,10 @@ public class HandTrackingEngine {
   
   public ProcessPacket packet() { return packet; }
   
+  /**
+   * Checks if all the frames are played.
+   * @return true if all the frames are played.
+   */
   public boolean isDone() {
     return packet.depthFrameID < prevDepthFrameID;
   }

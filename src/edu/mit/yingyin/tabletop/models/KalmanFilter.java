@@ -67,6 +67,9 @@ public class KalmanFilter {
     cvSetIdentity(kalman.measurement_noise_cov(), cvRealScalar(1));
   }
   
+  /*
+   * Filters the detected fingertips.
+   */
   public void filter(ProcessPacket packet) {
     if (packet.forelimbs.isEmpty()) {
       resetKalman();
@@ -83,7 +86,7 @@ public class KalmanFilter {
           Point3f tip = findBestPoint(forelimb); 
           initKalman(tip.x, tip.y);
           forelimb.filteredFingertips.add(tip);
-      }
+        }
       }
     }
   }
@@ -149,13 +152,7 @@ public class KalmanFilter {
       CvMat statePost = cvKalmanCorrect(kalman, zk);
       result = new Point3f((float)statePost.get(0), (float)statePost.get(1), 
                            closest.z);
-    } else {
-      // Hack(ushadow): assumes the lack of measurement is due to mistake.
-      // TODO(ushadow): need to consider the case when there is actually no 
-      // fingertip.
-      float z = packet.getDepthRaw(Math.round(x), Math.round(y));
-      result = new Point3f(x, y, z);
-    }
+    } 
     return result;
   }
   
