@@ -26,6 +26,11 @@ import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 import edu.mit.yingyin.util.Vector2fUtil;
 
+/**
+ * A detector for forelimb features including fingertip positions.
+ * @author yingyin
+ *
+ */
 public class ForelimbFeatureDetector {
   
   // Around 45 deg.
@@ -35,8 +40,14 @@ public class ForelimbFeatureDetector {
   
   private static final float FINGERTIP_WIDTH_THRESHOLD = 
     FINGERTIP_WIDTH * FINGERTIP_WIDTH / 4;
-  
  
+  private int width, height;
+
+  public ForelimbFeatureDetector(int width, int height) {
+    this.width = width;
+    this.height = height;
+  }
+  
   public void extractFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion == null)
@@ -115,7 +126,7 @@ public class ForelimbFeatureDetector {
     int widthStep = packet.derivative.widthStep() / 4;
     
     int count = 0;
-    while (count <= FINGERTIP_WIDTH) {
+    while (count <= FINGERTIP_WIDTH && p.y < height && p.x < width) {
       float gradient = fb.get((int)p.y * widthStep + (int)p.x);
       if (gradient > 0.05 || gradient < -0.05) {
         break;

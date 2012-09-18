@@ -76,7 +76,7 @@ public class HandAnalyzer {
   private Background background;
   private IplImage tempImage;
   private IplImage foregroundMask;
-  private ForelimbFeatureDetector  ffd = new ForelimbFeatureDetector();
+  private ForelimbFeatureDetector ffd;
   private KalmanFilter filter;
   
   /**
@@ -89,6 +89,7 @@ public class HandAnalyzer {
     background = new Background(width, height, MAX_DEPTH);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     filter = new KalmanFilter(width, height);
+    ffd = new ForelimbFeatureDetector(width, height);
   }
   
   /**
