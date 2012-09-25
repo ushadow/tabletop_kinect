@@ -11,7 +11,6 @@ import java.nio.IntBuffer;
 
 public class DirectBufferUtil {
   public static FloatBuffer allocateFloatBuffer(int numFloats) {
-
     ByteBuffer bb;
     int allocationSize = 4 * numFloats;
     bb = ByteBuffer.allocateDirect(allocationSize);
@@ -20,7 +19,6 @@ public class DirectBufferUtil {
   }
   
   public static DoubleBuffer allocateDoubleBuffer(int numDoubles) {
-
     ByteBuffer bb;
     int allocationSize = 8 * numDoubles;
     bb = ByteBuffer.allocateDirect(allocationSize);
@@ -29,7 +27,6 @@ public class DirectBufferUtil {
   }
 
   public static IntBuffer allocateIntBuffer(int numInts) {
-
     ByteBuffer bb;
     int allocationSize = 4 * numInts;
     bb = ByteBuffer.allocateDirect(allocationSize);
@@ -38,7 +35,6 @@ public class DirectBufferUtil {
   }
 
   public static ByteBuffer allocateByteBuffer(int numBytes) {
-
     ByteBuffer bb;
     int allocationSize = numBytes;
     bb = ByteBuffer.allocateDirect(allocationSize);
