@@ -10,7 +10,7 @@ import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 
 /**
- * Tests the fingertip tracking with the checkerboard calibraiton image.
+ * Tests the fingertip tracking with the checkerboard calibration image.
  * @author yingyin
  *
  */
