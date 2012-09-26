@@ -1,47 +1,23 @@
 package edu.mit.yingyin.tabletop.controllers;
 
-import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
-import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
-import static com.googlecode.javacv.cpp.opencv_core.cvRectangle;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GRAY2BGR;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.vecmath.Point3f;
-
 import org.OpenNI.GeneralException;
 
-import com.googlecode.javacv.CanvasFrame;
-import com.googlecode.javacv.cpp.opencv_core.CvPoint;
-import com.googlecode.javacv.cpp.opencv_core.CvRect;
-import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
-import edu.mit.yingyin.gui.ImageComponent;
-import edu.mit.yingyin.gui.ImageFrame;
-import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.Forelimb;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
-import edu.mit.yingyin.tabletop.models.HandAnalyzer;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.tabletop.views.ProcessPacketView;
+import edu.mit.yingyin.tabletop.views.ProcessPacketView.Toggles;
 import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.FPSCounter;
 
@@ -52,167 +28,55 @@ import edu.mit.yingyin.util.FPSCounter;
  */
 public class ProcessPacketController extends KeyAdapter implements MouseListener 
 {
-  /**
-   * Image component for visualizing RBG images.
-   * @author yingyin
-   *
-   */
-  private class RgbImageComponent extends ImageComponent {
-    private static final long serialVersionUID = 3880292315260748112L;
-    private static final int OVAL_WIDTH = 6;
-    
-    public RgbImageComponent(Dimension d) {
-      super(d);
-    }
-    
-    @Override
-    public void paint(Graphics g) {
-      super.paint(g);
-      
-      if (packet == null)
-        return;
-      
-      Graphics2D g2d = (Graphics2D) g;
-      g2d.setColor(Color.green);
-      for (Forelimb limb : packet.forelimbs) {
-        for (List<Point3f> finger : limb.fingers) {
-          for (Point3f p : finger) {
-            g2d.drawLine((int)p.x, (int)p.y, (int)p.x, (int)p.y);
-          }
-        }
-      }
-      
-      // Draws labeled points.
-      if (label != null) {
-        for (Point p : label)
-          g2d.drawOval(p.x - OVAL_WIDTH / 2, p.y - OVAL_WIDTH / 2, OVAL_WIDTH,
-              OVAL_WIDTH);
-      }
-      
-      // Draws measured points.
-      synchronized (packet.forelimbs) {
-        for (Forelimb forelimb : packet.forelimbs){
-          g2d.setColor(Color.red);
-          for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-            if (p.confidence > 0.5)
-              g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
-                  (int)p.value.y - OVAL_WIDTH / 2, 
-                  OVAL_WIDTH, OVAL_WIDTH);
-          }
-          g2d.setColor(Color.blue);
-          for (Point3f p : forelimb.filteredFingertips) {
-            g2d.drawOval((int)p.x - OVAL_WIDTH / 2, 
-                (int)p.y - OVAL_WIDTH / 2, 
-                OVAL_WIDTH, OVAL_WIDTH);
-          }
-        }
-      }
-    }
-  }
-  
   public String derivativeSaveDir = "data/derivative/";
-  private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
-  
-  private IplImage analysisImage;
-  private IplImage appImage;
-  private CanvasFrame[] frames = new CanvasFrame[2];
+
   private FPSCounter fpsCounter;
-  private float[] histogram;
-  private boolean showConvexityDefects = false;
-  private boolean showHull = false;
-  private boolean showMorphed = true;
-  private boolean showFingertip = true;
-  private boolean showBoundingBox = true;
-  private boolean showLabels = false;
-  private ImageFrame diagnosticFrame, rgbFrame;
-  
-  /**
-   * Current packet to view.
-   */
+  private HashMap<Integer, List<Point>> allLabels;
+  private ProcessPacketView packetView;
   private ProcessPacket packet;
-  private BufferedImage bufferedImage;
-  private int width, height;
   
   /**
-   * Toggles for viewing different diagnostic frames.
-   */
-  private boolean showRgbImage = false;
-  private boolean showDepthImage = true;
-  private boolean showDiagnosticeImage = true;
-  
-  private HashMap<Integer, List<Point>> labels;
-  private List<Point> label;
-  
-  /**
-   * Initializes the data structures.
+   * Initializes the models and the view.
    * @param width
    * @param height
    */
   public ProcessPacketController(int width, int height, 
       HashMap<Integer, List<Point>> labels) {
-    this.width = width;
-    this.height = height;
-    this.labels = labels;
-    
-    frames[0] = new CanvasFrame("Processed");
-    frames[1] = new CanvasFrame("Depth");
-    for (CanvasFrame frame : frames)
-      frame.setCanvasSize(width, height);
-
-    fpsCounter = new FPSCounter("Processed", frames[0]);
-
-    analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
-    appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    
-    diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, 
-        new RgbImageComponent(new Dimension(width, height)));
-    Rectangle rect = frames[0].getBounds();
-    diagnosticFrame.setLocation(0, rect.y + rect.height);
-    
-    histogram = new float[HandAnalyzer.MAX_DEPTH];
-    
-    addKeyListener(this);
-    diagnosticFrame.addMouseListenerToImageComponent(this);
-    
-    bufferedImage = new BufferedImage(width, height, 
-        BufferedImage.TYPE_USHORT_GRAY);
-  }
-  
-  public void showUI(){
-    CanvasFrame.tile(frames);
-    if (showDiagnosticeImage)
-      diagnosticFrame.showUI();
+    this.allLabels = labels;
+    packetView = new ProcessPacketView(width, height);
+    fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
+    packetView.addKeyListener(this);
+    packetView.addMouseListener(this);
   }
   
   public void showDepthImage(boolean show) {
-    frames[1].setVisible(show);
+    packetView.showDepthImage(show);
   }
   
   public void showDiagnosticImage(boolean show) {
-    diagnosticFrame.setVisible(show);
+    packetView.showDiagnosticImage(show);
   }
   
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
     case KeyEvent.VK_B:
-      showBoundingBox = !showBoundingBox;
+      packetView.toggle(Toggles.SHOW_BOUNDING_BOX);
       break;
     case KeyEvent.VK_D:
-      showConvexityDefects = !showConvexityDefects;
+      packetView.toggle(Toggles.SHOW_CONVEXITY_DEFECTS);
       break;
     case KeyEvent.VK_F:
       // Shows all the detected fingertips.
-      System.out.println("Toggled show fingertip.");
-      showFingertip = !showFingertip;
+      packetView.toggle(Toggles.SHOW_FINGERTIP);
       break;
     case KeyEvent.VK_H:
-      showHull = !showHull;
+      packetView.toggle(Toggles.SHOW_HULL);
       break;
     case KeyEvent.VK_M:
-      showMorphed = !showMorphed;
+      packetView.toggle(Toggles.SHOW_MORPHED);
       break;
     case KeyEvent.VK_L:
-      showLabels = !showLabels;
+      packetView.toggle(Toggles.SHOW_LABELS);
       break;
     case KeyEvent.VK_S:
       PrintWriter pw = null;
@@ -230,7 +94,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       break;
     case KeyEvent.VK_R:
       // Showing RGB image.
-      showRgbImage = true;
+      packetView.setToggle(Toggles.SHOW_RGB_IMAGE, true);
       break;
     default: 
       break;
@@ -244,18 +108,27 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
-    if (labels != null)
-      label = labels.get(packet.depthFrameID);
-    
-    showAnalysisImage();
-    if (showDiagnosticeImage)
-      showDiagnosticImage();
-    
-    if (showDepthImage)
-      showDepthImage();
-    
-    if (showRgbImage)
-      showRgbImage();
+    packetView.update(packet, allLabels.get(packet.depthFrameID));
+    fpsCounter.computeFPS();
+  }
+  
+  /**
+   * Releases memory.
+   */
+  public void release() {
+    packetView.release();
+  }
+  
+  public boolean isVisible() {
+    return packetView.isVisible();
+  }
+  
+  public void hide() {
+    packetView.hide();
+  }
+  
+  public void addKeyListener(KeyListener kl) {
+    packetView.addKeyListener(kl);
   }
   
   /**
@@ -264,38 +137,11 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    * @param y
    */
   public void drawCircle(int x, int y) {
-    //cvCircle(img, center, radius, color, thickness, lineType, shift)
-    cvCircle(appImage, new CvPoint(x, y), 4, CvScalar.WHITE, -1, 8, 0);
-    frames[1].showImage(appImage);
+    packetView.drawCircle(x, y);
   }
   
-  /**
-   * Releases memory.
-   */
-  public void release() {
-    analysisImage.release();
-    appImage.release();
-    for (CanvasFrame frame : frames)
-      frame.dispose();
-    System.out.println("ProcessPacketView released.");
-  }
-  
-  public void addKeyListener(KeyListener kl) {
-    for (CanvasFrame frame : frames)
-      frame.addKeyListener(kl);
-    diagnosticFrame.addKeyListener(kl);
-  }
-  
-  public boolean isVisible() {
-    boolean isVisible = true;
-    for (CanvasFrame frame : frames)
-      isVisible = isVisible && frame.isVisible();
-    return isVisible;
-  }
-  
-  public void hide() {
-    for (CanvasFrame frame: frames)
-      frame.setVisible(false);
+  public void showUI() {
+    packetView.showUI();
   }
 
   @Override
@@ -303,7 +149,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     Point p = me.getPoint();
     IplImage image = packet.derivative;
     float value = image.getFloatBuffer().get(p.y * image.widthStep() / 4 + p.x);
-    diagnosticFrame.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
+    packetView.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
   }
 
   @Override
@@ -329,85 +175,4 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     // TODO Auto-generated method stub
     
   }
-  
-  /**
-   * Displays the image for analysis.
-   */
-  private void showAnalysisImage() {
-    if (showMorphed)
-      cvCvtColor(packet.morphedImage, analysisImage, CV_GRAY2BGR);
-    else
-      cvCvtColor(packet.depthImage8U, analysisImage, CV_GRAY2BGR);
-    
-    for (ForelimbFeatures ff : packet.forelimbFeatures){
-      if (showBoundingBox) {
-        CvRect rect = ff.boundingBox;
-        cvRectangle(analysisImage, 
-            new CvPoint(rect.x(), rect.y()), 
-            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
-            CvScalar.WHITE, 1, 8, 0);
-      }
-    
-      if (showConvexityDefects) {
-         CvUtil.drawConvexityDefects(ff.convexityDefects, analysisImage, 
-             showLabels);
-      }
-      
-      if (showHull) {
-        CvUtil.drawHull(ff.hull, ff.approxPoly, analysisImage);
-      }
-    }
-
-    // Shows unfiltered fingertips.
-    if (showFingertip)
-      for (Forelimb forelimb : packet.forelimbs)
-        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-          if (p.confidence > 0.5)
-            cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
-                4, CvScalar.GREEN, -1, 8, 0);
-        }
-
-    frames[0].showImage(analysisImage);
-    fpsCounter.computeFPS();
-  }
-  
-  /**
-   * Displays the application image.
-   * @param packet
-   */
-  private void showDepthImage() {
-    ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
-    ByteBuffer ib = appImage.getByteBuffer();
-    int widthStep = appImage.widthStep();
-    for (int h = 0; h < packet.height; h++) 
-      for (int w = 0; w < packet.width; w++) {
-        int depth = packet.depthRawData[h * packet.width + w];
-        ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
-      }
-    // Draws labeled points.
-    if (label != null) {
-      for (Point p : label)
-        cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
-    }
-    frames[1].showImage(appImage);
-    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
-  }
-  
-  private void showDiagnosticImage() {
-    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
-        packet.derivative.getFloatBuffer(), bufferedImage, 
-        packet.derivative.widthStep() / 4);
-    diagnosticFrame.updateImage(bufferedImage);
-  }
-
-  private void showRgbImage() throws GeneralException {
-    if (rgbFrame == null) {
-      rgbFrame = new ImageFrame("RGB", new Dimension(width, height));
-      Rectangle bounds = diagnosticFrame.getBounds();
-      rgbFrame.setLocation(bounds.x + bounds.width, bounds.y);
-      rgbFrame.showUI();
-    }
-    rgbFrame.updateImage(packet.rgbImage());
-  }
-  
 }    
