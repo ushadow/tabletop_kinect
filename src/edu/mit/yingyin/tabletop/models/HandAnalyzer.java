@@ -63,7 +63,7 @@ public class HandAnalyzer {
    */
   private static final int BG_INGNORE_FRAMES = 20;
 
-  private static final float BG_DIFF_SCALE = 5;
+  private static final float BG_DIFF_SCALE = 15;
   
   /**
    * The number of iterations of morphological transformation. 
