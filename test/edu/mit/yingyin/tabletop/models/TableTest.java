@@ -25,7 +25,7 @@ public class TableTest {
     while(diff.remaining() > 0)
       diff.put(1);
     
-    table.init(avg, diff, WIDTH, WIDTH, 1);
+    table.init(avg, diff, WIDTH, WIDTH);
     assertTrue(table.isInContact(0, 0, 1));
     assertTrue(table.isInContact(0, 1, (float)1.9));
     assertTrue(table.isInContact(1, 1, (float)0.1));

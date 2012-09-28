@@ -25,6 +25,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
 import com.googlecode.javacpp.Loader;
@@ -51,10 +52,13 @@ public class HandAnalyzer {
    * Maximum depth in mm for the tabletop application.
    */
   public static final int MAX_DEPTH = 1600;
+  
   /**
    * Number of initial frames to initialize the background.
    */
   private static final int BG_INIT_FRAMES = 30;
+  
+  private static final int BG_INGNORE_FRAMES = 0;
   /**
    * The number of iterations of morphological transformation. 
    */
@@ -86,10 +90,30 @@ public class HandAnalyzer {
    */
   public HandAnalyzer(int width, int height) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    background = new Background(width, height, MAX_DEPTH);
+    background = new Background(width, height);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     filter = new KalmanFilter(width, height);
     ffd = new ForelimbFeatureDetector(width, height);
+  }
+  
+  public boolean isBgInitialized() {
+    return background.isInitialized();
+  }
+  
+  public FloatBuffer aveBg() {
+    return background.avgBuffer();
+  }
+  
+  public int aveBgWidth() {
+    return background.avgBufferWidthStep();
+  }
+  
+  public FloatBuffer diffBg() {
+    return background.diffBuffer();
+  }
+  
+  public int diffBgWidth() {
+    return background.diffBufferWidthStep();
   }
   
   /**
@@ -99,6 +123,9 @@ public class HandAnalyzer {
   public void analyzeData(ProcessPacket packet) {
     packet.clear();
     
+    if (packet.depthFrameID < BG_INGNORE_FRAMES)
+      return;
+    
     CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
                            MAX_DEPTH);
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
@@ -107,7 +134,7 @@ public class HandAnalyzer {
       background.accumulateBackground(packet.depthRawData);
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
-      background.createModelsFromStats((float)6.0, (float)7.0);
+      background.createModelsFromStats((float)5.0, (float)5.0);
       Table.instance().init(background);
       logger.info(background.stats());
     }

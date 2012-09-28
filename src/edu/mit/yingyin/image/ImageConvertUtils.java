@@ -44,7 +44,7 @@ import javax.swing.ImageIcon;
 public class ImageConvertUtils {
 
   /**
-   * Converts an AWT Image into a grayscale BufferedImage.
+   * Converts an AWT Image into a gray scale BufferedImage.
    * 
    * @param image the image to convert
    * @return a BufferedImage
@@ -458,7 +458,7 @@ public class ImageConvertUtils {
   }
   
   /**
-   * Converts an array of short values into a cumulative historgram.
+   * Converts an array of short values into a cumulative histogram.
    * @param array a short array.
    * @param histogram keeps the cumulative frequencies of values in the 
    *    <code>array</code> in the range (0, length of <code>histogram</code>).

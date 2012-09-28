@@ -13,13 +13,12 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.tabletop.models.Background;
 
 public class BackgroundTest {
-  private static final int MAX_DEPTH = 10;
   private static final int WIDTH = 10, HEIGHT = 10;
   private static final float EPSILON = 0.00001f;
   
   @Test
   public void testBackgroundDiffSimple() {
-    Background bg = new Background(WIDTH, HEIGHT, MAX_DEPTH);
+    Background bg = new Background(WIDTH, HEIGHT);
     int[] depthRawData = new int[WIDTH * HEIGHT];
     Arrays.fill(depthRawData, 1);
     
@@ -33,7 +32,7 @@ public class BackgroundTest {
     IplImage mask = IplImage.create(WIDTH, HEIGHT, IPL_DEPTH_8U, 1);
     
     int[] newDepth = new int[WIDTH * HEIGHT]; 
-    Arrays.fill(newDepth, 2);
+    Arrays.fill(newDepth, 3);
     bg.backgroundDiff(newDepth, mask);
     ByteBuffer bb = mask.getByteBuffer();
     int widthStep = mask.widthStep();
@@ -51,7 +50,7 @@ public class BackgroundTest {
   
   @Test
   public void testBackgroundDiffVaried() {
-    Background bg = new Background(WIDTH, HEIGHT, MAX_DEPTH);
+    Background bg = new Background(WIDTH, HEIGHT);
     int[] depthRawData = new int[WIDTH * HEIGHT];
     
     for (int i = 0; i < 11; i++) {
@@ -65,7 +64,7 @@ public class BackgroundTest {
     IplImage mask = IplImage.create(WIDTH, HEIGHT, IPL_DEPTH_8U, 1);
     
     int[] newDepth = new int[WIDTH * HEIGHT]; 
-    Arrays.fill(newDepth, 2);
+    Arrays.fill(newDepth, 1);
     bg.backgroundDiff(newDepth, mask);
     ByteBuffer bb = mask.getByteBuffer();
     int widthStep = mask.widthStep();
@@ -83,7 +82,7 @@ public class BackgroundTest {
   
   @Test
   public void testWidthSteps() {
-    Background bg = new Background(WIDTH, HEIGHT, MAX_DEPTH);
+    Background bg = new Background(WIDTH, HEIGHT);
     assertEquals(WIDTH, bg.avgBufferWidthStep());
     assertEquals(WIDTH, bg.diffBufferWidthStep());
   }

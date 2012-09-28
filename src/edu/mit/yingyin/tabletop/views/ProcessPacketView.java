@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.JFrame;
 import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
@@ -153,6 +154,7 @@ public class ProcessPacketView {
   public void update(ProcessPacket packet,List<Point> fingertipLabels) 
       throws GeneralException {
     fingertipView.setFingertips(packet.forelimbs, fingertipLabels);
+
     showAnalysisImage(packet);
     if (toggleMap.get(Toggles.SHOW_DIAGNOSTIC_IMAGE))
       showDiagnosticImage(packet);
@@ -162,6 +164,8 @@ public class ProcessPacketView {
     
     if (toggleMap.get(Toggles.SHOW_RGB_IMAGE))
       showRgbImage(packet);
+    
+    showHeatMap(packet);
   }
   
   public void addKeyListener(KeyListener kl) {
@@ -325,5 +329,25 @@ public class ProcessPacketView {
       rgbFrame.showUI();
     }
     rgbFrame.updateImage(packet.rgbImage());
+  }
+  
+  private void showHeatMap(ProcessPacket packet) {
+    double[][] data = new double[width][height];
+    int[] depthRaw = packet.depthRawData;
+    int min = Integer.MAX_VALUE;
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++) {
+        int val = depthRaw[h * width + w];
+        if (val != 0) {
+          min = val < min ? val : min;
+          data[w][h] = val;
+        }
+      }
+    
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++) {
+        if (depthRaw[h * width + w] == 0)
+          data[w][h] = min;
+      }
   }
 }

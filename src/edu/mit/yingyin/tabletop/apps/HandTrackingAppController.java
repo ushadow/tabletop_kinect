@@ -20,6 +20,7 @@ import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
+import edu.mit.yingyin.tabletop.controllers.BackgroundController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
@@ -39,7 +40,7 @@ public class HandTrackingAppController extends KeyAdapter {
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
-  private static String CONFIG_FILE = "/config/fingertip_tracking.config";
+  private static String CONFIG_FILE = "/config/fingertip_tracking.properties";
   private static String DATA_DIR = "/data/";
   private static String FINGERTIP_DIR = DATA_DIR + "fingertip/";
   private static String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
@@ -139,12 +140,13 @@ public class HandTrackingAppController extends KeyAdapter {
         continue;
       engine.step();
       
-      if (packetController != null)
+      if (packetController != null) {
         try {
           packetController.show(engine.packet());
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
+      }
     }
 
     print();
@@ -162,7 +164,8 @@ public class HandTrackingAppController extends KeyAdapter {
     PrintWriter pw = null;
     try {
       Date date =  new Date();
-      String fingertipFile = mainDir + FINGERTIP_DIR + dateFormat.format(date) + ".txt";
+      String fingertipFile = mainDir + FINGERTIP_DIR + dateFormat.format(date) + 
+          ".txt";
       pw = new PrintWriter(fingertipFile);
       handEventListener.toOutput(pw);
       logger.info("Tracker controller output done.");

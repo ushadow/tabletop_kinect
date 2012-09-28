@@ -1,6 +1,7 @@
 package edu.mit.yingyin.tabletop.models;
 
 import java.awt.image.BufferedImage;
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -101,5 +102,25 @@ public class HandTrackingEngine {
   
   public void getRgbImage(BufferedImage bi) throws GeneralException {
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
+  }
+  
+  public boolean isBgInitialize() {
+    return analyzer.isBgInitialized();
+  }
+  
+  public FloatBuffer aveBg() {
+    return analyzer.aveBg();
+  }
+  
+  public int aveBgWidth() {
+    return analyzer.aveBgWidth();
+  }
+  
+  public FloatBuffer diffBg() {
+    return analyzer.diffBg();
+  }
+  
+  public int diffBgWidth() {
+    return analyzer.diffBgWidth();
   }
 }

@@ -171,7 +171,7 @@ public class CvUtil {
     for (int h = 0; h < height; h++)
       for (int w = 0; w < width; w++) {
         float depth = (float)raw[h * width + w] / scale;
-        fb.put(h * widthStep + w, depth > 1 ? 1 : depth);
+        fb.put(h * widthStep + w, depth);
     }
   }
   

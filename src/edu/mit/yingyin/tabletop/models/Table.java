@@ -18,7 +18,6 @@ public class Table {
   private FloatBuffer avg, diff;
   private int avgWidthStep, diffWidthStep;
   private boolean initialized = false;
-  private int scale;
 
   public static Table instance() {
     if (table == null)
@@ -35,19 +34,17 @@ public class Table {
    * @param scale used to scale the depth value.
    */
   public void init(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-                   int diffWidthStep, int scale) {
+                   int diffWidthStep) {
     this.avg = avg;
     this.diff = diff;
     this.avgWidthStep = avgWidthStep;
     this.diffWidthStep = diffWidthStep;
-    this.scale = scale;
     initialized = true;
   }
   
   public void init(Background background) {
     init(background.avgBuffer(), background.diffBuffer(), 
-         background.avgBufferWidthStep(), background.diffBufferWidthStep(),
-         background.getScale());
+         background.avgBufferWidthStep(), background.diffBufferWidthStep());
   }
   
   /**
@@ -63,9 +60,8 @@ public class Table {
       return false;
     float tableDepth = depthAt(x, y);
     float tableDiff = diffAt(x, y);
-    float scaledZ = z / scale; 
-    return scaledZ < tableDepth + tableDiff * DIFF_SCALE && 
-        scaledZ > tableDepth - tableDiff * DIFF_SCALE;
+    return z < tableDepth + tableDiff * DIFF_SCALE && 
+        z > tableDepth - tableDiff * DIFF_SCALE;
   }
 
   /**
