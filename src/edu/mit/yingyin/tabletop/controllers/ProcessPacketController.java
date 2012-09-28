@@ -20,6 +20,9 @@ import edu.mit.yingyin.tabletop.views.ProcessPacketView;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView.Toggles;
 import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.FPSCounter;
+import edu.mit.yingyin.util.Option;
+import edu.mit.yingyin.util.Option.None;
+import edu.mit.yingyin.util.Option.Some;
 
 /**
  * Controls the interaction on the visualization for the ProcessPacket.
@@ -31,30 +34,34 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   public String derivativeSaveDir = "data/derivative/";
 
   private FPSCounter fpsCounter;
-  private HashMap<Integer, List<Point>> allLabels;
+  private Option<HashMap<Integer, List<Point>>> allLabels;
   private ProcessPacketView packetView;
   private ProcessPacket packet;
   
   /**
    * Initializes the models and the view.
-   * @param width
-   * @param height
+   * @param width width of the streamed data frame.
+   * @param height height of the stream data frame.
+   * @param lables ground truth label. Can be null.
    */
   public ProcessPacketController(int width, int height, 
       HashMap<Integer, List<Point>> labels) {
-    this.allLabels = labels;
+    if (labels == null)
+      allLabels = new None<HashMap<Integer, List<Point>>>();
+    else
+      allLabels = new Some<HashMap<Integer, List<Point>>>(labels);
     packetView = new ProcessPacketView(width, height);
     fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
     packetView.addKeyListener(this);
     packetView.addMouseListener(this);
   }
   
-  public void showDepthImage(boolean show) {
-    packetView.showDepthImage(show);
-  }
-  
   public void showDiagnosticImage(boolean show) {
     packetView.showDiagnosticImage(show);
+  }
+  
+  public void showDepthImage(boolean show) {
+    packetView.showDepthImage(show);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -108,7 +115,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
    */
   public void show(ProcessPacket packet) throws GeneralException {
     this.packet = packet;
-    packetView.update(packet, allLabels.get(packet.depthFrameID));
+    List<Point> labels = allLabels.isSome() ? 
+        allLabels.value().get(packet.depthFrameID) : null;
+    packetView.update(packet, labels);
     fpsCounter.computeFPS();
   }
   
