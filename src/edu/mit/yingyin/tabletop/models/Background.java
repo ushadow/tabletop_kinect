@@ -98,11 +98,12 @@ public class Background {
    * @param depthRawData int array of depth values.
    */
   public void accumulateBackground(int[] depthRawData) {
-    scale(depthRawData, scratchI);
+    depthToImage(depthRawData, scratchI);
     if (!first) {
       cvAcc(scratchI, avgFI, null);
       count += 1;
-      cvAbsDiff(scratchI, prevFI, scratchI2);
+      cvConvertScale(avgFI, scratchI2, 1.0 / count, 0); 
+      cvAbsDiff(scratchI, scratchI2, scratchI2);
       cvAcc(scratchI2, diffFI, null);
     }
     first = false;
@@ -139,7 +140,7 @@ public class Background {
    */
   public void backgroundDiff(int[] depthRawData, IplImage mask) {
     // To float.
-    scale(depthRawData, scratchI);
+    depthToImage(depthRawData, scratchI);
     // lowFI is inclusive lower bound, and hiFI is exclusive higher bound.
     cvInRange(scratchI, lowFI, hiFI, mask);
     // Inverts the results.
@@ -245,7 +246,7 @@ public class Background {
    * @param image floating-point 1-channel image with the same number of pixels
    *          as the depth array.
    */
-  private void scale(int[] depthRawData, IplImage image) {
+  private void depthToImage(int[] depthRawData, IplImage image) {
     CvUtil.intToFloatImage(depthRawData, image, 1);
   }
 

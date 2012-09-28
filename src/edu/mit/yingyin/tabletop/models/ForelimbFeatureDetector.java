@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -32,6 +33,8 @@ import edu.mit.yingyin.util.Vector2fUtil;
  *
  */
 public class ForelimbFeatureDetector {
+  private static final Logger logger = Logger.getLogger(
+      ForelimbFeatureDetector.class.getName());
   
   // Around 45 deg.
   private static final float FINGERTIP_ANGLE = (float)0.8;
@@ -127,7 +130,9 @@ public class ForelimbFeatureDetector {
     
     int count = 0;
     while (count <= FINGERTIP_WIDTH && p.y < height && p.x < width) {
-      float gradient = fb.get((int)p.y * widthStep + (int)p.x);
+      int index = (int)p.y * widthStep + (int)p.x; 
+      logger.fine(String.format("index = %d", index));
+      float gradient = fb.get(index);
       if (gradient > 0.05 || gradient < -0.05) {
         break;
       }
@@ -191,7 +196,7 @@ public class ForelimbFeatureDetector {
   public void extractFeaturesThinning(ProcessPacket packet) {
     thinningHands(packet);
   }
-  
+
   /**
    * Structuring elements for skeletonization by morphological thinning.
    */
