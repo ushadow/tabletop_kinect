@@ -54,16 +54,18 @@ public class HandAnalyzer {
   public static final int MAX_DEPTH = 1600;
   
   /**
-   * Number of initial frames to initialize the background.
-   */
-  private static final int BG_INIT_FRAMES = 40;
-  
-  /**
    * Number of initial frames to ignore.
    */
   private static final int BG_INGNORE_FRAMES = 20;
 
-  private static final float BG_DIFF_SCALE = 15;
+  /**
+   * Number of initial frames to initialize the background.
+   */
+  private static final int BG_INIT_FRAMES = BG_INGNORE_FRAMES + 40;
+  
+
+  private static final float BG_DIFF_LSCALE = 5;
+  private static final float BG_DIFF_HSCALE = 15;
   
   /**
    * The number of iterations of morphological transformation. 
@@ -139,9 +141,9 @@ public class HandAnalyzer {
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
-    } else if (packet.depthFrameID == BG_INGNORE_FRAMES + BG_INIT_FRAMES) {
-      background.createModelsFromStats((float)BG_DIFF_SCALE,
-	  (float)BG_DIFF_SCALE);
+    } else if (packet.depthFrameID == BG_INIT_FRAMES) {
+      background.createModelsFromStats((float) BG_DIFF_LSCALE,
+	  (float) BG_DIFF_HSCALE);
       Table.instance().init(background);
       logger.info(background.stats());
     }

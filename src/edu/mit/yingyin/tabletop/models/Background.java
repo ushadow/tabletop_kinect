@@ -14,6 +14,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
+import static com.googlecode.javacv.cpp.opencv_core.cvMul;
 
 import java.nio.FloatBuffer;
 import java.util.logging.Logger;
@@ -33,6 +34,8 @@ public class Background {
   private static Logger logger = Logger.getLogger(Background.class.getName());
 
   private static final float MIN_DIFF = (float) 1;
+  
+  private static final int BITS_PER_BYTE = 8; 
 
   /**
    * Float, 1-channel images. All the depth values are scaled between 0 and 1
@@ -44,7 +47,7 @@ public class Background {
   /**
    * Absolute difference between the current frame and the previous frame.
    */
-  private IplImage diffFI, hiFI, lowFI;
+  private IplImage diffFI, hiFI, lowFI, scaleFI;
   private IplImage mask;
   private boolean first = true;
 
@@ -78,6 +81,7 @@ public class Background {
     diffFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     hiFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     lowFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
+    scaleFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     mask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     cvZero(avgFI);
     cvZero(prevFI);
@@ -123,8 +127,9 @@ public class Background {
     cvConvertScale(diffFI, diffFI, 1.0 / count, 0);
     avgDiff = (float) (cvAvg(diffFI, null).val(0));
     cvAddS(diffFI, cvRealScalar(MIN_DIFF), diffFI, null);
-    setHighThreshold(highScale);
-    setLowThreshold(lowScale);
+    createScale(lowScale, highScale);
+    setHighThreshold();
+    setLowThreshold();
     initialized = true;
   }
 
@@ -184,7 +189,7 @@ public class Background {
    * @return number of values per row in the average depth buffer.
    */
   public int avgBufferWidthStep() {
-    return avgFI.widthStep() * 8 / avgFI.depth();
+    return avgFI.widthStep() * BITS_PER_BYTE / avgFI.depth();
   }
 
   /**
@@ -259,13 +264,31 @@ public class Background {
    * @param scale the factor that multiplies the average frame-to-frame absolute
    *          difference.
    */
-  private void setHighThreshold(float scale) {
-    cvConvertScale(diffFI, scratchI, scale, 0);
+  private void setHighThreshold() {
+    cvMul(diffFI, scaleFI, scratchI, 1);
     cvAdd(scratchI, avgFI, hiFI, null);
   }
 
-  private void setLowThreshold(float scale) {
-    cvConvertScale(diffFI, scratchI, scale, 0);
+  private void setLowThreshold() {
+    cvMul(diffFI, scaleFI, scratchI, 1);
     cvSub(avgFI, scratchI, lowFI, null);
+  }
+  
+  private void createScale(float lowScale, float highScale) {
+    FloatBuffer fb = scaleFI.getFloatBuffer();
+    int widthStep = scaleFI.widthStep() * BITS_PER_BYTE / scaleFI.depth();
+    float maxDist = dis2FromCenter(width, height);
+    float range = highScale - lowScale;
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++) {
+        float scale = dis2FromCenter(w, h) * range / maxDist + lowScale;
+        fb.put(h * widthStep + w, scale);
+    }
+  }
+  
+  private float dis2FromCenter(int x, int y) {
+    float x1 = x - (float) width / 2;
+    float y1 = y - (float) height / 2;
+    return x1 * x1 + y1 * y1;
   }
 }

@@ -181,7 +181,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
    * Seeks a certain number of frames forward or backward.
    * 
    * @param diff the number of frames to seek from the current frame. Forward if
-   *    diff is positve, backward otherwise.
+   *    diff is positive, backward otherwise.
    * @throws StatusException
    */
   public void seekFrameBy(int diff) throws StatusException {
@@ -190,8 +190,10 @@ public class FullOpenNIDevice implements OpenNIDevice {
   }
   
   private void updateMetaData() {
-    depthMD = depthGen.getMetaData();
-    imageMD = imageGen.getMetaData();
+    if (depthGen.isDataNew())
+      depthMD = depthGen.getMetaData();
+    if (imageGen.isDataNew())
+      imageMD = imageGen.getMetaData();
   }
   
   /**
