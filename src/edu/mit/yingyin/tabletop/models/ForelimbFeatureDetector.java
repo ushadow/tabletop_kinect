@@ -129,7 +129,8 @@ public class ForelimbFeatureDetector {
     int widthStep = packet.derivative.widthStep() / 4;
     
     int count = 0;
-    while (count <= FINGERTIP_WIDTH && p.y < height && p.x < width) {
+    while (count <= FINGERTIP_WIDTH && p.y >=0 && p.y < height &&
+	   p.x >=0 && p.x < width) {
       int index = (int)p.y * widthStep + (int)p.x; 
       logger.fine(String.format("index = %d", index));
       float gradient = fb.get(index);

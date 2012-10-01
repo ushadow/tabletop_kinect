@@ -26,7 +26,7 @@ import edu.mit.yingyin.util.FileUtil;
 
 /**
  * Application for labeling the calibration images and computing the extrinsic
- * camera parameters. 
+ * camera parameters.
  *
  * After labeling, calibration is run once the user hits "Q" or Escape.
  * @author yingyin
@@ -35,7 +35,7 @@ import edu.mit.yingyin.util.FileUtil;
 public class CalibrationAppController extends KeyAdapter {
   private static Logger logger = Logger.getLogger(
       CalibrationAppController.class.getName());
-  
+
   public static void main(String args[]) {
     new CalibrationAppController(args);
   }
@@ -47,7 +47,7 @@ public class CalibrationAppController extends KeyAdapter {
       if (calibModel != null) {
         List<Point2f> points = new ArrayList<Point2f>(
             calibModel.getImagePoints().size());
-        for (Point p : calibModel.getImagePoints()) 
+        for (Point p : calibModel.getImagePoints())
           points.add(new Point2f(p.x, p.y));
         if (isScrnCoord)
           screenPoints = points;
@@ -59,7 +59,7 @@ public class CalibrationAppController extends KeyAdapter {
     default: break;
     }
   }
-  
+
   private boolean isScrnCoord = true;
   private List<Point2f> screenPoints;
   private List<Point2f> cameraPoints;
@@ -67,17 +67,17 @@ public class CalibrationAppController extends KeyAdapter {
   private List<Point2f> cameraPointsTest;
   private GeoCalibModel calibModel;
   private CalibMethodName calibMethod = CalibMethodName.EXTRINSIC;
-  private String calibMethodStr; 
+  private String calibMethodStr;
   private String savePath;
-  
+
   public CalibrationAppController(String args[]) {
     Properties config = new Properties();
     FileInputStream in = null;
     if (args.length < 1) {
-      System.out.println("Usage: CalibrationApp <config_file_name>");
+      System.out.println("Usage: CalibrationAppController <config_file_name>");
       System.exit(-1);
     }
-      
+
     try {
       in = new FileInputStream(args[0]);
       config.load(in);
@@ -88,8 +88,8 @@ public class CalibrationAppController extends KeyAdapter {
     } catch (IOException e) {
       e.printStackTrace();
       System.exit(-1);
-    } 
-    
+    }
+
     String camImgPath = config.getProperty("cam-depth-image", null);
     String scrnImagePath = config.getProperty("screen-image", null);
     String screenPtsPath = config.getProperty("screen-points", null);
