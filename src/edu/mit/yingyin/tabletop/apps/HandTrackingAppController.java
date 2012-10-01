@@ -31,12 +31,12 @@ import edu.mit.yingyin.util.ObjectIO;
 /**
  * Application that tracks the fingertips in data from an OpenNI device. Saves
  * fingertip events to file in the end.
- * 
+ *
  * @author yingyin
  *
  */
 public class HandTrackingAppController extends KeyAdapter {
-  
+
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
@@ -102,7 +102,7 @@ public class HandTrackingAppController extends KeyAdapter {
     String derivativeSaveDir = mainDir + config.getProperty("derivative-dir", 
         "data/derivative/");
     String calibrationFile = mainDir + config.getProperty("calibration-file",
-        "data/calibration.txt");
+        "data/calibration/calibration.txt");
     
     if (displayOnProperty.equals("false"))
       displayOn = false;

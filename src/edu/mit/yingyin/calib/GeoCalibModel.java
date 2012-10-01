@@ -31,7 +31,7 @@ public class GeoCalibModel {
   private BufferedImage bi;
   private String ptsFileName;
   private boolean isScrnCoord = true;
-  
+
   public GeoCalibModel(String imagePath, boolean isScrnCoord) {
     try {
       bi = ImageIO.read(new File(imagePath));
@@ -42,7 +42,7 @@ public class GeoCalibModel {
     this.isScrnCoord = isScrnCoord;
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
   }
-  
+
   public GeoCalibModel(BufferedImage bi, String ptsFileName, 
                        boolean isScrnCoord) {
     this.bi = bi;

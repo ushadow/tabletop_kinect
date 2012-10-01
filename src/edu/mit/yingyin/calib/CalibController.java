@@ -20,7 +20,7 @@ import edu.mit.yingyin.gui.ImageComponent;
 
 /**
  * View for camera calibration.
- * 
+ *
  * Keys:
  * S: saves the points.
  * @author yingyin
@@ -28,7 +28,7 @@ import edu.mit.yingyin.gui.ImageComponent;
  */
 
 public class CalibController implements KeyListener {
-  
+
   /**
    * The image component.
    * @author yingyin
@@ -44,7 +44,7 @@ public class CalibController implements KeyListener {
       super(d);
       addMouseListener(this);
     }
-    
+
     public CalibImageComponent(BufferedImage bi) {
       super(bi);
       addMouseListener(this);
@@ -52,7 +52,7 @@ public class CalibController implements KeyListener {
 
     public void paint(Graphics g) {
       super.paint(g);
-      
+
       Graphics2D g2d = (Graphics2D) g;
 
       List<Point> pts = model.getImagePoints();
@@ -130,25 +130,25 @@ public class CalibController implements KeyListener {
             model.getPointsFileName());
         model.saveImagePoints(fileName);
         break;
-        
+
       case KeyEvent.VK_P:
         model.createPoints();
         frame.repaint();
         break;
-        
+
       case KeyEvent.VK_C:
         model.clearPoints();
         frame.repaint();
         break;
-        
+
       default:
         break;
     }
   }
-  
+
   @Override
   public void keyReleased(KeyEvent arg0) {}
-  
+
   @Override
   public void keyTyped(KeyEvent arg0) {}
 }
