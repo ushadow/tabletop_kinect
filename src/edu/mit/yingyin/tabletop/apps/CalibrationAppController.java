@@ -19,8 +19,8 @@ import javax.vecmath.Point2f;
 
 import edu.mit.yingyin.calib.CalibController;
 import edu.mit.yingyin.calib.GeoCalibModel;
+import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.CalibrationExample;
-import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
 import edu.mit.yingyin.tabletop.models.CalibrationExample.CalibMethodName;
 import edu.mit.yingyin.util.FileUtil;
 
@@ -33,9 +33,11 @@ import edu.mit.yingyin.util.FileUtil;
  *
  */
 public class CalibrationAppController extends KeyAdapter {
-  private static Logger logger = Logger.getLogger(
+  private static final Logger logger = Logger.getLogger(
       CalibrationAppController.class.getName());
 
+  private static final int WIDTH = 640, HEIGHT = 480;
+  
   public static void main(String args[]) {
     new CalibrationAppController(args);
   }
@@ -123,7 +125,7 @@ public class CalibrationAppController extends KeyAdapter {
     
     if (camImgPath != null || scrnImagePath != null) {
       if (camImgPath != null) {
-        image = PartialOpenNIDevice.rawDepthToBufferedImage(camImgPath);
+        image = ImageConvertUtils.readRawDepth(camImgPath, WIDTH, HEIGHT);
         try {
           ImageIO.write(image, "PNG", new File(FileUtil.setExtension(camImgPath, 
                                                "png")));

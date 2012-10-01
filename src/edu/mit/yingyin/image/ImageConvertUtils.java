@@ -33,16 +33,27 @@ import java.awt.image.ColorModel;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferUShort;
 import java.awt.image.PixelGrabber;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
 
-public class ImageConvertUtils {
+import edu.mit.yingyin.util.DirectBufferUtil;
 
+public class ImageConvertUtils {
+  private static final Logger logger = Logger.getLogger(
+      ImageConvertUtils.class.getName());
+  
   /**
    * Converts an AWT Image into a gray scale BufferedImage.
    * 
@@ -410,6 +421,7 @@ public class ImageConvertUtils {
     buffer.rewind();
     int max = 0;
     int min = MAX_DEPTH; // Two bytes.
+    logger.fine(String.format("buffer remaining = %d", buffer.remaining()));
     while (buffer.remaining() > 0) {
       int value = buffer.get() & 0x0000ffff;
       if (value != 0) {
@@ -417,7 +429,7 @@ public class ImageConvertUtils {
         min = Math.min(min, value);
       }
     }
-
+    logger.fine(String.format("min = %d, max = %d", min, max));
     if (min == max) {
       Arrays.fill(imageArray, (short) 0);
     } else {
@@ -432,7 +444,7 @@ public class ImageConvertUtils {
   }
   
   /**
-   * Converts an array of integer values into a cumulative historgram.
+   * Converts an array of integer values into a cumulative histogram.
    * @param array an integer array.
    * @param histogram keeps the cumulative frequencies of values in the 
    *    <code>array</code> in the range (0, length of <code>histogram</code>).
@@ -506,5 +518,49 @@ public class ImageConvertUtils {
         v = 0;
       imageArray[i] = (short)(histogram[v] * 65535);
     }
+  }
+  
+  /**
+   * Reads a raw depth file to a gray BufferedImage.
+   * @param fileName
+   * @param bufferSize number of bytes.
+   */
+  public static BufferedImage readRawDepth(String fileName, 
+      int width, int height) {
+    File file = new File(fileName);
+    int bufferSize = width * height * 2;
+    byte[] result = new byte[bufferSize];
+    try {
+      InputStream is = null;
+      try {
+        is = new BufferedInputStream(new FileInputStream(file), 
+            bufferSize);
+        int totalBytesRead = 0;
+        while (totalBytesRead < bufferSize) {
+          int bytesRemaining = bufferSize - totalBytesRead;
+          int bytesRead = is.read(result, totalBytesRead, bytesRemaining);
+          if (bytesRead > 0) {
+            totalBytesRead = totalBytesRead + bytesRead;
+          }
+        }
+      } finally {
+        if (is != null) {
+          is.close();
+        }
+      }
+    } catch (FileNotFoundException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    } catch (IOException ioe) {
+      System.err.println(ioe.getMessage());
+      System.exit(-1);
+    }
+    ByteBuffer bb = DirectBufferUtil.allocateByteBuffer(bufferSize);
+    bb.put(result);
+    bb.rewind();
+    BufferedImage image = new BufferedImage(width, height,
+        BufferedImage.TYPE_USHORT_GRAY);
+    depthToGrayBufferedImage(bb.asShortBuffer(), image);
+    return image;
   }
 }
