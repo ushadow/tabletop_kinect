@@ -27,18 +27,24 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
  */
 public class CalibrationExample {
 
+  /**
+   * Calibration methods.
+   * EXTRINSIC: finds extrinsic matrix explicitly.
+   * HOMOGRAPHY: uses homography without distortion correction.
+   * UNDISTORT: uses homography with distortion correction.
+   */
   public enum CalibMethodName {EXTRINSIC, HOMOGRAPHY, UNDISTORT};
-  
+
   private interface CalibrationMethod {
     public void release();
     public void save(PrintStream ps);
     public String toString();
     public Point2f imageToDisplayCoords(float x, float y);
   }
-  
+
   private class HomographyMethod implements CalibrationMethod {
     private CvMat homographyMat = CvMat.create(3, 3, CV_32FC1);
-    
+
     /**
      * Given the correspondence of points in two planes, finds the projective 
      * mapping from one plane to another.
@@ -51,10 +57,10 @@ public class CalibrationExample {
      */
     public HomographyMethod(List<Point2f> objectPoints,
         List<Point2f> imagePoints) {
-      
+
       CvMat objectPointsMat = CvMat.create(objectPoints.size(), 1, CV_32FC2);
       CvMat imagePointsMat = CvMat.create(imagePoints.size(), 1, CV_32FC2);
-      
+
       for (int i = 0; i < objectPoints.size(); i++) {
         objectPointsMat.put(i * 2, objectPoints.get(i).x);
         objectPointsMat.put(i * 2 + 1, objectPoints.get(i).y);
