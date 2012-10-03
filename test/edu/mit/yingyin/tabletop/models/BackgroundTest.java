@@ -1,7 +1,10 @@
 package edu.mit.yingyin.tabletop.models;
 
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -78,6 +81,26 @@ public class BackgroundTest {
     for (int h = 0; h < HEIGHT; h++)
       for (int w = 0; w < WIDTH; w++)
         assertEquals(0, bb.get(h * widthStep + w) & 0xff);
+    
+    bg.createModelsFromStats(1, 2);
+    System.out.println(bg.toString());
+    cvZero(mask);
+    Arrays.fill(newDepth, 3);
+    bg.backgroundDiff(newDepth, mask);
+    for (int h = 0; h < HEIGHT; h++)
+      for (int w = 0; w < WIDTH; w++) {
+        if (bg.isInCenterColumn(w)) {
+          assertEquals(0, bb.get(h * widthStep + w) & 0xff);
+        }
+      }
+  }
+  
+  @Test
+  public void testIsIncenterColumn() {
+    Background bg = new Background(WIDTH, HEIGHT);
+    assertTrue(bg.isInCenterColumn(4));
+    assertTrue(bg.isInCenterColumn(5));
+    assertFalse(bg.isInCenterColumn(WIDTH - 1));
   }
   
   @Test

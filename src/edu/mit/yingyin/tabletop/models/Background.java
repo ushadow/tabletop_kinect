@@ -31,12 +31,18 @@ import edu.mit.yingyin.util.CvUtil;
  * 
  */
 public class Background {
+  public static final float CENTER_COLUMN_WIDTH_FACTOR = (float) 0.2; 
 
   private static Logger logger = Logger.getLogger(Background.class.getName());
 
-  private static final float MIN_DIFF = (float) 1;
+  private static final float MIN_DIFF = (float) 0.6;
   
   private static final int BITS_PER_BYTE = 8; 
+  
+  private static final int PHYSICAL_DIST_PER_PIXEL = 2; // mm/px
+  
+  private static final int PHYSICAL_DIST_FROM_CAMERA = 1160; // mm
+  
 
   /**
    * Float, 1-channel images. All the depth values are scaled between 0 and 1
@@ -112,7 +118,8 @@ public class Background {
   }
 
   /**
-   * Creates a statistical model of the background.
+   * Creates a statistical model of the background using the low and high scales
+   * for setting threshold for each pixel.
    * 
    * @param lowScale scale for the average absolute difference for the center
    *    pixel.
@@ -126,16 +133,18 @@ public class Background {
       System.exit(-1);
     }
       
-    cvConvertScale(avgFI, avgFI, 1.0 / count, 0);
-    cvConvertScale(diffFI, diffFI, 1.0 / count, 0);
-    computeAvgDiff();
+    if (!initialized) {
+      cvConvertScale(avgFI, avgFI, 1.0 / count, 0);
+      cvConvertScale(diffFI, diffFI, 1.0 / count, 0);
+      computeAvgDiff();
+      cvInRangeS(diffFI, cvRealScalar(0), cvRealScalar(MIN_DIFF), diffMask);
+      cvAddS(diffFI, cvRealScalar(MIN_DIFF), diffFI, diffMask);
+      initialized = true;
+    }
     
-    cvInRangeS(diffFI, cvRealScalar(0), cvRealScalar(MIN_DIFF), diffMask);
-    cvAddS(diffFI, cvRealScalar(MIN_DIFF), diffFI, diffMask);
     createScale(lowScale, highScale);
     setHighThreshold();
     setLowThreshold();
-    initialized = true;
   }
 
   public boolean isInitialized() {
@@ -226,26 +235,42 @@ public class Background {
   }
 
   /**
+   * Checks if the x coordinate is in the center column with width w.
+   * @param x 
+   * @param w width of the center column.
+   * @return
+   */
+  public boolean isInCenterColumn(int x) {
+    float center = (float) (width - 1) / 2;
+    float w = width * CENTER_COLUMN_WIDTH_FACTOR;
+    return x <= (center + w) && x >= (center - w);
+  }
+
+  /**
    * @return the string representation of the background model.
    */
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("Average Frame:\n");
-    FloatBuffer fb = avgFI.getFloatBuffer();
-    fb.rewind();
-    while (fb.remaining() > 0)
-      sb.append(fb.get() + " ");
-    sb.append("\nDiff Frame:\n");
-    fb = diffFI.getFloatBuffer();
-    fb.rewind();
-    while (fb.remaining() > 0)
-      sb.append(fb.get() + " ");
-    sb.append("\nHigher Bound:\n");
-    fb = hiFI.getFloatBuffer();
-    fb.remaining();
-    while (fb.remaining() > 0)
-      sb.append(fb.get() + " ");
+    appendBuffer(sb, avgFI.getFloatBuffer());
+    sb.append("Diff Frame:\n");
+    appendBuffer(sb, diffFI.getFloatBuffer());
+    sb.append("Higher Bound:\n");
+    appendBuffer(sb, hiFI.getFloatBuffer());
+    sb.append("Lower Bound:\n");
+    appendBuffer(sb, lowFI.getFloatBuffer());
     return sb.toString();
+  }
+  
+  private void appendBuffer(StringBuffer sb, FloatBuffer fb) {
+    fb.rewind();
+    int i = 0;
+    while (fb.remaining() > 0) {
+      sb.append(fb.get() + " ");
+      i++;
+      if (i % width == 0)
+        sb.append("\n");
+    }
   }
   
   private void computeAvgDiff() {
@@ -296,18 +321,45 @@ public class Background {
   private void createScale(float lowScale, float highScale) {
     FloatBuffer fb = scaleFI.getFloatBuffer();
     int widthStep = scaleFI.widthStep() * BITS_PER_BYTE / scaleFI.depth();
-    float maxDist = dis2FromCenter(width, height);
-    float range = highScale - lowScale;
+    float maxDist = dist2FromCamera(width - 1, height - 1);
+    float minDist = dist2FromCamera((float) (width - 1) / 2, 
+        (float) (height - 1) / 2);
+    float scaleRange = highScale - lowScale;
     for (int h = 0; h < height; h++)
       for (int w = 0; w < width; w++) {
-        float scale = dis2FromCenter(w, h) * range / maxDist + lowScale;
+        float scale;
+        if (isInCenterColumn(w)) {
+          scale = lowScale;
+        } else {
+          scale = (dist2FromCamera(w, h) - minDist) * scaleRange / 
+              (maxDist - minDist) + lowScale;
+        }
         fb.put(h * widthStep + w, scale);
     }
   }
   
-  private float dis2FromCenter(int x, int y) {
-    float x1 = x - (float) width / 2;
-    float y1 = y - (float) height / 2;
+  /**
+   * 
+   * @param x x coordinate on the image with top left as the origin.
+   * @param y y coordinate on the image with top left as the origin.
+   * @return
+   */
+  private float dist2FromCamera(float x, float y) {
+    float physicalDist2FromCenter = dist2FromCenter(x, y) * 
+        PHYSICAL_DIST_PER_PIXEL * PHYSICAL_DIST_PER_PIXEL;
+    return physicalDist2FromCenter + PHYSICAL_DIST_FROM_CAMERA * 
+        PHYSICAL_DIST_FROM_CAMERA;
+  }
+  
+  /**
+   * Square distance in px from the center of the image.
+   * @param x
+   * @param y
+   * @return
+   */
+  private float dist2FromCenter(float x, float y) {
+    float x1 = x - (float) (width - 1) / 2;
+    float y1 = y - (float) (height - 1) / 2;
     return x1 * x1 + y1 * y1;
   }
 }

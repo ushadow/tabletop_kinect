@@ -90,7 +90,8 @@ public class HandTrackingAppController extends KeyAdapter {
     String openniConfigFile = mainDir + config.getProperty("openni-config", 
         "config/config.xml");
     
-    String saveFingertipProperty = config.getProperty("save-fingertip-data", "false");
+    String saveFingertipProperty = config.getProperty("save-fingertip-data", 
+        "false");
     if (saveFingertipProperty.equals("true"))
       saveFingertip = true;
     
