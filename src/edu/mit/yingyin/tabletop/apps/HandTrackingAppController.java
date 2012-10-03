@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +19,6 @@ import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
-import edu.mit.yingyin.tabletop.controllers.BackgroundController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
@@ -40,10 +38,12 @@ public class HandTrackingAppController extends KeyAdapter {
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
-  private static String CONFIG_FILE = "/config/fingertip_tracking.properties";
-  private static String DATA_DIR = "/data/";
-  private static String FINGERTIP_DIR = DATA_DIR + "fingertip/";
-  private static String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
+  private static final String CONFIG_FILE = 
+      "/config/fingertip_tracking.properties";
+  private static final String DATA_DIR = "/data/";
+  private static final String FINGERTIP_DIR = DATA_DIR + "fingertip/";
+  private static final String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
+  private static final int DEFAULT_MAX_DEPTH = 1600;
   
   @SuppressWarnings("static-access")
   public static void main(String[] args) {
@@ -99,6 +99,15 @@ public class HandTrackingAppController extends KeyAdapter {
       labelFile = mainDir + FINGERTIP_DIR + labelFile;
     
     String displayOnProperty = config.getProperty("display-on", "true");
+    
+    int maxDepth = DEFAULT_MAX_DEPTH;
+    try {
+      maxDepth = Integer.parseInt(config.getProperty("max-depth", "1600"));
+    } catch(NumberFormatException efe) {
+      System.err.println(efe.getMessage());
+      System.err.println(String.format("maxDepth = %d", maxDepth));
+    }
+    
     String derivativeSaveDir = mainDir + config.getProperty("derivative-dir", 
         "data/derivative/");
     String calibrationFile = mainDir + config.getProperty("calibration-file",
@@ -108,7 +117,8 @@ public class HandTrackingAppController extends KeyAdapter {
       displayOn = false;
     
     try {
-      engine = new HandTrackingEngine(openniConfigFile, calibrationFile);
+      engine = new HandTrackingEngine(openniConfigFile, calibrationFile, 
+          maxDepth);
     } catch (GeneralException ge) {
       logger.info("OpenNI config file = " + openniConfigFile);
       logger.severe(ge.getMessage());

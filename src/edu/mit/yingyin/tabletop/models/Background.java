@@ -7,15 +7,16 @@ import static com.googlecode.javacv.cpp.opencv_core.cvAdd;
 import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
 import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
-import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
+import static com.googlecode.javacv.cpp.opencv_core.cvMul;
 import static com.googlecode.javacv.cpp.opencv_core.cvRealScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
+import static com.googlecode.javacv.cpp.opencv_core.cvInRangeS;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
-import static com.googlecode.javacv.cpp.opencv_core.cvMul;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
@@ -42,20 +43,19 @@ public class Background {
    * according to <code>maxDepth
    * </code>
    */
-  private IplImage scratchI, scratchI2, avgFI, prevFI;
+  private IplImage scratchI, scratchI2, avgFI;
 
   /**
    * Absolute difference between the current frame and the previous frame.
    */
   private IplImage diffFI, hiFI, lowFI, scaleFI;
-  private IplImage mask;
-  private boolean first = true;
+  private IplImage diffMask;
 
   /**
    * Counts the number of images learned for averaging later.
    */
-  private float count = (float) 0.00001; // Protects against divide by zero.
-
+  private float count = 0;
+  
   /**
    * Average absolute difference before adjustment.
    */
@@ -77,15 +77,14 @@ public class Background {
     scratchI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     scratchI2 = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     avgFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
-    prevFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     diffFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     hiFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     lowFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     scaleFI = IplImage.create(width, height, IPL_DEPTH_32F, 1);
-    mask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    diffMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     cvZero(avgFI);
-    cvZero(prevFI);
     cvZero(diffFI);
+    cvZero(diffMask);
   }
 
   public int width() {
@@ -103,30 +102,36 @@ public class Background {
    */
   public void accumulateBackground(int[] depthRawData) {
     depthToImage(depthRawData, scratchI);
-    if (!first) {
-      cvAcc(scratchI, avgFI, null);
-      count += 1;
-      cvConvertScale(avgFI, scratchI2, 1.0 / count, 0); 
-      cvAbsDiff(scratchI, scratchI2, scratchI2);
-      cvAcc(scratchI2, diffFI, null);
-    }
-    first = false;
-    cvCopy(scratchI, prevFI);
+    cvAcc(scratchI, avgFI, null);
+    count += 1;
+    cvConvertScale(avgFI, scratchI2, 1.0 / count, 0); 
+    // Calculates the difference of the current frame from the average of the
+    // previous frames.
+    cvAbsDiff(scratchI, scratchI2, scratchI2);
+    cvAcc(scratchI2, diffFI, null);
   }
 
   /**
    * Creates a statistical model of the background.
    * 
-   * @param lowScale scale used to multiply with the average absolute difference
-   *          to create the low threshold.
-   * @param highScale scale used to multiply with the average absolute
-   *          difference to create the high threshold.
+   * @param lowScale scale for the average absolute difference for the center
+   *    pixel.
+   * @param highScale scale for the average absolute difference for the pixel
+   *    farthest away from the center pixel.
    */
   public void createModelsFromStats(float lowScale, float highScale) {
+    if (count == 0) {
+      System.err.println("No background statistics are accumulated. " +
+      		"You need to call accumulateBackground at least once.");
+      System.exit(-1);
+    }
+      
     cvConvertScale(avgFI, avgFI, 1.0 / count, 0);
     cvConvertScale(diffFI, diffFI, 1.0 / count, 0);
-    avgDiff = (float) (cvAvg(diffFI, null).val(0));
-    cvAddS(diffFI, cvRealScalar(MIN_DIFF), diffFI, null);
+    computeAvgDiff();
+    
+    cvInRangeS(diffFI, cvRealScalar(0), cvRealScalar(MIN_DIFF), diffMask);
+    cvAddS(diffFI, cvRealScalar(MIN_DIFF), diffFI, diffMask);
     createScale(lowScale, highScale);
     setHighThreshold();
     setLowThreshold();
@@ -160,10 +165,10 @@ public class Background {
     scratchI2.release();
     avgFI.release();
     diffFI.release();
-    prevFI.release();
     hiFI.release();
     lowFI.release();
-    mask.release();
+    diffMask.release();
+    scaleFI.release();
     logger.info("Background relesed.");
   }
 
@@ -173,8 +178,8 @@ public class Background {
   public String stats() {
     StringBuffer sb = new StringBuffer();
     sb.append(String.format("Average background depth: %f\n", avgDepth()));
-    sb.append(String.format("Average background absolute difference: %f\n",
-        avgDiff()));
+    sb.append(String.format("Average background absolute difference before " +
+    		"adjustment: %f\n", avgDiff()));
     return sb.toString();
   }
 
@@ -241,6 +246,20 @@ public class Background {
     while (fb.remaining() > 0)
       sb.append(fb.get() + " ");
     return sb.toString();
+  }
+  
+  private void computeAvgDiff() {
+    IplImage mask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    ByteBuffer bb = mask.getByteBuffer();
+    int widthStep = mask.widthStep();
+    for (int h = 0; h < height; h++)
+      for (int w = width / 3; w < width * 2 / 3; w++)
+        bb.put(h * widthStep + w, (byte)1);
+    float centerAveDiff = (float) cvAvg(diffFI.asCvMat(), mask).val(0);
+    logger.fine(String.format("Average diff at the center column = %f", 
+        centerAveDiff));
+    avgDiff = (float) cvAvg(diffFI.asCvMat(), null).val(0);
+    mask.release();
   }
 
   /**

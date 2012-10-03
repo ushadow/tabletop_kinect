@@ -76,6 +76,7 @@ public class FullOpenNIDevice implements OpenNIDevice {
             imageByteBufferSize);
       }
     }
+    logger.fine(info());
   }
   
   public int getDepthWidth() { return depthWidth; }
@@ -92,6 +93,16 @@ public class FullOpenNIDevice implements OpenNIDevice {
   public int getImageWidth() { return imageWidth; }
   
   public int getImageHeight() { return imageHeight; }
+
+  public String info() {
+    return String.format("Maximum depth = %d", getZRes());
+  }
+  
+  public int getZRes() { 
+    if (depthMD != null) 
+      return depthMD.getZRes();
+    return 0;
+  }
   
   /**
    * 

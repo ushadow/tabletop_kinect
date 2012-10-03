@@ -73,6 +73,9 @@ public class CalibrationExample {
         cvUndistortPoints(imagePointsMat, imagePointsMat, intrinsicMatrixMat, 
             distortionCoeffsMat, null, null);
       cvFindHomography(imagePointsMat, objectPointsMat, homographyMat);
+      
+      objectPointsMat.release();
+      imagePointsMat.release();
     }
     
     public HomographyMethod(Scanner scanner) {
@@ -365,7 +368,6 @@ public class CalibrationExample {
       distortionCoeffsMat.release();
     
     method.release();
-    
   }
   
   public String toString() {

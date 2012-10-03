@@ -43,11 +43,11 @@ public class ManualLabelModel {
    * @param configFile OpenNI configuration file.
    * @param replayFilename Recorded file with tracked points at each frame.  
    * @throws IOException If reading from <code>replayFilename</code> fails.
-   * @throws GeneralException If initializationg from OpenNI device fails.
+   * @throws GeneralException If initialization from OpenNI device fails.
    */
   @SuppressWarnings("unchecked")
-  public ManualLabelModel(String configFile, String replayFilename) 
-      throws IOException, GeneralException {
+  public ManualLabelModel(String configFile, String replayFilename, 
+      int maxDepth) throws IOException, GeneralException {
     openni = new FullOpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
@@ -64,7 +64,7 @@ public class ManualLabelModel {
     else
       points = new HashMap<Integer, List<Point>>();
   
-    histogram = new float[HandAnalyzer.MAX_DEPTH];
+    histogram = new float[maxDepth];
   }
 
   // Accessors

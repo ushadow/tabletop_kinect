@@ -58,9 +58,9 @@ public class BackgroundTest {
       bg.accumulateBackground(depthRawData);
     }
     
-    bg.createModelsFromStats(2, 1);
-    assertEquals(5.5, bg.avgDepth(), EPSILON);
-    assertEquals(1, bg.avgDiff(), EPSILON);
+    bg.createModelsFromStats(1, 1);
+    assertEquals(5, bg.avgDepth(), EPSILON);
+    assertEquals(2.5, bg.avgDiff(), EPSILON);
     IplImage mask = IplImage.create(WIDTH, HEIGHT, IPL_DEPTH_8U, 1);
     
     int[] newDepth = new int[WIDTH * HEIGHT]; 

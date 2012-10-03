@@ -44,14 +44,14 @@ public class HandTrackingEngine {
    * @throws GeneralException
    */
   public HandTrackingEngine(String openniConfigFile, 
-      String calibrationFile) throws GeneralException {
+      String calibrationFile, int maxDepth) throws GeneralException {
     
     openni = new FullOpenNIDevice(openniConfigFile);
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight);
-    packet = new ProcessPacket(depthWidth, depthHeight, this);
+    packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
 
     tracker = new HandTracker(new CalibrationExample(calibrationFile));
   }

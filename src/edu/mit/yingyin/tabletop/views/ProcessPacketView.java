@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.JFrame;
 import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
@@ -34,9 +33,8 @@ import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Forelimb;
-import edu.mit.yingyin.tabletop.models.HandAnalyzer;
-import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 
@@ -147,12 +145,14 @@ public class ProcessPacketView {
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
     
-    histogram = new float[HandAnalyzer.MAX_DEPTH];
     initToggles();
   }
 
-  public void update(ProcessPacket packet,List<Point> fingertipLabels) 
+  public void update(ProcessPacket packet, List<Point> fingertipLabels) 
       throws GeneralException {
+    if (histogram == null)
+      histogram = new float[packet.maxDepth() + 1];
+    
     fingertipView.setFingertips(packet.forelimbs, fingertipLabels);
 
     showAnalysisImage(packet);
@@ -303,6 +303,8 @@ public class ProcessPacketView {
     for (int h = 0; h < packet.height; h++) 
       for (int w = 0; w < packet.width; w++) {
         int depth = packet.depthRawData[h * packet.width + w];
+        if (depth > packet.maxDepth())
+          depth = packet.maxDepth();
         ib.put(h * widthStep + w, (byte)(histogram[depth] * 255));  
       }
     // Draws labeled points.

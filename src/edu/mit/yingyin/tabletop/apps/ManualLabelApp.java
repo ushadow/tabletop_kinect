@@ -26,10 +26,10 @@ import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.models.ManualLabelModel;
 
 /**
- * Application that allows manual labelling of points on an OpenNI recorded 
+ * Application that allows manual labeling of points on an OpenNI recorded 
  * file.
  * 
- * Keyboard interations:
+ * Keyboard interactions:
  * s - save labels to file.
  * @author yingyin
  *
@@ -59,7 +59,8 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   }
 
   private static final String DIR = "/afs/csail/u/y/yingyin/research/kinect/";
-  private static final String CONFIG_FILE = DIR + "config/manual_label.config"; 
+  private static final String CONFIG_FILE = DIR + "config/manual_label.config";
+  private static final int MAX_DEPTH = 1600;
   
   public static void main(String[] args) {
     new ManualLabelApp();
@@ -93,7 +94,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     
     
     try {
-      model = new ManualLabelModel(openniConfigFile, replayFilename);
+      model = new ManualLabelModel(openniConfigFile, replayFilename, MAX_DEPTH);
     } catch (IOException e) {
       System.err.println(e.getMessage());
       System.exit(-1);

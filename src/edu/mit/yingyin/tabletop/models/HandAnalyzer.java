@@ -49,11 +49,6 @@ public class HandAnalyzer {
   private static Logger logger = Logger.getLogger(HandAnalyzer.class.getName());
   
   /**
-   * Maximum depth in mm for the tabletop application.
-   */
-  public static final int MAX_DEPTH = 1600;
-  
-  /**
    * Number of initial frames to ignore.
    */
   private static final int BG_INGNORE_FRAMES = 20;
@@ -64,7 +59,7 @@ public class HandAnalyzer {
   private static final int BG_INIT_FRAMES = BG_INGNORE_FRAMES + 40;
   
 
-  private static final float BG_DIFF_LSCALE = 5;
+  private static final float BG_DIFF_LSCALE = 6;
   private static final float BG_DIFF_HSCALE = 15;
   
   /**
@@ -135,7 +130,7 @@ public class HandAnalyzer {
       return;
     
     CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
-                           MAX_DEPTH);
+                           packet.maxDepth());
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
     
     if (packet.depthFrameID < BG_INIT_FRAMES) {
@@ -180,8 +175,8 @@ public class HandAnalyzer {
       for (int w = 0; w < packet.width; w++) {
         int pos = h * depthWidthStep + w;
         if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
-          depthBuffer.put(pos, 
-                          (byte)(depthData[h * width + w] * 255 / MAX_DEPTH));
+          byte d = (byte) (depthData[h * width + w] * 255 / packet.maxDepth());
+          depthBuffer.put(pos, d);
         } else {
           depthBuffer.put(pos, (byte)0);
         }
