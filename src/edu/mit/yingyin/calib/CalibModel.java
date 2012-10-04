@@ -255,15 +255,23 @@ public class CalibModel {
     }
   }
   
+  /**
+   * Intrinsic parameters for Kinect.
+   */
   private static final float[][] INTRINSIC_MATRIX = {
       {(float)5.9421434211923247e+02, 0, (float)3.3930780975300314e+02},
       {0, (float)5.9104053696870778e+02, (float)2.4273913761751615e+02},
       {0, 0, 1}};
   
+  /**
+   * Distortion coefficients for Kinect.
+   */
   private static final float[] DISTORTION_COEFFS = {
       (float)-2.6386489753128833e-01, (float)9.9966832163729757e-01, 
       (float)-7.6275862143610667e-04, (float)5.0350940090814270e-03,
       (float)-1.3053628089976321e+00};
+  
+  private static final int MIN_POINTS = 4;
   
   private CvMat intrinsicMatrixMat = CvMat.create(3, 3, CV_32FC1);
   private CvMat distortionCoeffsMat = CvMat.create(5, 1, CV_32FC1);
@@ -271,8 +279,8 @@ public class CalibModel {
   private CalibrationMethod method;
   
   /**
-   * Constructs a CalibrationExample from corresponding object points and image
-   * points using the specified calibration method.
+   * Constructs a <code>CalibModel</code> from corresponding object points and 
+   * image points using the specified calibration method.
    * 
    * @param objectPoints a list of object points in 2D.
    * @param imagePoints a list of image points in 2D.
@@ -281,9 +289,15 @@ public class CalibModel {
   public CalibModel(List<Point2f> objectPoints, 
       List<Point2f> imagePoints, CalibMethodName methodName) {
 
-    if (objectPoints.size() != imagePoints.size())
+    if (objectPoints.size() != imagePoints.size()) {
       throw new IllegalArgumentException(
           "Size of objectPoints and imagePoints should be the same.");
+    }
+    
+    if (objectPoints.size() < MIN_POINTS) {
+      throw new IllegalArgumentException(String.format("Not enough points. " +
+      		"Minimum number of points required is %d.", MIN_POINTS));
+    }
     
     initIntrinsicParameters();
     this.methodName = methodName;
@@ -295,7 +309,7 @@ public class CalibModel {
   }
   
   /**
-   * Constructs a CalibrationExample from a calibraion result file.
+   * Constructs a <code>CalibModel</code> from a calibration result file.
    * @param fileName
    */
   public CalibModel(String fileName) {
@@ -314,9 +328,7 @@ public class CalibModel {
     }
   }
   
-  public CalibMethodName calibMethod() {
-    return methodName;
-  }
+  public CalibMethodName calibMethod() { return methodName; }
   
   /**
    * Converts a point in the image coordinate to a point in the display 
