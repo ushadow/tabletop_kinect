@@ -4,14 +4,14 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import edu.mit.yingyin.tabletop.models.CalibrationExample;
-import edu.mit.yingyin.tabletop.models.CalibrationExample.CalibMethodName;
+import edu.mit.yingyin.calib.CalibModel;
+import edu.mit.yingyin.calib.CalibModel.CalibMethodName;
 
 public class CalibrationExampleTest {
   private static final String CALIBRATION_FILE = "test_data/calibration.txt";
   @Test
   public void testConstructorFromFile() {
-    CalibrationExample ce = new CalibrationExample(CALIBRATION_FILE);
+    CalibModel ce = new CalibModel(CALIBRATION_FILE);
     assertEquals(CalibMethodName.UNDISTORT, ce.calibMethod());
     String expected = "Homography matrix: [2620.670654296875 " +
     		"-185.47853088378906 1449.0343017578125 -13.530089378356934 " +

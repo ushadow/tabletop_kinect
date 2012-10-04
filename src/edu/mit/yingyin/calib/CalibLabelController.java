@@ -19,7 +19,8 @@ import javax.swing.SwingUtilities;
 import edu.mit.yingyin.gui.ImageComponent;
 
 /**
- * View for camera calibration.
+ * Controls the interaction for camera calibration. It displays a checkerboard 
+ * image or a depth image of the checkerboard with wooden blocks.
  *
  * Keys:
  * S: saves the points.
@@ -27,7 +28,7 @@ import edu.mit.yingyin.gui.ImageComponent;
  *
  */
 
-public class CalibController implements KeyListener {
+public class CalibLabelController implements KeyListener {
 
   /**
    * The image component.
@@ -104,18 +105,20 @@ public class CalibController implements KeyListener {
     public void mouseExited(MouseEvent arg0) {}
   }
     
-  private GeoCalibModel model;
+  private CalibLabelModel model;
   private CalibFrame frame;
   
-  public CalibController(GeoCalibModel model) {
+  public CalibLabelController(CalibLabelModel model) {
     this.model = model;
     frame = new CalibFrame(new CalibImageComponent(model.getImage()));
     frame.addKeyListener(this);
   }
   
-  public void showUI() {
-    frame.showUI();
-  }
+  public void showUI() { frame.showUI(); }
+  
+  public void dispose() { frame.dispose(); }
+  
+  public void hide() { frame.setVisible(false); }
   
   public void addKeyListener(KeyListener kl) {
     frame.addKeyListener(kl);
@@ -124,23 +127,20 @@ public class CalibController implements KeyListener {
   @Override
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
+      case KeyEvent.VK_C:
+        model.clearPoints();
+        frame.repaint();
+        break;
+      case KeyEvent.VK_P:
+        model.createPoints();
+        frame.repaint();
+        break;
       case KeyEvent.VK_S:
         String fileName = (String)JOptionPane.showInputDialog(frame, 
             "File name:", "Save as", JOptionPane.PLAIN_MESSAGE, null, null, 
             model.getPointsFileName());
         model.saveImagePoints(fileName);
         break;
-
-      case KeyEvent.VK_P:
-        model.createPoints();
-        frame.repaint();
-        break;
-
-      case KeyEvent.VK_C:
-        model.clearPoints();
-        frame.repaint();
-        break;
-
       default:
         break;
     }

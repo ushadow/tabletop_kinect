@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
+import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 
@@ -53,7 +54,7 @@ public class HandTrackingEngine {
     analyzer = new HandAnalyzer(depthWidth, depthHeight);
     packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
 
-    tracker = new HandTracker(new CalibrationExample(calibrationFile));
+    tracker = new HandTracker(new CalibModel(calibrationFile));
   }
   
   public int depthWidth() { return depthWidth; }

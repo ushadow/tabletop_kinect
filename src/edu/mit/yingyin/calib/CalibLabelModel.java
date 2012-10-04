@@ -15,24 +15,27 @@ import javax.imageio.ImageIO;
 import edu.mit.yingyin.util.FileUtil;
 
 /**
- * Model for geometric calibration.
+ * Model for labeling geometric calibration image.
  * @author yingyin
  *
  */
-public class GeoCalibModel {
+public class CalibLabelModel {
 
   private static final int NUM_ROW = 6;
   private static final int NUM_COL = 8;
 
   /**
-   * list of points in the screen coordinates
+   * List of labeled points.
    */
   private List<Point> imagePoints = new ArrayList<Point>(); 
   private BufferedImage bi;
+  /**
+   * Default filename for saving labeled points.
+   */
   private String ptsFileName;
   private boolean isScrnCoord = true;
 
-  public GeoCalibModel(String imagePath, boolean isScrnCoord) {
+  public CalibLabelModel(String imagePath, boolean isScrnCoord) {
     try {
       bi = ImageIO.read(new File(imagePath));
     } catch (IOException e) {
@@ -43,7 +46,7 @@ public class GeoCalibModel {
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
   }
 
-  public GeoCalibModel(BufferedImage bi, String ptsFileName, 
+  public CalibLabelModel(BufferedImage bi, String ptsFileName, 
                        boolean isScrnCoord) {
     this.bi = bi;
     this.isScrnCoord = isScrnCoord;

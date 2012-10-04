@@ -6,6 +6,7 @@ import java.util.List;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 
+import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent.FingerEventType;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
@@ -59,9 +60,9 @@ public class HandTracker {
   private int pressedCounter = 0, releasedCounter = 0;
   /** True if finger is pressed, false otherwise. */
   private boolean pressed = false;
-  private CalibrationExample calibExample;
+  private CalibModel calibExample;
   
-  public HandTracker(CalibrationExample calibExample) {
+  public HandTracker(CalibModel calibExample) {
     table = Table.instance();
     this.calibExample = calibExample;
   }

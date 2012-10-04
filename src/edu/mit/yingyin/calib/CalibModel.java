@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop.models;
+package edu.mit.yingyin.calib;
 
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
@@ -21,11 +21,11 @@ import javax.vecmath.Point2f;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 /**
- * A CalibrationExample with intrinsic and extrinsic camera parameters.
+ * Computes extrinsic camera parameters.
  * @author yingyin
  *
  */
-public class CalibrationExample {
+public class CalibModel {
 
   /**
    * Calibration methods.
@@ -278,7 +278,7 @@ public class CalibrationExample {
    * @param imagePoints a list of image points in 2D.
    * @param method calibration method.
    */
-  public CalibrationExample(List<Point2f> objectPoints, 
+  public CalibModel(List<Point2f> objectPoints, 
       List<Point2f> imagePoints, CalibMethodName methodName) {
 
     if (objectPoints.size() != imagePoints.size())
@@ -298,7 +298,7 @@ public class CalibrationExample {
    * Constructs a CalibrationExample from a calibraion result file.
    * @param fileName
    */
-  public CalibrationExample(String fileName) {
+  public CalibModel(String fileName) {
     initIntrinsicParameters();
     try {
       Scanner scanner = new Scanner(new File(fileName));

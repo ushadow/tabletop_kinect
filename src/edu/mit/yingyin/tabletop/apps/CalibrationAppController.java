@@ -17,11 +17,11 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.vecmath.Point2f;
 
-import edu.mit.yingyin.calib.CalibController;
-import edu.mit.yingyin.calib.GeoCalibModel;
+import edu.mit.yingyin.calib.CalibLabelController;
+import edu.mit.yingyin.calib.CalibLabelModel;
+import edu.mit.yingyin.calib.CalibModel;
+import edu.mit.yingyin.calib.CalibModel.CalibMethodName;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.CalibrationExample;
-import edu.mit.yingyin.tabletop.models.CalibrationExample.CalibMethodName;
 import edu.mit.yingyin.util.FileUtil;
 
 /**
@@ -38,39 +38,47 @@ public class CalibrationAppController extends KeyAdapter {
 
   private static final int WIDTH = 640, HEIGHT = 480;
   
+  private static final String DEFAULT_CALIB_DIR = "data/calibraiton/";
+  
   public static void main(String args[]) {
     new CalibrationAppController(args);
   }
 
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
-    case KeyEvent.VK_Q:
-    case KeyEvent.VK_ESCAPE:
-      if (calibModel != null) {
-        List<Point2f> points = new ArrayList<Point2f>(
-            calibModel.getImagePoints().size());
-        for (Point p : calibModel.getImagePoints())
-          points.add(new Point2f(p.x, p.y));
-        if (isScrnCoord)
-          screenPoints = points;
-        else cameraPoints = points;
+      case KeyEvent.VK_C:
         calibrate();
-      }
-      System.exit(0);
-      break;
+        break;
+      case KeyEvent.VK_N:
+        // Show the next image to label.
+        if (calibLabelController != null)
+          calibLabelController.dispose();
+        updatePoints(isCurrentLabelImageScrnCoord , isCurrentLabelImageTest);
+        if (!isCurrentLabelImageScrnCoord && !isCurrentLabelImageTest) {
+          isCurrentLabelImageTest = true;
+          labelImage(camTestImgPath, isCurrentLabelImageScrnCoord, 
+              isCurrentLabelImageTest);
+        }
+        break;
+      case KeyEvent.VK_Q:
+      case KeyEvent.VK_ESCAPE:
+        System.exit(0);
+        break;
     default: break;
     }
   }
 
-  private boolean isScrnCoord = true;
   private List<Point2f> screenPoints;
   private List<Point2f> cameraPoints;
   private List<Point2f> screenPointsTest;
   private List<Point2f> cameraPointsTest;
-  private GeoCalibModel calibModel;
-  private CalibMethodName calibMethod = CalibMethodName.EXTRINSIC;
+  private CalibLabelModel calibLabelModel;
+  private CalibLabelController calibLabelController;
+  private CalibMethodName calibMethod = CalibMethodName.UNDISTORT;
   private String calibMethodStr;
-  private String savePath;
+  private String savePath, camTestImgPath;
+  private boolean isCurrentLabelImageTest = false;
+  private boolean isCurrentLabelImageScrnCoord = true;
 
   public CalibrationAppController(String args[]) {
     Properties config = new Properties();
@@ -92,14 +100,34 @@ public class CalibrationAppController extends KeyAdapter {
       System.exit(-1);
     }
 
+    String calibDir = config.getProperty("calibration-dir", DEFAULT_CALIB_DIR);
+    
     String camImgPath = config.getProperty("cam-depth-image", null);
+    camImgPath = camImgPath == null ? null : calibDir + camImgPath;
+    
+    camTestImgPath = config.getProperty("cam-depth-test-image", null);
+    camTestImgPath = camTestImgPath == null ? null : calibDir + camTestImgPath;
+    
     String scrnImagePath = config.getProperty("screen-image", null);
+    scrnImagePath = scrnImagePath == null ? null : calibDir + scrnImagePath; 
+    
     String screenPtsPath = config.getProperty("screen-points", null);
+    screenPtsPath = screenPtsPath == null ? null : calibDir + screenPtsPath;
+    
     String camPtsPath = config.getProperty("cam-points", null);
+    camPtsPath = camPtsPath == null ? null : calibDir + camPtsPath;
+    
     String camPtsTestPath = config.getProperty("cam-points-t", null);
+    camPtsTestPath = camPtsTestPath == null ? null : calibDir + camPtsTestPath;
+    
     String screenPtsTestPath = config.getProperty("screen-points-t", null);
-    calibMethodStr = config.getProperty("calib-method", "EXTRINSIC");
+    screenPtsTestPath = screenPtsTestPath == null ? null : 
+      calibDir + screenPtsTestPath;
+    
     savePath = config.getProperty("save-path", null);
+    savePath = savePath == null ? null : calibDir + savePath;
+    
+    calibMethodStr = config.getProperty("calib-method", "EXTRINSIC");
     
     if (screenPtsPath != null)
       screenPoints = readPointsFromFile(screenPtsPath);
@@ -120,38 +148,50 @@ public class CalibrationAppController extends KeyAdapter {
       System.exit(-1);
     }
     
-    BufferedImage image = null;
-    String ptsFileName = null;
+    String firstImage = null;
     
-    if (camImgPath != null || scrnImagePath != null) {
+    if (camImgPath != null || camTestImgPath != null || scrnImagePath != null) {
       if (camImgPath != null) {
-        image = ImageConvertUtils.readRawDepth(camImgPath, WIDTH, HEIGHT);
-        try {
-          ImageIO.write(image, "PNG", new File(FileUtil.setExtension(camImgPath, 
-                                               "png")));
-        } catch (IOException e) {
-          System.err.println(e.getMessage());
-          System.exit(-1);
-        }
-        isScrnCoord = false;
-        ptsFileName = FileUtil.setExtension(camImgPath, "pts");
+        firstImage = camImgPath;
+        isCurrentLabelImageScrnCoord = false;
+        isCurrentLabelImageTest = false;
+      } else if (camTestImgPath != null) {
+        firstImage = camTestImgPath;
+        isCurrentLabelImageScrnCoord = false;
+        isCurrentLabelImageTest = true;
       } else if (scrnImagePath != null) {
-        try {
-          image = ImageIO.read(new File(scrnImagePath));
-          isScrnCoord = true;
-          ptsFileName = FileUtil.setExtension(scrnImagePath, "pts");
-        } catch (IOException e) {
-          System.err.println(e.getMessage());
-          System.exit(-1);
-        }
+        firstImage = scrnImagePath;
+        isCurrentLabelImageScrnCoord = true;
+        isCurrentLabelImageTest = false;
       }
-      calibModel = new GeoCalibModel(image, ptsFileName, isScrnCoord);
-      CalibController controller = new CalibController(calibModel);
-      controller.addKeyListener(this);
-      controller.showUI();
+      labelImage(firstImage, isCurrentLabelImageScrnCoord, 
+                 isCurrentLabelImageTest);
     } else {
       calibrate();
     }
+  }
+  
+  private void labelImage(String imagePath, boolean isScrnCoord, boolean isTest) 
+  {
+    if (imagePath == null) 
+      return;
+
+    BufferedImage image = null;
+    String ptsFileName = null;
+    image = ImageConvertUtils.readRawDepth(imagePath, WIDTH, HEIGHT);
+    try {
+      ImageIO.write(image, "PNG", 
+          new File(FileUtil.setExtension(imagePath, "png")));
+    } catch (IOException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    }
+    isScrnCoord = false;
+    ptsFileName = FileUtil.setExtension(imagePath, "pts");
+    calibLabelModel = new CalibLabelModel(image, ptsFileName, isScrnCoord);
+    calibLabelController = new CalibLabelController(calibLabelModel);
+    calibLabelController.addKeyListener(this);
+    calibLabelController.showUI();
   }
   
   private List<Point2f> readPointsFromFile(String file) {
@@ -169,37 +209,65 @@ public class CalibrationAppController extends KeyAdapter {
     }
     return points;
   }
+    
+  private void updatePoints(boolean isScrnCoord, boolean isTest) {
+    if (calibLabelModel == null) 
+      return;
+    
+    List<Point2f> points = new ArrayList<Point2f>(
+        calibLabelModel.getImagePoints().size());
+    for (Point p : calibLabelModel.getImagePoints())
+      points.add(new Point2f(p.x, p.y));
+    
+    if (isScrnCoord) {
+      screenPoints = points;
+      logger.info("Updated screen points");
+    } else if (isTest) {
+      cameraPointsTest = points;
+      logger.info("Updated camera image test points");
+    } else {
+      cameraPoints = points;
+      logger.info("Updated camera image points");
+    }
+  }
   
   /**
    * Calibrates the extrinsic parameters of the camera.
    */
   private void calibrate() {
-    if (screenPoints != null && !screenPoints.isEmpty() && 
-        cameraPoints != null && !cameraPoints.isEmpty()) {
-      
-      if (screenPoints.size() != cameraPoints.size()) {
-        logger.warning("Dispaly image points and camera image points sizes " +
-        		"are not the same. No calibraiton is done.");
-        return;
-      }
-      
-      logger.info("Calibration method: " + calibMethodStr);
-      CalibrationExample example = 
-        new CalibrationExample(screenPoints, cameraPoints, calibMethod);
-      System.out.println(example.toString());
-      System.out.println("Average reprojection errors in pixels:"); 
-      example.printImageToDisplayCoordsErrors(screenPoints, cameraPoints);
-      
-      if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
-          cameraPointsTest != null && !cameraPointsTest.isEmpty()) {
-        System.out.println("Average test squared error:"); 
-        example.printImageToDisplayCoordsErrors(screenPointsTest, 
-            cameraPointsTest);
-      }
-      
-      if (savePath != null)
-        example.save(savePath);
-      example.release();
+    if (screenPoints == null || screenPoints.isEmpty()) {
+      logger.warning("No screen points.");
+      return;
     }
+    if (cameraPoints == null || cameraPoints.isEmpty()) {
+      logger.warning("No camera points.");
+      return;
+    }
+   
+    if (screenPoints.size() != cameraPoints.size()) {
+      logger.warning("Dispaly image points and camera image points sizes " +
+      		"are not the same. No calibraiton is done.");
+      return;
+    }
+    
+    logger.info("Calibration method: " + calibMethodStr);
+    CalibModel example = 
+      new CalibModel(screenPoints, cameraPoints, calibMethod);
+    System.out.println(example.toString());
+    System.out.println("Average reprojection errors in pixels:"); 
+    example.printImageToDisplayCoordsErrors(screenPoints, cameraPoints);
+    
+    if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
+        cameraPointsTest != null && !cameraPointsTest.isEmpty()) {
+      System.out.println("Average test squared error:"); 
+      example.printImageToDisplayCoordsErrors(screenPointsTest, 
+          cameraPointsTest);
+    } else {
+      logger.warning("No test data.");
+    }
+    
+    if (savePath != null)
+      example.save(savePath);
+    example.release();
   }
 }
