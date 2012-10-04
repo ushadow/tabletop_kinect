@@ -38,7 +38,7 @@ public class CalibrationAppController extends KeyAdapter {
 
   private static final int WIDTH = 640, HEIGHT = 480;
   
-  private static final String DEFAULT_CALIB_DIR = "data/calibraiton/";
+  private static final String DEFAULT_CALIB_DIR = "data/calibration/";
   
   public static void main(String args[]) {
     new CalibrationAppController(args);
