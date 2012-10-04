@@ -83,15 +83,18 @@ public class HandEventsController extends KeyAdapter
 //      return after;
 //    }
   
-  private static final String IMAGE_FILE_NAME = 
-      "/afs/csail/u/y/yingyin/research/kinect/data/checkerboard.png";
-  
   private List<FingerEvent> feList;
   private CalibFrame frame;
   
-  public HandEventsController() throws IOException {
-    TestImageComponent ic = new TestImageComponent(ImageIO.read(
-        new File(IMAGE_FILE_NAME)));
+  /**
+   * Constructs a <code>HandEventsController</code> with a specific displayed 
+   * image.
+   * 
+   * @param image the image to be displayed.
+   * @throws IOException
+   */
+  public HandEventsController(BufferedImage image) throws IOException {
+    TestImageComponent ic = new TestImageComponent(image);
     frame = new CalibFrame(ic);
     frame.addKeyListener(this);
     SwingUtilities.invokeLater(new Runnable() {

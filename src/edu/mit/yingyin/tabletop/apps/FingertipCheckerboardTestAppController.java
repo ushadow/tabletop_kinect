@@ -1,7 +1,11 @@
 package edu.mit.yingyin.tabletop.apps;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
 
 import org.OpenNI.GeneralException;
 
@@ -18,12 +22,16 @@ public class FingertipCheckerboardTestAppController {
   
   private static Logger logger = Logger.getLogger(
       FingertipCheckerboardTestAppController.class.getName());
+  private static final String IMAGE_FILE_NAME = 
+      "/afs/csail/u/y/yingyin/research/kinect/data/calibration/checkerboard.png";
+  
   
   private static final String MAIN_DIR = 
       "/afs/csail/u/y/yingyin/research/kinect/";
   private static final String OPENNI_CONFIG_FILE = 
       MAIN_DIR + "config/config.xml";
-  private static final String CALIB_FILE = MAIN_DIR + "data/calibration.txt";
+  private static final String CALIB_FILE = MAIN_DIR + 
+      "data/calibration/calibration.txt";
   private static final int MAX_DEPTH = 1600;
   
   public static void main(String[] args) {
@@ -34,7 +42,8 @@ public class FingertipCheckerboardTestAppController {
   
   public FingertipCheckerboardTestAppController() {
     try {
-      HandEventsController heController = new HandEventsController();
+      BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
+      HandEventsController heController = new HandEventsController(image);
       engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE, 
           MAX_DEPTH);
       ProcessPacketController packetController = new ProcessPacketController(
