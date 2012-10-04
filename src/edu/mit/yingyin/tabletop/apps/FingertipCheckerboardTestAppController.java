@@ -37,16 +37,14 @@ public class FingertipCheckerboardTestAppController {
   
   private static Logger logger = Logger.getLogger(
       FingertipCheckerboardTestAppController.class.getName());
-  private static final String IMAGE_FILE_NAME = 
-      "/afs/csail/u/y/yingyin/research/kinect/data/calibration/checkerboard.png";
-  
-  
-  private static final String MAIN_DIR = 
-      "/afs/csail/u/y/yingyin/research/kinect/";
+  private static final String MAIN_DIR = "./";
   private static final String OPENNI_CONFIG_FILE = 
       MAIN_DIR + "config/config.xml";
   private static final String CALIB_FILE = MAIN_DIR + 
       "data/calibration/calibration.txt";
+  private static final String IMAGE_FILE_NAME = MAIN_DIR + 
+    "data/calibration/checkerboard.png";
+  
   private static final int MAX_DEPTH = 1600;
   
   public static void main(String[] args) {
