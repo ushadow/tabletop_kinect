@@ -1,5 +1,7 @@
 package edu.mit.yingyin.tabletop.apps;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,19 @@ import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
  *
  */
 public class FingertipCheckerboardTestAppController {
+  
+  private class KeyController extends KeyAdapter {
+    @Override
+    public void keyPressed(KeyEvent ke) {
+      switch(ke.getKeyCode()) {
+        case KeyEvent.VK_Q:
+        case KeyEvent.VK_ESCAPE:
+          exit();
+          break;
+        default: break;
+      }
+    }
+  }
   
   private static Logger logger = Logger.getLogger(
       FingertipCheckerboardTestAppController.class.getName());
@@ -52,6 +67,8 @@ public class FingertipCheckerboardTestAppController {
       packetController.showDiagnosticImage(false);
       
       engine.addListener(heController);
+      packetController.addKeyListener(new KeyController());
+      
       while (!engine.isDone() && heController.isViewVisible()) {
         engine.step();
         try {
@@ -60,8 +77,7 @@ public class FingertipCheckerboardTestAppController {
           logger.severe(e.getMessage());
         }
       }
-      engine.release();
-      System.exit(0);
+      exit();
     } catch (GeneralException ge) {
       logger.severe(ge.getMessage());
       System.exit(-1);
@@ -69,6 +85,11 @@ public class FingertipCheckerboardTestAppController {
       logger.severe(ioe.getMessage());
       System.exit(-1);
     }
-    
+  }
+  
+  private void exit() {
+    if (engine != null)
+      engine.release();
+    System.exit(0);
   }
 }
