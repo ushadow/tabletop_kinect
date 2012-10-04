@@ -1,15 +1,14 @@
 package edu.mit.yingyin.util;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import javax.swing.*;
-
-import edu.mit.yingyin.tabletop.models.Background;
+import javax.swing.JPanel;
 
 /**
  * 

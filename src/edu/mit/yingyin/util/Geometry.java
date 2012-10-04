@@ -4,13 +4,12 @@ import java.awt.Point;
 
 import javax.vecmath.Quat4f;
 import javax.vecmath.Tuple3f;
-import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
 public class Geometry {
 	/**
-	 * Calculates the euler angles from the quaternion, positive direction of the 
-	 * rotaion follows the right hand rule: if the thumb of the right hand is 
+	 * Calculates the Euler angles from the quaternion, positive direction of the 
+	 * rotation follows the right hand rule: if the thumb of the right hand is 
 	 * pointed in the direction of the axis, the positive direction of rotation is 
 	 * given by the curl of the fingers.
 	 * http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
@@ -20,7 +19,7 @@ public class Geometry {
 	 * 		   Tuple3f.z = pitch (rotation about z axis)
 	 */
 	static public Tuple3f getEulerAngles(Quat4f q1) {
-		/** assumes q1 is a normalised quaternion */
+		/** assumes q1 is a normalized quaternion */
 		Tuple3f tuple3f = new Vector3f();
 		float heading, attitude, bank;
 		double test = q1.x * q1.y + q1.z * q1.w;
