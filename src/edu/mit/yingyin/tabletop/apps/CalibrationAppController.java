@@ -46,7 +46,7 @@ public class CalibrationAppController extends KeyAdapter {
 
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
-      case KeyEvent.VK_C:
+      case KeyEvent.VK_A:
         calibrate();
         break;
       case KeyEvent.VK_N:
