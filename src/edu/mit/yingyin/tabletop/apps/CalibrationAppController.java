@@ -126,7 +126,7 @@ public class CalibrationAppController extends KeyAdapter {
     savePath = config.getProperty("save-path", null);
     savePath = savePath == null ? null : calibDir + savePath;
     
-    calibMethodStr = config.getProperty("calib-method", "EXTRINSIC");
+    calibMethodStr = config.getProperty("calib-method", "UNDISTORT");
     
     if (screenPtsPath != null)
       screenPoints = readPointsFromFile(screenPtsPath);

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 
@@ -26,7 +27,6 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
  *
  */
 public class CalibModel {
-
   /**
    * Calibration methods.
    * EXTRINSIC: finds extrinsic matrix explicitly.
@@ -255,6 +255,9 @@ public class CalibModel {
     }
   }
   
+  private static final Logger logger = 
+    Logger.getLogger(CalibModel.class.getName());
+  
   /**
    * Intrinsic parameters for Kinect.
    */
@@ -317,14 +320,15 @@ public class CalibModel {
     try {
       Scanner scanner = new Scanner(new File(fileName));
       methodName = CalibMethodName.valueOf(scanner.next());
+      logger.info(String.format("Calibration method = %d", methodName));
       if (methodName == CalibMethodName.EXTRINSIC) {
         method = new ExtrinsicMethod(scanner);
       } else {
         method = new HomographyMethod(scanner);
       }
     } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      System.err.println(e.getMessage());
+      System.exit(-1);
     }
   }
   
