@@ -56,8 +56,7 @@ public class CalibrationAppController extends KeyAdapter {
         updatePoints(isCurrentLabelImageScrnCoord , isCurrentLabelImageTest);
         if (!isCurrentLabelImageScrnCoord && !isCurrentLabelImageTest) {
           isCurrentLabelImageTest = true;
-          labelImage(camTestImgPath, isCurrentLabelImageScrnCoord, 
-              isCurrentLabelImageTest);
+          labelImage(camTestImgPath, isCurrentLabelImageScrnCoord);
         }
         break;
       case KeyEvent.VK_Q:
@@ -164,29 +163,30 @@ public class CalibrationAppController extends KeyAdapter {
         isCurrentLabelImageScrnCoord = true;
         isCurrentLabelImageTest = false;
       }
-      labelImage(firstImage, isCurrentLabelImageScrnCoord, 
-                 isCurrentLabelImageTest);
+      labelImage(firstImage, isCurrentLabelImageScrnCoord);
     } else {
       calibrate();
     }
   }
   
-  private void labelImage(String imagePath, boolean isScrnCoord, boolean isTest) 
-  {
+  private void labelImage(String imagePath, boolean isScrnCoord) {
     if (imagePath == null) 
       return;
 
     BufferedImage image = null;
     String ptsFileName = null;
-    image = ImageConvertUtils.readRawDepth(imagePath, WIDTH, HEIGHT);
     try {
-      ImageIO.write(image, "PNG", 
-          new File(FileUtil.setExtension(imagePath, "png")));
+      if (imagePath.endsWith(".raw")) {
+        image = ImageConvertUtils.readRawDepth(imagePath, WIDTH, HEIGHT);
+        ImageIO.write(image, "PNG", 
+            new File(FileUtil.setExtension(imagePath, "png")));
+      } else if (imagePath.endsWith("png")) {
+        image = ImageIO.read(new File(imagePath));
+      }
     } catch (IOException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
     }
-    isScrnCoord = false;
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
     calibLabelModel = new CalibLabelModel(image, ptsFileName, isScrnCoord);
     calibLabelController = new CalibLabelController(calibLabelModel);
