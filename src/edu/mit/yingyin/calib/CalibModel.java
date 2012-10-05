@@ -320,7 +320,8 @@ public class CalibModel {
     try {
       Scanner scanner = new Scanner(new File(fileName));
       methodName = CalibMethodName.valueOf(scanner.next());
-      logger.info(String.format("Calibration method = %d", methodName));
+      logger.info(String.format("Calibration method = %s",
+          methodName.toString()));
       if (methodName == CalibMethodName.EXTRINSIC) {
         method = new ExtrinsicMethod(scanner);
       } else {
