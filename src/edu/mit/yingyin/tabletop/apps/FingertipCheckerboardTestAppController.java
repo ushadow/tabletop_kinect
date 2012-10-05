@@ -1,13 +1,16 @@
 package edu.mit.yingyin.tabletop.apps;
 
+import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
 
 import org.OpenNI.GeneralException;
 
@@ -46,36 +49,45 @@ public class FingertipCheckerboardTestAppController {
     "data/calibration/checkerboard.png";
   
   private static final int MAX_DEPTH = 1600;
+  private static final int TABLETOP_WIDTH = 1920 * 2;
+  private static final int TABLETOP_HEIGHT = 1080 * 2;
   
   public static void main(String[] args) {
-    new FingertipCheckerboardTestAppController();
+    final FingertipCheckerboardTestAppController controller = 
+        new FingertipCheckerboardTestAppController();
+    
+    try {
+      SwingUtilities.invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          controller.showUI();
+        }
+      });
+    } catch (InterruptedException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    } catch (InvocationTargetException e) {
+      System.err.println(e.getMessage());
+      System.exit(-1);
+    }
+    controller.start();
   }
   
   private HandTrackingEngine engine;
+  private HandEventsController heController;
+  private ProcessPacketController packetController;
   
   public FingertipCheckerboardTestAppController() {
     try {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
-      HandEventsController heController = new HandEventsController(image);
+      heController = new HandEventsController(image, 
+          new Dimension(TABLETOP_WIDTH, TABLETOP_HEIGHT));
       engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE, 
           MAX_DEPTH);
-      ProcessPacketController packetController = new ProcessPacketController(
-          engine.depthWidth(), engine.depthHeight(), null);
-      packetController.showDepthImage(false);
-      packetController.showDiagnosticImage(false);
-      
+      packetController = new ProcessPacketController(engine.depthWidth(), 
+          engine.depthHeight(), null);
       engine.addListener(heController);
       packetController.addKeyListener(new KeyController());
-      
-      while (!engine.isDone() && heController.isViewVisible()) {
-        engine.step();
-        try {
-          packetController.show(engine.packet());
-        } catch (GeneralException e) {
-          logger.severe(e.getMessage());
-        }
-      }
-      exit();
     } catch (GeneralException ge) {
       logger.severe(ge.getMessage());
       System.exit(-1);
@@ -83,6 +95,24 @@ public class FingertipCheckerboardTestAppController {
       logger.severe(ioe.getMessage());
       System.exit(-1);
     }
+  }
+  
+  public void showUI() {
+    heController.showUI();
+    packetController.showDepthImage(false);
+    packetController.showDiagnosticImage(false);
+  }
+  
+  public void start() {
+    while (!engine.isDone() && heController.isViewVisible()) {
+      engine.step();
+      try {
+        packetController.show(engine.packet());
+      } catch (GeneralException e) {
+        logger.severe(e.getMessage());
+      }
+    }
+    exit();
   }
   
   private void exit() {

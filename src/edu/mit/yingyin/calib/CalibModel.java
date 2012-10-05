@@ -353,7 +353,7 @@ public class CalibModel {
    * Calculates and prints the average error between the converted display 
    * coordinates from the image coordinates and the actual display coordinates.
    * 
-   * @param displayCoords list of actaul display coordinates.
+   * @param displayCoords list of actual display coordinates.
    * @param imageCoords list of corresponding image coordinates of the same size
    *     as displayCoords.
    */

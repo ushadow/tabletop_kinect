@@ -69,7 +69,7 @@ public class HandTracker {
   
   /**
    * Updates forelimbs information and generates events.
-   * @param forelimbs information for all the forlimbs detected.
+   * @param forelimbs information for all the forelimbs detected.
    * @param frameID frame ID for the current update.
    */
   public void update(List<Forelimb> forelimbs, int frameID) {

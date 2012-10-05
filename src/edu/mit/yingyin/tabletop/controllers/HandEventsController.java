@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -18,6 +20,7 @@ import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
+import edu.mit.yingyin.util.SystemUtil;
 
 /**
  * Controls interaction with hand events.
@@ -50,39 +53,25 @@ public class HandEventsController extends KeyAdapter
       g2d.setColor(Color.red);
       for (FingerEvent fe : feList) {
         Point2f p = scale(fe.posDisplay);
-        g2d.drawOval((int) p.x - OVAL_WIDTH, 
-            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
-        g2d.fillOval((int) p.x - OVAL_WIDTH, 
-            (int) p.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+        Point pointInImageCoord = new Point((int) p.x, (int) p.y);
+        SwingUtilities.convertPointFromScreen(pointInImageCoord, this);
+        g2d.drawOval(pointInImageCoord.x - OVAL_WIDTH, 
+            pointInImageCoord.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+        g2d.fillOval(pointInImageCoord.x - OVAL_WIDTH, 
+            pointInImageCoord.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
       }
     }
     
     private Point2f scale(Point2f p) {
-      Rectangle bounds = getBounds();
-      return new Point2f(p.x * bounds.width / DISPLAY_WIDTH,
-          p.y * bounds.height / DISPLAY_HEIGHT);
+      Dimension d = SystemUtil.getVirtualScreenBounds().getSize();
+      return new Point2f(p.x * d.width / tabletopRes.width,
+          p.y * d.height / tabletopRes.height);
     }
   }
-  private static final int DISPLAY_WIDTH = 2560;
-  private static final int DISPLAY_HEIGHT = 2048;
-    
-    
-//    private BufferedImage scaledImage() throws IOException {
-//      BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
-//      AffineTransform at = new AffineTransform();
-//      Rectangle bounds = getBounds(); 
-//      at.scale((float) bounds.width / DISPLAY_WIDTH, 
-//               (float) bounds.height / DISPLAY_HEIGHT);
-//      AffineTransformOp scaleOp = new AffineTransformOp(at, 
-//          AffineTransformOp.TYPE_BILINEAR);
-//      BufferedImage after = new BufferedImage(image.getWidth(), 
-//          image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-//      scaleOp.filter(image, after);
-//      return after;
-//    }
   
   private List<FingerEvent> feList;
   private CalibFrame frame;
+  private final Dimension tabletopRes;
   
   /**
    * Constructs a <code>HandEventsController</code> with a specific displayed 
@@ -91,16 +80,15 @@ public class HandEventsController extends KeyAdapter
    * @param image the image to be displayed.
    * @throws IOException
    */
-  public HandEventsController(BufferedImage image) throws IOException {
-    TestImageComponent ic = new TestImageComponent(image);
+  public HandEventsController(BufferedImage image, Dimension screenResolution) 
+      throws IOException {
+    tabletopRes = screenResolution;
+    TestImageComponent ic = new TestImageComponent(scaleImage(image));
     frame = new CalibFrame(ic);
     frame.addKeyListener(this);
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        frame.showUI();
-      }
-    });
   }
+  
+  public void showUI() { frame.showUI(); }
   
   @Override
   public void fingerPressed(List<FingerEvent> feList) {
@@ -123,4 +111,21 @@ public class HandEventsController extends KeyAdapter
   public boolean isViewVisible() {
     return frame.isVisible();
   }
+
+  private BufferedImage scaleImage(BufferedImage image) throws IOException {
+    AffineTransform at = new AffineTransform();
+    Dimension d = SystemUtil.getVirtualScreenBounds().getSize();
+    double widthRatio = (double) d.width / tabletopRes.width;
+    double heightRatio = (double) d.height / tabletopRes.height;
+    at.scale(widthRatio, heightRatio);
+    AffineTransformOp scaleOp = new AffineTransformOp(at, 
+        AffineTransformOp.TYPE_BILINEAR);
+    int scaledWidth = (int) (image.getWidth() * widthRatio);
+    int scaledHeight = (int) (image.getHeight() * heightRatio);
+    BufferedImage after = new BufferedImage(scaledWidth, scaledHeight, 
+        BufferedImage.TYPE_INT_ARGB);
+    scaleOp.filter(image, after);
+    return after;
+  }
 }
+
