@@ -36,7 +36,7 @@ public class CalibModelTest {
     imagePoints.add(new Point2f(0, 0));
     imagePoints.add(new Point2f(0, 1));
     imagePoints.add(new Point2f(1, 0));
-    imagePoints.add(new Point2f(0, 1));
+    imagePoints.add(new Point2f(1, 1));
     CalibModel calibModel = new CalibModel(objectPoints, imagePoints, 
         CalibMethodName.UNDISTORT);
     calibModel.checkRI();
