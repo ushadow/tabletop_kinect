@@ -88,6 +88,12 @@ public class HandTracker {
     listeners.remove(l);
   }
 
+  /**
+   * No filtering of any detected fingertips.
+   * @param forelimbs a list of forelimbs.
+   * @param frameID frame ID.
+   * @return a list of finger events.
+   */
   public List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 

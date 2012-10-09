@@ -23,7 +23,7 @@ import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
  * @author yingyin
  *
  */
-public class FingertipCheckerboardTestAppController {
+public class CheckerboardTestAppController {
   
   private class KeyController extends KeyAdapter {
     @Override
@@ -39,7 +39,7 @@ public class FingertipCheckerboardTestAppController {
   }
   
   private static Logger logger = Logger.getLogger(
-      FingertipCheckerboardTestAppController.class.getName());
+      CheckerboardTestAppController.class.getName());
   private static final String MAIN_DIR = "./";
   private static final String OPENNI_CONFIG_FILE = 
       MAIN_DIR + "config/config.xml";
@@ -53,8 +53,8 @@ public class FingertipCheckerboardTestAppController {
   private static final int TABLETOP_HEIGHT = 1080 * 2;
   
   public static void main(String[] args) {
-    final FingertipCheckerboardTestAppController controller = 
-        new FingertipCheckerboardTestAppController();
+    final CheckerboardTestAppController controller = 
+        new CheckerboardTestAppController();
     
     try {
       SwingUtilities.invokeAndWait(new Runnable() {
@@ -77,7 +77,7 @@ public class FingertipCheckerboardTestAppController {
   private HandEventsController heController;
   private ProcessPacketController packetController;
   
-  public FingertipCheckerboardTestAppController() {
+  public CheckerboardTestAppController() {
     try {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
       heController = new HandEventsController(image, 
