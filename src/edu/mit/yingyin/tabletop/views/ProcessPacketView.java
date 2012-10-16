@@ -40,7 +40,7 @@ import edu.mit.yingyin.util.CvUtil;
 
 public class ProcessPacketView {
   /**
-   * Image component for visualizing RBG images.
+   * Image component for visualizing fingertips.
    * @author yingyin
    *
    */
@@ -69,13 +69,6 @@ public class ProcessPacketView {
       
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.green);
-      for (Forelimb limb : forelimbs) {
-        for (List<Point3f> finger : limb.fingers) {
-          for (Point3f p : finger) {
-            g2d.drawLine((int)p.x, (int)p.y, (int)p.x, (int)p.y);
-          }
-        }
-      }
       
       // Draws labeled points.
       if (labels != null) {
@@ -253,7 +246,8 @@ public class ProcessPacketView {
   }
   
   /**
-   * Displays the image for analysis.
+   * Shows the analysis image that displays intermediate processing steps by
+   * the <code>HandAnalyzer</code>.
    */
   private void showAnalysisImage(ProcessPacket packet) {
     if (toggleMap.get(Toggles.SHOW_MORPHED))
@@ -293,7 +287,7 @@ public class ProcessPacketView {
   }
   
   /**
-   * Displays the application image.
+   * Shows the depth image.
    * @param packet
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
@@ -316,6 +310,10 @@ public class ProcessPacketView {
     frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
   }
   
+  /**
+   * Shows the image with diagnostic and debugging information.
+   * @param packet
+   */
   private void showDiagnosticImage(ProcessPacket packet) {
     ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
         packet.derivative.getFloatBuffer(), bufferedImage, 
@@ -323,6 +321,11 @@ public class ProcessPacketView {
     diagnosticFrame.updateImage(bufferedImage);
   }
 
+  /**
+   * Shows the RGB image from the camera.
+   * @param packet
+   * @throws GeneralException
+   */
   private void showRgbImage(ProcessPacket packet) throws GeneralException {
     if (rgbFrame == null) {
       rgbFrame = new ImageFrame("RGB", new Dimension(width, height));

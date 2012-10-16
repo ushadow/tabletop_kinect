@@ -80,11 +80,14 @@ public class HandAnalyzer {
    */
   private static final int HAND_HEIGHT_SCALE = 11;
   
+  private static final float SMOOTH_FACTOR = (float) 0.9;
+  private static final float TREND_SMOOTH_FACTOR = (float) 0.9;
+  
   private Background background;
   private IplImage tempImage;
   private IplImage foregroundMask;
   private ForelimbFeatureDetector ffd;
-  private KalmanFilter filter;
+  private DoubleExpFilter filter;
   
   /**
    * Initializes the data structures.
@@ -95,7 +98,7 @@ public class HandAnalyzer {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    filter = new KalmanFilter(width, height);
+    filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
     ffd = new ForelimbFeatureDetector(width, height);
   }
   
