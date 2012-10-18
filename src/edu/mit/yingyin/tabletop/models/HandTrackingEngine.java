@@ -12,14 +12,14 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 
 /**
- * Main interface to the handtracking module that tracks the hand events and 
+ * Main interface to the hand tracking module that tracks the hand events and 
  * updates the hand event listeners with the events.
  * @author yingyin
  *
  */
 public class HandTrackingEngine {
   /**
-   * The listener interface for recieving finger events.
+   * The listener interface for receiving finger events.
    * @author yingyin
    *
    */
@@ -42,6 +42,7 @@ public class HandTrackingEngine {
    * 
    * @param openniConfigFile
    * @param calibrationFile
+   * @param maxDepth
    * @throws GeneralException
    */
   public HandTrackingEngine(String openniConfigFile, 
@@ -51,7 +52,7 @@ public class HandTrackingEngine {
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    analyzer = new HandAnalyzer(depthWidth, depthHeight);
+    analyzer = new HandAnalyzer(depthWidth, depthHeight, maxDepth);
     packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
 
     tracker = new HandTracker(new CalibModel(calibrationFile));

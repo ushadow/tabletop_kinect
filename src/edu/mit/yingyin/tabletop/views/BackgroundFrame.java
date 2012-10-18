@@ -7,24 +7,29 @@ import javax.swing.JFrame;
 import edu.mit.yingyin.util.Gradient;
 import edu.mit.yingyin.util.HeatMap;
 
-public class BackgroundView extends JFrame {
+/**
+ * Visualization of background.
+ * @author yingyin
+ *
+ */
+public class BackgroundFrame extends JFrame {
 
   private static final long serialVersionUID = -3270421934205678686L;
   private static final boolean USE_GRAPHICS_YAXIS = true;
 
-  private HeatMap panel;
+  private HeatMap hm;
   private double[][] data;
   private int width, height;
 
-  public BackgroundView(int width, int height) {
+  public BackgroundFrame(int width, int height) {
     super("Background View");
     this.width = width;
     this.height = height;
 
     data = new double[width][height];
-    panel = new HeatMap(data, USE_GRAPHICS_YAXIS, Gradient.GRADIENT_HOT);
-    this.getContentPane().add(panel);
-    setSize(panel.getPreferredSize());
+    hm = new HeatMap(data, USE_GRAPHICS_YAXIS, Gradient.GRADIENT_HOT);
+    this.getContentPane().add(hm);
+    setSize(hm.getPreferredSize());
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
@@ -41,6 +46,6 @@ public class BackgroundView extends JFrame {
         float val = fb.get(index);
         data[w][h] = val;
       }
-    panel.updateData(data, USE_GRAPHICS_YAXIS);
+    hm.updateData(data, USE_GRAPHICS_YAXIS);
   }
 }

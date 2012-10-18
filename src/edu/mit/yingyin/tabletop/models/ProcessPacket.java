@@ -51,7 +51,7 @@ public class ProcessPacket {
    */
   public int[] depthRawData;
   public IplImage depthImage8U;
-  public IplImage depthImage32F;
+  public IplImage depthImage32F, depthSmooth32F;
   public IplImage derivative;
   public IplImage morphedImage;
   public CvMemStorage tempMem;
@@ -78,6 +78,7 @@ public class ProcessPacket {
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.
     depthImage8U = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    depthSmooth32F = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     depthImage32F = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     derivative = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
@@ -101,6 +102,7 @@ public class ProcessPacket {
   public void release() {
     clear();
     depthImage8U.release();
+    depthSmooth32F.release();
     depthImage32F.release();
     derivative.release();
     morphedImage.release();

@@ -8,12 +8,12 @@ import static com.googlecode.javacv.cpp.opencv_core.cvAddS;
 import static com.googlecode.javacv.cpp.opencv_core.cvAvg;
 import static com.googlecode.javacv.cpp.opencv_core.cvConvertScale;
 import static com.googlecode.javacv.cpp.opencv_core.cvInRange;
+import static com.googlecode.javacv.cpp.opencv_core.cvInRangeS;
 import static com.googlecode.javacv.cpp.opencv_core.cvMul;
 import static com.googlecode.javacv.cpp.opencv_core.cvRealScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
-import static com.googlecode.javacv.cpp.opencv_core.cvInRangeS;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
 import java.nio.ByteBuffer;
@@ -42,7 +42,6 @@ public class Background {
   private static final int PHYSICAL_DIST_PER_PIXEL = 2; // mm/px
   
   private static final int PHYSICAL_DIST_FROM_CAMERA = 1160; // mm
-  
 
   /**
    * Float, 1-channel images. All the depth values are scaled between 0 and 1
@@ -296,7 +295,7 @@ public class Background {
    *          as the depth array.
    */
   private void depthToImage(int[] depthRawData, IplImage image) {
-    CvUtil.intToFloatImage(depthRawData, image, 1);
+    CvUtil.intToFloatIplImage(depthRawData,image, 1);
   }
 
   /**

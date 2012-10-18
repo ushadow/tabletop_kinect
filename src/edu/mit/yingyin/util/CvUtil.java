@@ -114,11 +114,14 @@ public class CvUtil {
   // Image conversion methods.
   
   /**
-   * Converts an integer array to a IplImage with single channel.
+   * Converts an integer array to an unsigned or signed IplImage with single 
+   * channel.
+   * 
    * @param intArray
    * @param image
    */
-  public static void intToIplImage(int[] intArray, IplImage image) {
+  public static void intToIntIplImage(int[] intArray, IplImage image, 
+      float scale) {
     ByteBuffer buffer = image.getByteBuffer();
     // For IplImage, image width is not necessarily equal to the width step in 
     // of the buffer.
@@ -129,7 +132,8 @@ public class CvUtil {
       case 8:
         for (int h = 0; h < imageHeight; h++)
           for (int w = 0; w < imageWidth; w++) {
-            buffer.put(h * widthStep + w, (byte)intArray[h * imageWidth + w]);
+            buffer.put(h * widthStep + w, 
+                (byte)(intArray[h * imageWidth + w] * scale));
           }
         break;
       case 16:
@@ -137,7 +141,8 @@ public class CvUtil {
         widthStep /= 2;
         for (int h = 0; h < imageHeight; h++)
           for (int w = 0; w < imageWidth; w++) {
-            sb.put(h * widthStep + w, (short)intArray[h * imageWidth + w]);
+            sb.put(h * widthStep + w, 
+                (short) (intArray[h * imageWidth + w] * scale));
           }
         break;
       case 32:
@@ -145,7 +150,8 @@ public class CvUtil {
         widthStep /= 4;
         for (int h = 0; h < imageHeight; h++)
           for (int w = 0; w < imageWidth; w++) {
-            ib.put(h * widthStep + w, intArray[h * imageWidth + w]);
+            ib.put(h * widthStep + w, 
+                (int) (intArray[h * imageWidth + w] * scale));
           }
         break;
       default:
@@ -154,15 +160,16 @@ public class CvUtil {
   }
   
   /**
-   * Scales an integer array to a float image with values between 0 and 1.
+   * Converts an integer array to a float <code>IplImage</code> with scaling.
    * 
-   * So image[i] = raw[i] / scale.
+   * So image[i] = raw[i] * scale.
    * 
    * @param raw
    * @param image an IplImage of type float (32-bit).
-   * @param scale the factor for conversion.
+   * @param scale scaling factor to be multiplied to the raw value.
    */
-  public static void intToFloatImage(int[] raw, IplImage image, int scale) {
+  public static void intToFloatIplImage(int[] raw, IplImage image, float scale) 
+  {
     FloatBuffer fb = image.getFloatBuffer();
     int height = image.height();
     int width = image.width();
@@ -170,7 +177,7 @@ public class CvUtil {
     // Converts to float.
     for (int h = 0; h < height; h++)
       for (int w = 0; w < width; w++) {
-        float depth = (float)raw[h * width + w] / scale;
+        float depth = (float) raw[h * width + w] * scale;
         fb.put(h * widthStep + w, depth);
     }
   }

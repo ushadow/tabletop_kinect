@@ -20,6 +20,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
@@ -42,8 +43,7 @@ public class HandTrackingAppController extends KeyAdapter {
       "/config/fingertip_tracking.properties";
   private static final String DATA_DIR = "/data/";
   private static final String FINGERTIP_DIR = DATA_DIR + "fingertip/";
-  private static final String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
-  private static final int DEFAULT_MAX_DEPTH = 1600;
+  private static final String TIME_FORMAT = "yyyy-MM-dd_HH-mm-SS";
   
   @SuppressWarnings("static-access")
   public static void main(String[] args) {
@@ -101,7 +101,7 @@ public class HandTrackingAppController extends KeyAdapter {
     
     String displayOnProperty = config.getProperty("display-on", "true");
     
-    int maxDepth = DEFAULT_MAX_DEPTH;
+    int maxDepth = EnvConstants.DEFAULT_MAX_DEPTH;
     try {
       maxDepth = Integer.parseInt(config.getProperty("max-depth", "1600"));
     } catch(NumberFormatException efe) {

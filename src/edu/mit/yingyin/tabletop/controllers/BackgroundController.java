@@ -1,14 +1,14 @@
 package edu.mit.yingyin.tabletop.controllers;
 
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
-import edu.mit.yingyin.tabletop.views.BackgroundView;
+import edu.mit.yingyin.tabletop.views.BackgroundFrame;
 
 public class BackgroundController {
-  private BackgroundView bv;
+  private BackgroundFrame bv;
   private HandTrackingEngine engine;
   
   public BackgroundController(HandTrackingEngine engine) {
-    bv = new BackgroundView(engine.depthWidth(), engine.depthHeight());
+    bv = new BackgroundFrame(engine.depthWidth(), engine.depthHeight());
     this.engine = engine;
   }
   

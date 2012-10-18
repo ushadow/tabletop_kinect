@@ -24,7 +24,7 @@ public class CvUtilTest {
     for (int i = 0; i < intArray.length; i++)
       intArray[i] = i;
     IplImage image = IplImage.create(width, height, IPL_DEPTH_16U, 1);
-    CvUtil.intToIplImage(intArray, image);
+    CvUtil.intToIntIplImage(intArray, image, 1);
     ShortBuffer sb = image.getShortBuffer();
     int widthStep = image.widthStep() / 2;
     for (int h = 0; h < height; h++)
@@ -35,11 +35,12 @@ public class CvUtilTest {
   
   @Test
   public void testIntToFloatImage() {
-    final int width = 10, height = 10, scale = 10;
+    final int width = 10, height = 10;
+    final float scale = (float) 0.1;
     int[] raw = new int[width * height];
     Arrays.fill(raw, 5);
     IplImage image = IplImage.create(width, height, IPL_DEPTH_32F, 1);
-    CvUtil.intToFloatImage(raw, image, scale);
+    CvUtil.intToFloatIplImage(raw, image, scale);
     FloatBuffer imageBuffer = image.getFloatBuffer();
     int widthStep = image.widthStep() / 4;
     for (int h = 0; h < height; h++)

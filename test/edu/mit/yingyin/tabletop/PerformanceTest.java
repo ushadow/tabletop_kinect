@@ -38,7 +38,7 @@ public class PerformanceTest {
         timer.tic();
         image1 = new BufferedImage(width, height, 
             BufferedImage.TYPE_USHORT_GRAY);
-        ImageConvertUtils.depthToGrayBufferedImage(buffer, image1);
+        ImageConvertUtils.shortBufferToGrayBufferedImage(buffer, image1);
         totalTime1 += timer.getToc();
   
         buffer.rewind();

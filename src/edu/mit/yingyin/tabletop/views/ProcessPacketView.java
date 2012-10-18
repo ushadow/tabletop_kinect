@@ -287,7 +287,7 @@ public class ProcessPacketView {
   }
   
   /**
-   * Shows the depth image.
+   * Shows the histogram based depth image.
    * @param packet
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
@@ -315,9 +315,9 @@ public class ProcessPacketView {
    * @param packet
    */
   private void showDiagnosticImage(ProcessPacket packet) {
-    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
-        packet.derivative.getFloatBuffer(), bufferedImage, 
-        packet.derivative.widthStep() / 4);
+    ImageConvertUtils.floatBufferToGrayBufferedImage(
+        packet.depthImage32F.getFloatBuffer(),
+        bufferedImage);
     diagnosticFrame.updateImage(bufferedImage);
   }
 

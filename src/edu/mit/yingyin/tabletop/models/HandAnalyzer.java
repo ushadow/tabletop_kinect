@@ -94,7 +94,7 @@ public class HandAnalyzer {
    * @param width
    * @param height
    */
-  public HandAnalyzer(int width, int height) {
+  public HandAnalyzer(int width, int height, int maxDepth) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
@@ -132,10 +132,10 @@ public class HandAnalyzer {
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
       return;
     
-    CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
-                           packet.maxDepth());
+    CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F, 
+                           (float) 1 / packet.maxDepth());
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
-    
+//    
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
@@ -168,7 +168,7 @@ public class HandAnalyzer {
     int[] depthData = packet.depthRawData;
     IplImage depthImage = packet.depthImage8U;
  
-    background.backgroundDiff(depthData, foregroundMask);
+    background.backgroundDiff(packet.depthRawData, foregroundMask);
     ByteBuffer depthBuffer = depthImage.getByteBuffer();
     ByteBuffer maskBuffer = foregroundMask.getByteBuffer();
     int maskWidthStep = foregroundMask.widthStep();
@@ -200,8 +200,7 @@ public class HandAnalyzer {
   }
   
   /**
-   * Cleans up the foreground segmentation mask, and finds connected components
-   * as forelimbs.
+   * Finds connected components as forelimbs.
    * 
    * @param packet ProcessPacket containing the data necessary for the analysis.
    * @param perimScale len = (image.width + image.height) / perimScale. If 
