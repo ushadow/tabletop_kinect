@@ -62,7 +62,7 @@ public class ForelimbFeatureDetector {
           CvConvexityDefect defect2 = new CvConvexityDefect(
               cvGetSeqElem(defects, (i + 1) % defects.total()));
           if (CvUtil.pointInRect(defect2.start(), ff.handRegion)) {
-            ValConfiPair<Point3f> fingertip = getFingertip(defect1, defect2, 
+            ValConfiPair<Point3f> fingertip = findFingertip(defect1, defect2, 
                                                            packet);
             if (fingertip != null)  
               forelimb.fingertips.add(fingertip);
@@ -76,7 +76,14 @@ public class ForelimbFeatureDetector {
     }
   }
   
-  private ValConfiPair<Point3f> getFingertip(CvConvexityDefect defect1, 
+  /**
+   * Finds a fingertip from two convexity defects.
+   * @param defect1
+   * @param defect2
+   * @param packet
+   * @return
+   */
+  private ValConfiPair<Point3f> findFingertip(CvConvexityDefect defect1, 
       CvConvexityDefect defect2, ProcessPacket packet) {
     Vector2f v1 = new Vector2f(
         defect1.depth_point().x() - defect1.end().x(),

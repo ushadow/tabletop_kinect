@@ -135,7 +135,7 @@ public class HandAnalyzer {
     CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F, 
                            (float) 1 / packet.maxDepth());
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
-//    
+    
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
@@ -223,7 +223,8 @@ public class HandAnalyzer {
       double len = cvContourPerimeter(c);
       if (len > q) {
         ForelimbFeatures ff = new ForelimbFeatures();
-        // Approximates the contour with fewer vertices.
+        // Approximates the contour with fewer vertices. Only CV_POLY_APPROX_DP
+        // is supported which corresponds to Douglas-Peucker algorithm.
         CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
             packet.tempMem, CV_POLY_APPROX_DP, CONTOUR_APPROX_LEVEL, 0);
         CvPoint approxPolyPts = new CvPoint(approxPoly.total());
