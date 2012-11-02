@@ -106,7 +106,7 @@ public class HandTrackingEngine {
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
   }
   
-  public boolean isBgInitialize() {
+  public boolean isBgInitialized() {
     return analyzer.isBgInitialized();
   }
   

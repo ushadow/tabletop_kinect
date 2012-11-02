@@ -35,8 +35,8 @@ public class Background {
 
   private static Logger logger = Logger.getLogger(Background.class.getName());
 
-  private static final float MIN_DIFF = (float) 0.8;
-  
+  private static final float MIN_DIFF = (float) 0.8; // mm
+   
   private static final int BITS_PER_BYTE = 8; 
   
   private static final int PHYSICAL_DIST_PER_PIXEL = 2; // mm/px
@@ -92,6 +92,9 @@ public class Background {
     cvZero(diffMask);
   }
 
+  /**
+   * @return width of the background images.
+   */
   public int width() {
     return width;
   }
@@ -103,7 +106,7 @@ public class Background {
   /**
    * Learns the background statistics for one more frame.
    * 
-   * @param depthRawData int array of depth values.
+   * @param depthRawData int array of depth values in mm.
    */
   public void accumulateBackground(int[] depthRawData) {
     depthToImage(depthRawData, scratchI);
@@ -146,6 +149,10 @@ public class Background {
     setLowThreshold();
   }
 
+  /**
+   * @return true if background is initialized, i.e. the background statistics
+   * is computed.
+   */
   public boolean isInitialized() {
     return initialized;
   }

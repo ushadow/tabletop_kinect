@@ -19,6 +19,7 @@ import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
+import edu.mit.yingyin.tabletop.controllers.BackgroundController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
@@ -36,6 +37,45 @@ import edu.mit.yingyin.util.ObjectIO;
  */
 public class HandTrackingAppController extends KeyAdapter {
 
+  /**
+   * Listens to hand events.
+   * @author yingyin
+   *
+   */
+  private class HandEventListener implements IHandEventListener {
+    /**
+     * List of finger events detected in a frame.
+     */
+    private List<List<FingerEvent>> fingerEventList = 
+        new ArrayList<List<FingerEvent>>();
+    
+    @Override
+    public void fingerPressed(List<FingerEvent> feList) {
+      if (packetController != null) {
+        for (FingerEvent fe : feList)
+          packetController.drawCircle((int)fe.posImage.x, (int)fe.posImage.y);
+      }
+      fingerEventList.add(feList);
+    }
+    
+    public void toOutput(PrintWriter pw) {
+      pw.println("# frame-id x y z x y z ...");
+      for (List<FingerEvent> list : fingerEventList) {
+        for (int i = 0; i < list.size(); i++) {
+          if (i == 0) {
+            pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
+                (int)list.get(i).posImage.x, (int)list.get(i).posImage.y, 
+                (int)list.get(i).posImage.z));
+          } else {
+            pw.print(String.format("%d %d %d ", (int)list.get(i).posImage.x, 
+                (int)list.get(i).posImage.y, (int)list.get(i).posImage.z));
+          }
+        }
+        pw.println();
+      }
+    }
+  }
+  
   private static Logger logger = Logger.getLogger(
       HandTrackingAppController.class.getName());
   
@@ -128,6 +168,8 @@ public class HandTrackingAppController extends KeyAdapter {
     handEventListener = new HandEventListener();
     engine.addListener(handEventListener);
     
+    BackgroundController bgController = null;
+    
     if (displayOn) {
       try {
         HashMap<Integer, List<Point>> labels = null;
@@ -137,9 +179,13 @@ public class HandTrackingAppController extends KeyAdapter {
 
         packetController = new ProcessPacketController(engine.depthWidth(), 
             engine.depthHeight(), labels);
+        
         packetController.addKeyListener(this);
         packetController.derivativeSaveDir = derivativeSaveDir;
         packetController.showUI();
+        
+        bgController = new BackgroundController(engine);
+        bgController.showUI();
       } catch (IOException e) {
         System.err.println(e.getMessage());
         System.exit(-1);
@@ -157,6 +203,10 @@ public class HandTrackingAppController extends KeyAdapter {
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
+      }
+      
+      if (bgController != null) {
+        bgController.update();
       }
     }
 
@@ -212,45 +262,6 @@ public class HandTrackingAppController extends KeyAdapter {
         break;
       default:
         break;
-    }
-  }
-
-  /**
-   * Listens to hand events.
-   * @author yingyin
-   *
-   */
-  private class HandEventListener implements IHandEventListener {
-    /**
-     * List of finger events detected in a frame.
-     */
-    private List<List<FingerEvent>> fingerEventList = 
-        new ArrayList<List<FingerEvent>>();
-    
-    @Override
-    public void fingerPressed(List<FingerEvent> feList) {
-      if (packetController != null) {
-        for (FingerEvent fe : feList)
-          packetController.drawCircle((int)fe.posImage.x, (int)fe.posImage.y);
-      }
-      fingerEventList.add(feList);
-    }
-    
-    public void toOutput(PrintWriter pw) {
-      pw.println("# frame-id x y z x y z ...");
-      for (List<FingerEvent> list : fingerEventList) {
-        for (int i = 0; i < list.size(); i++) {
-          if (i == 0) {
-            pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
-                (int)list.get(i).posImage.x, (int)list.get(i).posImage.y, 
-                (int)list.get(i).posImage.z));
-          } else {
-            pw.print(String.format("%d %d %d ", (int)list.get(i).posImage.x, 
-                (int)list.get(i).posImage.y, (int)list.get(i).posImage.z));
-          }
-        }
-        pw.println();
-      }
     }
   }
 }

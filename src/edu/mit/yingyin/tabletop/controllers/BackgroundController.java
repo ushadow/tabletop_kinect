@@ -6,6 +6,7 @@ import edu.mit.yingyin.tabletop.views.BackgroundFrame;
 public class BackgroundController {
   private BackgroundFrame bv;
   private HandTrackingEngine engine;
+  private boolean updated = false;
   
   public BackgroundController(HandTrackingEngine engine) {
     bv = new BackgroundFrame(engine.depthWidth(), engine.depthHeight());
@@ -17,8 +18,9 @@ public class BackgroundController {
   }
   
   public void update() {
-    if (engine.isBgInitialize()) {
+    if (engine.isBgInitialized() && !updated ) {
       bv.updateData(engine.diffBg(), engine.diffBgWidth());
+      updated = true;
     }
   }
 }

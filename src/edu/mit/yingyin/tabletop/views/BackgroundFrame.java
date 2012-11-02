@@ -8,12 +8,11 @@ import edu.mit.yingyin.util.Gradient;
 import edu.mit.yingyin.util.HeatMap;
 
 /**
- * Visualization of background.
+ * Visualization of the background.
  * @author yingyin
  *
  */
 public class BackgroundFrame extends JFrame {
-
   private static final long serialVersionUID = -3270421934205678686L;
   private static final boolean USE_GRAPHICS_YAXIS = true;
 
@@ -44,8 +43,14 @@ public class BackgroundFrame extends JFrame {
       for (int w = 0; w < width; w++) {
         int index = h * fbWidth + w;
         float val = fb.get(index);
-        data[w][h] = val;
+        data[w][h] = clip(val, 0, (float) 1.5);
       }
     hm.updateData(data, USE_GRAPHICS_YAXIS);
+  }
+  
+  private float clip(float v, float lb, float hb) {
+    v = v > lb ? v : lb;
+    v = v < hb ? v : hb;
+    return v;
   }
 }

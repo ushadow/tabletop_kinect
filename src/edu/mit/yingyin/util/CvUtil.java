@@ -6,8 +6,8 @@ import static com.googlecode.javacv.cpp.opencv_core.cvCircle;
 import static com.googlecode.javacv.cpp.opencv_core.cvFillConvexPoly;
 import static com.googlecode.javacv.cpp.opencv_core.cvGetSeqElem;
 import static com.googlecode.javacv.cpp.opencv_core.cvInitFont;
-import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
 import static com.googlecode.javacv.cpp.opencv_core.cvPolyLine;
+import static com.googlecode.javacv.cpp.opencv_core.cvPutText;
 
 import java.awt.Point;
 import java.io.PrintWriter;
@@ -28,7 +28,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
 
 /**
- * Utility functions that wrapps around OpenCV funtions.
+ * Utility functions that wraps around OpenCV functions.
  * @author yingyin
  *
  */
@@ -76,8 +76,7 @@ public class CvUtil {
       // CV_AA: antialiased.
       cvFillConvexPoly(image, points.position(0), 3, CvScalar.WHITE, CV_AA, 0);
       
-      if (showLabels)
-      {
+      if (showLabels) {
         CvFont font = new CvFont();
         cvInitFont(font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5, 0, 1, CV_AA);
         cvPutText(image, String.format("%d", i), points.position(0), font, 
