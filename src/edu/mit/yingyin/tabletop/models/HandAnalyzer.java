@@ -58,7 +58,6 @@ public class HandAnalyzer {
    */
   private static final int BG_INIT_FRAMES = BG_INGNORE_FRAMES + 40;
   
-
   private static final float BG_DIFF_LSCALE = 6;
   private static final float BG_DIFF_HSCALE = 15;
   
@@ -102,6 +101,9 @@ public class HandAnalyzer {
     ffd = new ForelimbFeatureDetector(width, height);
   }
   
+  /**
+   * @return true if background is initialized.
+   */
   public boolean isBgInitialized() {
     return background.isInitialized();
   }
@@ -110,7 +112,7 @@ public class HandAnalyzer {
     return background.avgBuffer();
   }
   
-  public int aveBgWidth() {
+  public int aveBgWidthStep() {
     return background.avgBufferWidthStep();
   }
   
@@ -118,7 +120,7 @@ public class HandAnalyzer {
     return background.diffBuffer();
   }
   
-  public int diffBgWidth() {
+  public int diffBgWidthStep() {
     return background.diffBufferWidthStep();
   }
   
@@ -142,7 +144,6 @@ public class HandAnalyzer {
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float) BG_DIFF_LSCALE,
 	  (float) BG_DIFF_HSCALE);
-      Table.instance().init(background);
       logger.info(background.stats());
     }
     

@@ -158,7 +158,7 @@ public class HandTrackingAppController extends KeyAdapter {
       displayOn = false;
     
     try {
-      engine = new HandTrackingEngine(openniConfigFile, calibrationFile, 
+      engine = HandTrackingEngine.initInstance(openniConfigFile, calibrationFile, 
           maxDepth);
     } catch (GeneralException ge) {
       logger.info("OpenNI config file = " + openniConfigFile);

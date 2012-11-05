@@ -302,6 +302,7 @@ public class Background {
    *          as the depth array.
    */
   private void depthToImage(int[] depthRawData, IplImage image) {
+    // No scaling.
     CvUtil.intToFloatIplImage(depthRawData,image, 1);
   }
 

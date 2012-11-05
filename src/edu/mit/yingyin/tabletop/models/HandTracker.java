@@ -1,5 +1,6 @@
 package edu.mit.yingyin.tabletop.models;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +53,6 @@ public class HandTracker {
   private List<IHandEventListener> listeners = 
       new ArrayList<IHandEventListener>();
   
-  /**
-   * Reference to the table.
-   */
   private Table table;
   /** Counts the duration of contact or noncontact. */
   private int pressedCounter = 0, releasedCounter = 0;
@@ -63,8 +61,14 @@ public class HandTracker {
   private CalibModel calibExample;
   
   public HandTracker(CalibModel calibExample) {
-    table = Table.instance();
     this.calibExample = calibExample;
+  }
+  
+  public boolean isTableInitialized() { return table != null; }
+  
+  public void initTable(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
+      int diffWidthStep, int width, int height) {
+    table = new Table(avg, diff, avgWidthStep, diffWidthStep, width, height);
   }
   
   /**

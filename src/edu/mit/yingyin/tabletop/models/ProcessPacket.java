@@ -47,7 +47,7 @@ public class ProcessPacket {
   }
   
   /**
-   * Integer array of raw depth values from Kinect.
+   * Integer array of raw depth values in mm from Kinect.
    */
   public int[] depthRawData;
   public IplImage depthImage8U;

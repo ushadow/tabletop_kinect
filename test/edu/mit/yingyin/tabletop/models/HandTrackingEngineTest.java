@@ -13,8 +13,8 @@ public class HandTrackingEngineTest {
   @Test
   public void testStep() {
     try {
-      HandTrackingEngine engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, 
-          CALIB_FILE, MAX_DEPTH);
+      HandTrackingEngine engine = HandTrackingEngine.initInstance(
+          OPENNI_CONFIG_FILE, CALIB_FILE, MAX_DEPTH);
       engine.step();
     } catch (GeneralException ge) {
       ge.printStackTrace();

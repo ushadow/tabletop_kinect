@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
+import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.image.ImageConvertUtils;
@@ -27,6 +29,10 @@ public class HandTrackingEngine {
     public void fingerPressed(List<FingerEvent> feList);
   }
   
+  private static HandTrackingEngine instance;
+  private static String openniConfigFile, calibrationFile;
+  private static int maxDepth;
+  
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
@@ -38,6 +44,33 @@ public class HandTrackingEngine {
   private HandAnalyzer analyzer;
 
   /**
+   * Initialize and returns the instance of <code>HandTrackingEngine</code>.
+   * @param _openniConfigFile
+   * @param _calibrationFile
+   * @param _maxDepth
+   * @return
+   * @throws GeneralException
+   */
+  public static HandTrackingEngine initInstance(String _openniConfigFile, 
+      String _calibrationFile, int _maxDepth) throws GeneralException {
+    openniConfigFile = _openniConfigFile;
+    calibrationFile = _calibrationFile;
+    maxDepth = _maxDepth;
+    return instance();
+  }
+  
+  public static HandTrackingEngine instance() throws GeneralException {
+    if (openniConfigFile == null) {
+      logger.severe("HandTrackingEngine is not initialized");
+      System.exit(-1);
+    }
+    if (instance == null)
+      instance = new HandTrackingEngine(openniConfigFile, calibrationFile, 
+          maxDepth);
+    return instance;
+  }
+  
+  /**
    * Creates a new <code>HandTrackingEngine</code>.
    * 
    * @param openniConfigFile
@@ -45,7 +78,7 @@ public class HandTrackingEngine {
    * @param maxDepth
    * @throws GeneralException
    */
-  public HandTrackingEngine(String openniConfigFile, 
+  private HandTrackingEngine(String openniConfigFile, 
       String calibrationFile, int maxDepth) throws GeneralException {
     
     openni = new FullOpenNIDevice(openniConfigFile);
@@ -99,6 +132,11 @@ public class HandTrackingEngine {
 
     analyzer.analyzeData(packet);
     
+    if (!tracker.isTableInitialized() && analyzer.isBgInitialized()) {
+      tracker.initTable(analyzer.aveBg(), analyzer.diffBg(), 
+          analyzer.aveBgWidthStep(), analyzer.diffBgWidthStep(), depthWidth,
+          depthHeight);
+    }
     tracker.update(packet.forelimbs, packet.depthFrameID);
   }
   
@@ -115,7 +153,7 @@ public class HandTrackingEngine {
   }
   
   public int aveBgWidth() {
-    return analyzer.aveBgWidth();
+    return analyzer.aveBgWidthStep();
   }
   
   public FloatBuffer diffBg() {
@@ -123,6 +161,17 @@ public class HandTrackingEngine {
   }
   
   public int diffBgWidth() {
-    return analyzer.diffBgWidth();
+    return analyzer.diffBgWidthStep();
+  }
+  
+  public Point3D[] convertProjectiveToRealWorld(Point3D[] points) {
+    Point3D[] converted = null;
+    try {
+      converted = openni.convertProjectiveToRealWorld(points);
+    } catch (StatusException se) {
+      logger.severe(se.getMessage());
+      System.exit(-1);
+    }
+    return converted;
   }
 }

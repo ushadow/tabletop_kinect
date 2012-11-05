@@ -11,14 +11,13 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-      <name>ch.epfl.lamp.sdt.core.scalabuilder</name>
-      <arguments>
-      </arguments>
-    </buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>com.aptana.ruby.core.rubynature</nature>
-		<nature>ch.epfl.lamp.sdt.core.scalanature</nature>
 	</natures>
 </projectDescription>

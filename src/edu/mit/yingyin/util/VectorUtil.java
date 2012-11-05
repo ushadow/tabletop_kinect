@@ -3,13 +3,14 @@ package edu.mit.yingyin.util;
 import javax.vecmath.Point2f;
 import javax.vecmath.Tuple2f;
 import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
 /**
- * Utility class for 2D vector math.
+ * Utility class for 2D and 3D vector math.
  * @author yingyin
  *
  */
-public class Vector2fUtil {
+public class VectorUtil {
   private static float EPS = (float)1e-5;
   
   public static float dot(Vector2f a, Vector2f b) {
@@ -18,6 +19,11 @@ public class Vector2fUtil {
   
   public static float cross(Vector2f a, Vector2f b) {
     return a.x * b.y - a.y * b.x;
+  }
+  
+  public static Vector3f cross(Vector3f a, Vector3f b) {
+    return new Vector3f(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x,
+                        a.x * b.y - a.y * b.x);
   }
   
   public static float lengthSquared(Tuple2f a) {
@@ -33,9 +39,9 @@ public class Vector2fUtil {
    * @return
    */
   public static float angle(Vector2f a, Vector2f b) {
-    float denom = (float)Math.sqrt(Vector2fUtil.lengthSquared(a) * 
-                                   Vector2fUtil.lengthSquared(b));
-    float result = Vector2fUtil.dot(a, b) / denom;
+    float denom = (float)Math.sqrt(VectorUtil.lengthSquared(a) * 
+                                   VectorUtil.lengthSquared(b));
+    float result = VectorUtil.dot(a, b) / denom;
     return (float)Math.acos(result);
   }
   
@@ -57,10 +63,10 @@ public class Vector2fUtil {
     ac.sub(c, a);
     cd.sub(d, c);
     ab.sub(b, a);
-    float cp = Vector2fUtil.cross(ab, cd);
+    float cp = VectorUtil.cross(ab, cd);
     if (cp < EPS && cp > -EPS)
       return null;
-    float s = Vector2fUtil.cross(ac, cd) / cp;
+    float s = VectorUtil.cross(ac, cd) / cp;
     result.scaleAdd(s, ab, a);
     return result;
   }
