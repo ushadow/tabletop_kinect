@@ -134,7 +134,6 @@ public class ProcessPacketView {
     diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, fingertipView);
     Rectangle rect = frames[0].getBounds();
     diagnosticFrame.setLocation(0, rect.y + rect.height);
-    
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
     
@@ -159,6 +158,11 @@ public class ProcessPacketView {
       showRgbImage(packet);
     
     showHeatMap(packet);
+  }
+  
+  public Rectangle getBunnds() {
+    Rectangle rect = frames[0].getBounds();
+    return new Rectangle(0, 0, rect.width * 2, rect.height * 2);
   }
   
   public void addKeyListener(KeyListener kl) {

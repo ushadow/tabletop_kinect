@@ -35,6 +35,11 @@ import com.sun.j3d.utils.pickfast.PickCanvas;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
+/**
+ * 3D view of the tabletop.
+ * @author yingyin
+ *
+ */
 public class Table3DFrame extends JFrame {
 
   private static Logger logger = Logger.getLogger(Table3DFrame.class.getName());
@@ -47,15 +52,30 @@ public class Table3DFrame extends JFrame {
   private BranchGroup group = new BranchGroup();
   private PickCanvas pickCanvas;
   private BufferedImage frontImage;
-  private TransformGroup planeTransformGroup;
+  private Vector3f tableNormal;
 
   public static void main(String[] args) {
-    Table3DFrame frame = new Table3DFrame();
+    Vector3f v = new Vector3f(0.0031244308f, 0.0f, 0.99160415f);
+    Table3DFrame frame = new Table3DFrame(v);
     frame.showUI();
   }
 
-  public Table3DFrame() {
+  private static void addLights(BranchGroup group) {
+    Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
+        100.0);
+    Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
+    DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
+    light1.setInfluencingBounds(bounds);
+    group.addChild(light1);
+    AmbientLight light2 = new AmbientLight(new Color3f(0.3f, 0.3f, 0.3f));
+    light2.setInfluencingBounds(bounds);
+    group.addChild(light2);
+  }
+  
+  public Table3DFrame(Vector3f v) {
     setPreferredSize(new Dimension(imageWidth, imageHeight));
+    tableNormal = new Vector3f(v);
     startDrawing();
   }
   
@@ -77,7 +97,7 @@ public class Table3DFrame extends JFrame {
     pickCanvas.setMode(PickInfo.PICK_BOUNDS);
   }
 
-  public void getScene() {
+  private void getScene() {
     addLights(group);
 
     frontImage = new BufferedImage(imageWidth, imageHeight,
@@ -86,11 +106,12 @@ public class Table3DFrame extends JFrame {
     g.setColor(new Color(70, 70, 140));
     g.fillRect(0, 0, imageWidth, imageHeight);
 
-    planeTransformGroup = new TransformGroup();
+    TransformGroup planeTransformGroup = new TransformGroup();
     planeTransformGroup.addChild(createPlaneGroup());
     planeTransformGroup.addChild(createAxesGroup());
     Transform3D rotation = new Transform3D();
-    rotation.set(createRotation());
+    Vector3f v1 = new Vector3f(0, 0, 1);
+    rotation.set(createRotation(v1, tableNormal));
     planeTransformGroup.setTransform(rotation);
 
     TransformGroup worldTransformGroup = new TransformGroup();
@@ -171,9 +192,8 @@ public class Table3DFrame extends JFrame {
     return new Shape3D(lineArr, app);
   }
   
-  private AxisAngle4f createRotation() {
-    Vector3f v1 = new Vector3f(0, 0, 1);
-    Vector3f v2 = new Vector3f(0.0031244308f, 0.0f, 0.99160415f);
+  private AxisAngle4f createRotation(Vector3f v1, Vector3f v2) {
+    v1.normalize();
     v2.normalize();
     Vector3f normal = new Vector3f();
     normal.cross(v1, v2);
@@ -188,22 +208,6 @@ public class Table3DFrame extends JFrame {
 
   private void positionViewer() {
     ViewingPlatform vp = universe.getViewingPlatform();
-    TransformGroup tg1 = vp.getViewPlatformTransform();
-    Transform3D t3d = new Transform3D();
-    tg1.getTransform(t3d);
     vp.setNominalViewingTransform();
-  }
-
-  private static void addLights(BranchGroup group) {
-    Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
-    BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
-        100.0);
-    Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
-    DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
-    light1.setInfluencingBounds(bounds);
-    group.addChild(light1);
-    AmbientLight light2 = new AmbientLight(new Color3f(0.3f, 0.3f, 0.3f));
-    light2.setInfluencingBounds(bounds);
-    group.addChild(light2);
   }
 }

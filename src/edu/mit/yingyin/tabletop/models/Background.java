@@ -199,7 +199,8 @@ public class Background {
   }
 
   /**
-   * @return a buffer of average scaled depth of the background.
+   * Average depth buffer after background is initialized. 
+   * @return a buffer of average depth of the background.
    */
   public FloatBuffer avgBuffer() {
     return avgFI.getFloatBuffer();

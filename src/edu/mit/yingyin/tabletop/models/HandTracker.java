@@ -1,6 +1,5 @@
 package edu.mit.yingyin.tabletop.models;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +12,7 @@ import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
 /**
  * <code>HandTracker</code> tracks hand events based on estimated hand model 
- * parameters.
+ * parameters, and maintains a reference to the table model.
  * @author yingyin
  *
  */
@@ -64,12 +63,7 @@ public class HandTracker {
     this.calibExample = calibExample;
   }
   
-  public boolean isTableInitialized() { return table != null; }
-  
-  public void initTable(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-      int diffWidthStep, int width, int height) {
-    table = new Table(avg, diff, avgWidthStep, diffWidthStep, width, height);
-  }
+  public void setTable(Table table) { this.table = table; }
   
   /**
    * Updates forelimbs information and generates events.

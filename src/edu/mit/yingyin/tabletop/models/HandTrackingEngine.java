@@ -5,6 +5,8 @@ import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.vecmath.Vector3f;
+
 import org.OpenNI.GeneralException;
 import org.OpenNI.Point3D;
 import org.OpenNI.StatusException;
@@ -42,6 +44,7 @@ public class HandTrackingEngine {
   private int prevDepthFrameID = -1;
   private HandTracker tracker;
   private HandAnalyzer analyzer;
+  private Table table;
 
   /**
    * Initialize and returns the instance of <code>HandTrackingEngine</code>.
@@ -132,8 +135,8 @@ public class HandTrackingEngine {
 
     analyzer.analyzeData(packet);
     
-    if (!tracker.isTableInitialized() && analyzer.isBgInitialized()) {
-      tracker.initTable(analyzer.aveBg(), analyzer.diffBg(), 
+    if (table == null && analyzer.isBgInitialized()) {
+      table = new Table(analyzer.aveBg(), analyzer.diffBg(), 
           analyzer.aveBgWidthStep(), analyzer.diffBgWidthStep(), depthWidth,
           depthHeight);
     }
@@ -162,6 +165,26 @@ public class HandTrackingEngine {
   
   public int diffBgWidth() {
     return analyzer.diffBgWidthStep();
+  }
+  
+  /**
+   * Table is initialized when the background is initialized.
+   * @return
+   */
+  public boolean isTableInitialized() {
+    return isBgInitialized();
+  }
+  
+  /**
+   * @return the surface normal of the table if it is initialized, otherwise
+   * returns null.
+   */
+  public Vector3f tableNormal() {
+    if (table == null) {
+      logger.severe("Table is not initialized.");
+      return null;
+    }
+    return table.surfaceNormal();
   }
   
   public Point3D[] convertProjectiveToRealWorld(Point3D[] points) {

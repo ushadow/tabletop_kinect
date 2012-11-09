@@ -75,6 +75,8 @@ public class Table {
     return z < tableDepth + tableDiff * DIFF_SCALE && 
         z > tableDepth - tableDiff * DIFF_SCALE;
   }
+  
+  public Vector3f surfaceNormal() { return new Vector3f(surfaceNormal); }
 
   /**
    * Gets the height of the table at point(x, y). The table must be initialized.

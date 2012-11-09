@@ -1,6 +1,7 @@
 package edu.mit.yingyin.tabletop.apps;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
@@ -34,7 +35,7 @@ import edu.mit.yingyin.util.ObjectIO;
  * @author yingyin
  *
  */
-public class HandTrackingAppController extends KeyAdapter {
+public class HandTrackingApp extends KeyAdapter {
 
   /**
    * Listens to hand events.
@@ -76,7 +77,7 @@ public class HandTrackingAppController extends KeyAdapter {
   }
   
   private static Logger logger = Logger.getLogger(
-      HandTrackingAppController.class.getName());
+      HandTrackingApp.class.getName());
   
   private static final String CONFIG_FILE = 
       "/config/fingertip_tracking.properties";
@@ -94,7 +95,7 @@ public class HandTrackingAppController extends KeyAdapter {
     CommandLineOptions.addOption(mainDirOpt);
     CommandLineOptions.parse(args);
     String mainDir = CommandLineOptions.getOptionValue("d", "./");
-    new HandTrackingAppController(mainDir);
+    new HandTrackingApp(mainDir);
   }
   
   private HandTrackingEngine engine;
@@ -104,9 +105,10 @@ public class HandTrackingAppController extends KeyAdapter {
   private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
   private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
-
+  private Table3DFrame tableFrame;
+  
   @SuppressWarnings("unchecked")
-  public HandTrackingAppController(String mainDir)  {
+  public HandTrackingApp(String mainDir)  {
     logger.info("java.library.path = " + 
         System.getProperty("java.library.path"));
     
@@ -198,6 +200,13 @@ public class HandTrackingAppController extends KeyAdapter {
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
+      }
+      
+      if (engine.isTableInitialized() && tableFrame == null) {
+        tableFrame = new Table3DFrame(engine.tableNormal());
+        Rectangle rect = packetController.getViewBounds();
+        tableFrame.setLocation(rect.width, 0);
+        tableFrame.showUI();
       }
     }
 
