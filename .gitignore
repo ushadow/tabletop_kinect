@@ -9,3 +9,4 @@ tmp/
 Log
 *.swp
 .cache
+.log

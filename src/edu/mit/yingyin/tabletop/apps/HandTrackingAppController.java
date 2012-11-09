@@ -19,7 +19,6 @@ import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
-import edu.mit.yingyin.tabletop.controllers.BackgroundController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
@@ -168,8 +167,6 @@ public class HandTrackingAppController extends KeyAdapter {
     handEventListener = new HandEventListener();
     engine.addListener(handEventListener);
     
-    BackgroundController bgController = null;
-    
     if (displayOn) {
       try {
         HashMap<Integer, List<Point>> labels = null;
@@ -184,8 +181,6 @@ public class HandTrackingAppController extends KeyAdapter {
         packetController.derivativeSaveDir = derivativeSaveDir;
         packetController.showUI();
         
-        bgController = new BackgroundController(engine);
-        bgController.showUI();
       } catch (IOException e) {
         System.err.println(e.getMessage());
         System.exit(-1);
@@ -203,10 +198,6 @@ public class HandTrackingAppController extends KeyAdapter {
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
-      }
-      
-      if (bgController != null) {
-        bgController.update();
       }
     }
 

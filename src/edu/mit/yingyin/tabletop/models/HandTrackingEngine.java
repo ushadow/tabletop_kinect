@@ -14,8 +14,8 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 
 /**
- * Main interface to the hand tracking module that tracks the hand events and 
- * updates the hand event listeners with the events.
+ * Main interface to the hand tracking backend module that tracks the hand 
+ * events and updates the hand event listeners with the events.
  * @author yingyin
  *
  */
