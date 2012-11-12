@@ -12,6 +12,9 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 
+import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
+
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -31,7 +34,7 @@ import edu.mit.yingyin.util.VectorUtil;
  * @author yingyin
  *
  */
-public class ForelimbFeatureDetector {
+public class ForelimbModelEstimator {
   // Around 45 deg.
   private static final float FINGERTIP_ANGLE = (float)0.8;
   
@@ -42,12 +45,16 @@ public class ForelimbFeatureDetector {
  
   private int width, height;
 
-  public ForelimbFeatureDetector(int width, int height) {
+  public ForelimbModelEstimator(int width, int height) {
     this.width = width;
     this.height = height;
   }
   
-  public void extractFingertipsConvexityDefects(ProcessPacket packet) {
+  /**
+   * Finds fingertip positions using convexity defects method.
+   * @param packet
+   */
+  public void findFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion == null)
         continue;
@@ -332,5 +339,45 @@ public class ForelimbFeatureDetector {
     if (j + 1 < w && pixels[i][j + 1] == BinaryFast.foreground)
       return false;
     return true;
+  }
+  
+  /**
+   * Finds the center of the arm joint of a forelimb.
+   * @param packet
+   * @param rect
+   * @return
+   */
+  private Point3f findArmJoint(ProcessPacket packet, CvRect rect) {
+    try {
+      HandTrackingEngine engine = HandTrackingEngine.instance();
+      ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
+      int maskStepWidth = packet.foregroundMask.widthStep();
+      List<Point3D> list = new ArrayList<Point3D>();
+      for (int y = rect.y(); y < rect.y() + rect.height(); y++) 
+        for (int x = rect.x(); x < rect.x() + rect.width(); x++) {
+          if ((maskBuffer.get(y * maskStepWidth + x) & 0xff) == 255) {
+            list.add(new Point3D(x, y, 
+                packet.depthRawData[y * packet.width + x]));
+          }
+        }
+      if (list.size() == 0)
+        return null;
+      
+      Point3D[] points = new Point3D[list.size()];
+      list.toArray(points);
+      Point3D[] converted = engine.convertProjectiveToRealWorld(points);
+      float centerx = 0, centery = 0, centerz = 0;
+      for (Point3D point : converted) {
+        centerx += point.getX();
+        centery += point.getY();
+        centerz += point.getZ();
+      }
+      return new Point3f(centerx / list.size(), centery / list.size(), 
+          centerz / list.size());
+    } catch (GeneralException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
   }
 }

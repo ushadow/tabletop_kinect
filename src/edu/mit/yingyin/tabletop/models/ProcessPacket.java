@@ -36,7 +36,7 @@ public class ProcessPacket {
     public CvMat approxPoly, hull;
     public CvRect boundingBox;
     public CvSeq convexityDefects;
-    public CvRect handRegion;
+    public CvRect handRegion, armJointRegion;
     
     public void release() {
       if (approxPoly != null)
@@ -50,10 +50,8 @@ public class ProcessPacket {
    * Integer array of raw depth values in mm from Kinect.
    */
   public int[] depthRawData;
-  public IplImage depthImage8U;
-  public IplImage depthImage32F;
-  public IplImage derivative;
-  public IplImage morphedImage;
+  public IplImage depthImage8U, depthImage32F, derivative, morphedImage;
+  public IplImage foregroundMask;
   public CvMemStorage tempMem;
   public List<ForelimbFeatures> forelimbFeatures = 
       new ArrayList<ForelimbFeatures>();
@@ -81,6 +79,7 @@ public class ProcessPacket {
     depthImage32F = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     derivative = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     // Allocates a default size of 64kB of memory.
     tempMem = cvCreateMemStorage(0);
     this.width = width;
@@ -104,6 +103,7 @@ public class ProcessPacket {
     depthImage32F.release();
     derivative.release();
     morphedImage.release();
+    foregroundMask.release();
     cvReleaseMemStorage(tempMem);
   }
   

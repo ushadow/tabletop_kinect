@@ -266,6 +266,13 @@ public class ProcessPacketView {
             new CvPoint(rect.x(), rect.y()), 
             new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
             CvScalar.WHITE, 1, 8, 0);
+        rect = ff.armJointRegion;
+        if (rect != null) {
+          cvRectangle(analysisImage, 
+              new CvPoint(rect.x(), rect.y()), 
+              new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
+              CvScalar.WHITE, 1, 8, 0);
+        }
       }
     
       if (toggleMap.get(Toggles.SHOW_CONVEXITY_DEFECTS)) {
