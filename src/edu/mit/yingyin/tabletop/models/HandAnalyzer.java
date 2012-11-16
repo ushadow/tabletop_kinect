@@ -85,7 +85,7 @@ public class HandAnalyzer {
   
   private Background background;
   private IplImage tempImage;
-  private ForelimbModelEstimator ffd;
+  private ForelimbModelEstimator forelimbModelEstimator;
   private DoubleExpFilter filter;
   
   /**
@@ -97,7 +97,7 @@ public class HandAnalyzer {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
     filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
-    ffd = new ForelimbModelEstimator(width, height);
+    forelimbModelEstimator = new ForelimbModelEstimator(width, height);
   }
   
   /**
@@ -150,7 +150,7 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
-    ffd.findFingertipsConvexityDefects(packet);
+    forelimbModelEstimator.updateModel(packet);
     filter.filter(packet);
   }
   

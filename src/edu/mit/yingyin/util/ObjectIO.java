@@ -69,8 +69,9 @@ public class ObjectIO {
       obj = oin.readObject();
     } catch (ClassNotFoundException c) {
       throw new IOException(c.getMessage());
+    } finally {
+      oin.close();
     }
-    oin.close();
     fin.close();
     return obj;
   }
@@ -86,8 +87,9 @@ public class ObjectIO {
       obj = oin.readObject();
     } catch (ClassNotFoundException c) {
       throw new IOException(c.getMessage());
+    } finally {
+      oin.close();
     }
-    oin.close();
     gin.close();
     fin.close();
     return obj;
