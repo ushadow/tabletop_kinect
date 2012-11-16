@@ -283,12 +283,19 @@ public class ProcessPacketView {
     }
 
     // Shows unfiltered fingertips.
-    if (toggleMap.get(Toggles.SHOW_FINGERTIP))
-      for (Forelimb forelimb : packet.forelimbs)
+    if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
+      for (Forelimb forelimb : packet.forelimbs) {
         for (Point3f p : forelimb.getFingertips()) {
           cvCircle(analysisImage, new CvPoint((int)p.x, (int)p.y), 
               4, CvScalar.GREEN, -1, 8, 0);
         }
+        Point3f armJoint = forelimb.armJointI();
+        if (armJoint != null) {
+          cvCircle(analysisImage, new CvPoint((int)armJoint.x, (int)armJoint.y), 4, CvScalar.CYAN, -1, 
+                   8, 0);
+        }
+      }
+    }
 
     frames[0].showImage(analysisImage);
   }

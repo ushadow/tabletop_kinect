@@ -81,8 +81,8 @@ public class ForelimbModelEstimator {
           }
         }
       }
-      Point3f armJoint = findArmJoint(packet, ff.armJointRegion);
-      Forelimb forelimb = new Forelimb(fingertips, armJoint);
+      List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
+      Forelimb forelimb = new Forelimb(fingertips, armJoints);
       packet.forelimbs.add(forelimb);
     }
   }
@@ -193,8 +193,8 @@ public class ForelimbModelEstimator {
                 new Point3f(C.x, C.y, z), 1));
           }
         }
-        Point3f armJoint = findArmJoint(packet, ff.armJointRegion);
-        Forelimb forelimb = new Forelimb(fingertips, armJoint);
+        List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
+        Forelimb forelimb = new Forelimb(fingertips, armJoints);
         packet.forelimbs.add(forelimb);
       }
     }
@@ -273,9 +273,9 @@ public class ForelimbModelEstimator {
           fingertips.add(new ValConfiPair<Point3f>(
               new Point3f(finger.get(finger.size() - 1)), 1));
         }
-        Point3f armJoint = findArmJoint(packet, ff.armJointRegion);
+        List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
         
-        Forelimb forelimb = new Forelimb(fingertips, armJoint);
+        Forelimb forelimb = new Forelimb(fingertips, armJoints);
         packet.forelimbs.add(forelimb);
       }
     }
@@ -345,14 +345,18 @@ public class ForelimbModelEstimator {
   }
   
   /**
-   * Finds the center of the arm joint of a forelimb.
+   * Finds the center of the arm joint of a forelimb in the image and the in the world coordinates.
    * @param packet
    * @param rect
-   * @return the 3D location of the arm joint or null if there is an exception.
+   * @return a list of 3D points. The first point is the 3D location of the arm joint in the image,
+   *    and the 2nd one is the location in the world coordinate. The list is empty if the arm joint
+   *    cannot be found.
    */
-  private Point3f findArmJoint(ProcessPacket packet, CvRect rect) {
+  private List<Point3f> findArmJoint(ProcessPacket packet, CvRect rect) {
+    List<Point3f> res = new ArrayList<Point3f>(2);
+
     if (rect == null)
-      return null;
+      return res;
     
     try {
       HandTrackingEngine engine = HandTrackingEngine.instance();
@@ -369,6 +373,15 @@ public class ForelimbModelEstimator {
       if (list.size() == 0)
         return null;
       
+      float imagex = 0, imagey = 0, imagez = 0;
+      for (Point3D point : list) {
+        imagex += point.getX();
+        imagey += point.getY();
+        imagez += point.getZ();
+      }
+      
+      res.add(new Point3f(imagex / list.size(), imagey / list.size(), imagez / list.size()));
+      
       Point3D[] points = new Point3D[list.size()];
       list.toArray(points);
       Point3D[] converted = engine.convertProjectiveToRealWorld(points);
@@ -378,12 +391,10 @@ public class ForelimbModelEstimator {
         centery += point.getY();
         centerz += point.getZ();
       }
-      return new Point3f(centerx / list.size(), centery / list.size(), 
-          centerz / list.size());
+      res.add(new Point3f(centerx / list.size(), centery / list.size(), centerz / list.size()));
     } catch (GeneralException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    return null;
+    return res;
   }
 }
