@@ -75,5 +75,12 @@ public class Forelimb {
   public Point3f armJointI() { 
     if (armJointI == null)
       return null;
-    return new Point3f(armJointI); }
+    return new Point3f(armJointI); 
+  }
+  
+  public Point3f armJointW() {
+    if (armJointW == null)
+      return null;
+    return new Point3f(armJointW);
+  }
 }

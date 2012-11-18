@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point3f;
 
@@ -103,6 +104,8 @@ public class ProcessPacketView {
     SHOW_BOUNDING_BOX, SHOW_LABELS
   }
 
+  private static final Logger logger = Logger.getLogger(ProcessPacketView.class.getName());
+  
   private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
   
   private HashMap<Toggles, Boolean> toggleMap = 
@@ -294,6 +297,10 @@ public class ProcessPacketView {
           cvCircle(analysisImage, new CvPoint((int)armJoint.x, (int)armJoint.y), 4, CvScalar.CYAN, -1, 
                    8, 0);
         }
+        
+        Point3f armJointW = forelimb.armJointW();
+        if (armJointW != null)
+          logger.fine("arm joint world coordinate: " + armJointW);
       }
     }
 
