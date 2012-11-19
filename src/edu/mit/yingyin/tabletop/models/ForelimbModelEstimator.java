@@ -27,7 +27,6 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
-import edu.mit.yingyin.util.VectorUtil;
 
 /**
  * A detector for forelimb features including fingertip positions.
@@ -104,7 +103,7 @@ public class ForelimbModelEstimator {
         defect2.depth_point().y() - defect2.start().y());
     float distance2 = CvUtil.distance2(defect1.depth_point(), 
                                        defect2.depth_point());
-    if (VectorUtil.angle(v1, v2) <= FINGERTIP_ANGLE && 
+    if (Geometry.angle(v1, v2) <= FINGERTIP_ANGLE && 
         distance2 >= FINGERTIP_WIDTH_THRESHOLD) {
       int mx = (defect1.end().x() + defect2.start().x()) / 2;
       int my = (defect1.end().y() + defect2.start().y()) / 2;

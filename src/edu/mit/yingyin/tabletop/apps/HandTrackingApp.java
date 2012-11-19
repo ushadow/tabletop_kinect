@@ -203,7 +203,7 @@ public class HandTrackingApp extends KeyAdapter {
       }
       
       if (engine.isTableInitialized() && tableFrame == null) {
-        tableFrame = new Table3DFrame(engine.tableNormal());
+        tableFrame = new Table3DFrame(engine.table());
         Rectangle rect = packetController.getViewBounds();
         tableFrame.setLocation(rect.width, 0);
         tableFrame.showUI();

@@ -5,8 +5,6 @@ import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.vecmath.Vector3f;
-
 import org.OpenNI.GeneralException;
 import org.OpenNI.Point3D;
 import org.OpenNI.StatusException;
@@ -62,12 +60,18 @@ public class HandTrackingEngine {
     return instance();
   }
   
+  /**
+   * Gets the singleton <code>HandTrackingEngine</code> instance. Can be null if
+   * the instance cannot be initialized.
+   * @return the <code>HandTrackingEngine</code> instance or null if it cannot
+   *    be initialized.
+   * @throws GeneralException
+   */
   public static HandTrackingEngine instance() throws GeneralException {
     if (openniConfigFile == null) {
       logger.severe("HandTrackingEngine is not initialized");
-      System.exit(-1);
-    }
-    if (instance == null)
+      instance = null;
+    } else if (instance == null)
       instance = new HandTrackingEngine(openniConfigFile, calibrationFile, 
           maxDepth);
     return instance;
@@ -179,12 +183,12 @@ public class HandTrackingEngine {
    * @return the surface normal of the table if it is initialized, otherwise
    * returns null.
    */
-  public Vector3f tableNormal() {
+  public Table table() {
     if (table == null) {
       logger.severe("Table is not initialized.");
       return null;
     }
-    return table.surfaceNormal();
+    return table;
   }
   
   public Point3D[] convertProjectiveToRealWorld(Point3D[] points) {

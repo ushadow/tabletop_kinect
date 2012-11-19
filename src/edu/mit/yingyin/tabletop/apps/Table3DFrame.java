@@ -35,6 +35,8 @@ import com.sun.j3d.utils.pickfast.PickCanvas;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
+import edu.mit.yingyin.tabletop.models.Table;
+
 /**
  * 3D view of the tabletop.
  * @author yingyin
@@ -54,12 +56,6 @@ public class Table3DFrame extends JFrame {
   private BufferedImage frontImage;
   private Vector3f tableNormal;
 
-  public static void main(String[] args) {
-    Vector3f v = new Vector3f(0.0031244308f, 0.0f, 0.99160415f);
-    Table3DFrame frame = new Table3DFrame(v);
-    frame.showUI();
-  }
-
   private static void addLights(BranchGroup group) {
     Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
     BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
@@ -73,9 +69,9 @@ public class Table3DFrame extends JFrame {
     group.addChild(light2);
   }
   
-  public Table3DFrame(Vector3f v) {
+  public Table3DFrame(Table table) {
     setPreferredSize(new Dimension(imageWidth, imageHeight));
-    tableNormal = new Vector3f(v);
+    tableNormal = table.surfaceNormal();
     startDrawing();
   }
   
