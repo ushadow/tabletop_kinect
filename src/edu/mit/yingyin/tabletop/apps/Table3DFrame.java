@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 
@@ -18,24 +19,25 @@ import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.Group;
 import javax.media.j3d.LineArray;
-import javax.media.j3d.PickInfo;
 import javax.media.j3d.QuadArray;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
 import javax.swing.JFrame;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
-import com.sun.j3d.utils.pickfast.PickCanvas;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import edu.mit.yingyin.tabletop.models.Table;
+import edu.mit.yingyin.util.Geometry;
 
 /**
  * 3D view of the tabletop.
@@ -44,34 +46,28 @@ import edu.mit.yingyin.tabletop.models.Table;
  */
 public class Table3DFrame extends JFrame {
 
-  private static Logger logger = Logger.getLogger(Table3DFrame.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      Table3DFrame.class.getName());
+  private static final int TABLE_WIDTH = 1200; // mm
+  private static final int TABLE_HEIGHT = 920; // mm
+  private static final int IMAGE_HEIGHT = 256;
+  private static final int IMAGE_WIDTH = 256;
   
   private static final long serialVersionUID = 1L;
-  private int imageHeight = 256;
-  private int imageWidth = 256;
   private Canvas3D canvas;
   private SimpleUniverse universe;
   private BranchGroup group = new BranchGroup();
-  private PickCanvas pickCanvas;
   private BufferedImage frontImage;
-  private Vector3f tableNormal;
-
-  private static void addLights(BranchGroup group) {
-    Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
-    BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
-        100.0);
-    Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
-    DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
-    light1.setInfluencingBounds(bounds);
-    group.addChild(light1);
-    AmbientLight light2 = new AmbientLight(new Color3f(0.3f, 0.3f, 0.3f));
-    light2.setInfluencingBounds(bounds);
-    group.addChild(light2);
-  }
+  private Table table;
   
   public Table3DFrame(Table table) {
-    setPreferredSize(new Dimension(imageWidth, imageHeight));
-    tableNormal = table.surfaceNormal();
+    setPreferredSize(new Dimension(IMAGE_WIDTH, IMAGE_HEIGHT));
+    this.table = table;
+    setLayout(new BorderLayout());
+    GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+    canvas = new Canvas3D(config);
+    universe = new SimpleUniverse(canvas);
+    add("Center", canvas);
     startDrawing();
   }
   
@@ -79,85 +75,99 @@ public class Table3DFrame extends JFrame {
     pack();
     setVisible(true);
   }
+  
+  @Override
+  public void addKeyListener(KeyListener kl) {
+    canvas.addKeyListener(kl);
+  }
+  
+  private void addLights(BranchGroup group) {
+    Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(table.center()),
+        table.center().z);
+    Vector3f light1Direction = new Vector3f(0, 0, 1);
+    DirectionalLight light1 = new DirectionalLight(light1Color, 
+        light1Direction);
+    light1.setInfluencingBounds(bounds);
+    group.addChild(light1);
+    AmbientLight light2 = new AmbientLight(new Color3f(0.3f, 0.3f, 0.3f));
+    light2.setInfluencingBounds(bounds);
+    group.addChild(light2);
+  }
 
   private void startDrawing() {
-    setLayout(new BorderLayout());
-    GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-    canvas = new Canvas3D(config);
-    universe = new SimpleUniverse(canvas);
-    add("Center", canvas);
     positionViewer();
     getScene();
     universe.addBranchGraph(group);
-    pickCanvas = new PickCanvas(canvas, group);
-    pickCanvas.setMode(PickInfo.PICK_BOUNDS);
   }
 
   private void getScene() {
     addLights(group);
 
-    frontImage = new BufferedImage(imageWidth, imageHeight,
+    frontImage = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
         BufferedImage.TYPE_INT_RGB);
     Graphics2D g = (Graphics2D) frontImage.getGraphics();
     g.setColor(new Color(70, 70, 140));
-    g.fillRect(0, 0, imageWidth, imageHeight);
+    g.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    TransformGroup planeTransformGroup = new TransformGroup();
-    planeTransformGroup.addChild(createPlaneGroup());
-    planeTransformGroup.addChild(createAxesGroup());
-    Transform3D rotation = new Transform3D();
-    Vector3f v1 = new Vector3f(0, 0, 1);
-    rotation.set(createRotation(v1, tableNormal));
-    planeTransformGroup.setTransform(rotation);
-
+    TransformGroup axesTransformGroup = new TransformGroup();
+    axesTransformGroup.addChild(createAxesGroup());
+    Transform3D axesTransform = new Transform3D();
+    axesTransform.setScale(200);
+    axesTransform.setTranslation(new Vector3f(0, 0, table.center().z - 100));
+    axesTransformGroup.setTransform(axesTransform);
+    
     TransformGroup worldTransformGroup = new TransformGroup();
-    worldTransformGroup.addChild(planeTransformGroup);
+    worldTransformGroup.addChild(createTable());
+    worldTransformGroup.addChild(axesTransformGroup);
     MouseRotate behavior = new MouseRotate();
-    BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
-        100.0);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(), table.center().z);
     behavior.setSchedulingBounds(bounds);
     behavior.setTransformGroup(worldTransformGroup);
     worldTransformGroup.addChild(behavior);
     worldTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     worldTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-    worldTransformGroup.addChild(createLine(new Point3f(0, 0, 0.5f), 
-        new Point3f(0, 0, -.5f), new Color3f(Color.MAGENTA)));
+    worldTransformGroup.addChild(createLine(new Point3f(0, 0, -table.center().z), 
+        new Point3f(0, 0, table.center().z), new Color3f(Color.MAGENTA)));
    
-    worldTransformGroup.setTransform(objectToWorldTransform());
-    
     group.addChild(worldTransformGroup);
   }
   
-  private Transform3D objectToWorldTransform() {
-    Transform3D worldTransform = new Transform3D();
-    worldTransform.rotZ(-Math.PI / 2);
-    Transform3D rotY = new Transform3D();
-    rotY.rotY(Math.PI);
-    worldTransform.mul(rotY);
-    return worldTransform;
+  private Group createTable() {
+    Point3f center = table.center();
+    Vector3f n = table.surfaceNormal();
+    Point3f p1 = Geometry.pointOnPlaneZ(center.x + TABLE_WIDTH / 2, 
+        center.y + TABLE_HEIGHT / 2, center, n);
+    Point3f p2 = Geometry.pointOnPlaneZ(center.x + TABLE_WIDTH / 2, 
+        center.y - TABLE_HEIGHT / 2, center, n);
+    Point3f p3 = Geometry.pointOnPlaneZ(center.x - TABLE_WIDTH / 2, 
+        center.y - TABLE_HEIGHT / 2, center, n);
+    Point3f p4 = Geometry.pointOnPlaneZ(center.x - TABLE_WIDTH / 2, 
+        center.y + TABLE_HEIGHT / 2, center, n);
+    logger.info("p1: " + p1);
+    logger.info("p2: " + p2);
+    logger.info("p3: " + p3);
+    logger.info("p4: " + p4);
+    return createPlaneGroup(p1, p2, p3, p4);
   }
-
-  private Group createPlaneGroup() {
+  
+  private Group createPlaneGroup(Point3f p1, Point3f p2, Point3f p3, Point3f p4) 
+  {
     Group group = new Group();
-    Point3f a = new Point3f(-0.5f, .5f, 0);
-    Point3f b = new Point3f(0.5f, .5f, 0);
-    Point3f c = new Point3f(0.5f, -.5f, 0);
-    Point3f d = new Point3f(-0.5f, -.5f, 0);
-
     QuadArray plane = new QuadArray(4, GeometryArray.COORDINATES);
 
-    plane.setCoordinate(0, a);
-    plane.setCoordinate(1, b);
-    plane.setCoordinate(2, c);
-    plane.setCoordinate(3, d);
+    plane.setCoordinate(0, p1);
+    plane.setCoordinate(1, p2);
+    plane.setCoordinate(2, p3);
+    plane.setCoordinate(3, p4);
 
     group.addChild(new Shape3D(plane));
     
     QuadArray planeBack = new QuadArray(4, GeometryArray.COORDINATES);
-    planeBack.setCoordinate(0, a);
-    planeBack.setCoordinate(1, d);
-    planeBack.setCoordinate(2, c);
-    planeBack.setCoordinate(3, b);
+    planeBack.setCoordinate(0, p1);
+    planeBack.setCoordinate(1, p4);
+    planeBack.setCoordinate(2, p3);
+    planeBack.setCoordinate(3, p2);
     group.addChild(new Shape3D(planeBack));
 
     return group;
@@ -204,6 +214,13 @@ public class Table3DFrame extends JFrame {
 
   private void positionViewer() {
     ViewingPlatform vp = universe.getViewingPlatform();
-    vp.setNominalViewingTransform();
+    Transform3D lookAt = new Transform3D();
+    lookAt.lookAt(new Point3d(), new Point3d(0, 0, 1), new Vector3d(0, 1, 0));
+    lookAt.invert();
+    vp.getViewPlatformTransform().setTransform(lookAt);
+    View view = universe.getViewer().getView();
+    view.setBackClipDistance(1200);
+    view.setFrontClipDistance(0);
+    view.setFieldOfView(2 * Math.atan2(1000, 1200));
   }
 }

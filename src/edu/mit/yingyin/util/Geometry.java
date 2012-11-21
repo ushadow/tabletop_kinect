@@ -3,6 +3,7 @@ package edu.mit.yingyin.util;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -14,6 +15,8 @@ import javax.vecmath.Vector3f;
 
 public class Geometry {
   private static final double EPS = 1e-8;
+  private static final Logger logger = Logger.getLogger(
+      Geometry.class.getName());
 
   /**
    * Calculates the Euler angles from the quaternion, positive direction of the
@@ -176,5 +179,34 @@ public class Geometry {
   
   public static Point3f midpoint(Point3f p1, Point3f p2) {
     return new Point3f((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, (p1.z + p2.z) / 2);
+  }
+  
+  /**
+   * Given a plane, find z coordinate of a point on the plane with known x, y
+   * coordinates.
+   * (px - x) * nx + (py - y) * ny + (pz - z) * nz = 0
+   * @param x x coordinate of the point.
+   * @param y y coordinate of the point.
+   * @param p a point on the plane.
+   * @param n the normal of the plane.
+   * @return if z coordinate of the normal vector is 0, and x, y are valid, z
+   *    can take any value and the point returned is (x, y, 0); if x, y are not
+   *    valid, returns null. If z coordinate of the normal vector is not 0, 
+   *    returns a point of a specific z coordinate.
+   */
+  public static Point3f pointOnPlaneZ(float x, float y, Point3f p, 
+      Vector3f n) {
+    float a = -n.x * (p.x - x) - n.y * (p.y - y);
+    if (n.z < EPS && n.z > -EPS) {
+      if (a < EPS && a > -EPS) {
+        return new Point3f(x, y, 0);
+      } else {
+        logger.warning("x, y values are invalid for the plane.");
+        return null;
+      }
+    } else {
+      float z = p.z - a / n.z;
+      return new Point3f(x, y, z);
+    }
   }
 }

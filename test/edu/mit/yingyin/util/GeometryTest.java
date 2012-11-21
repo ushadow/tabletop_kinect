@@ -51,4 +51,27 @@ public class GeometryTest {
     Point3f pmid = Geometry.midpoint(p1, p2);
     assertEquals(new Point3f(0.5f, 0.5f, 0.5f), pmid);
   }
+  
+  @Test
+  public void testPointOnPlaneZ() {
+    Point3f p = Geometry.pointOnPlaneZ(0, 0, new Point3f(0, 0, 0), 
+        new Vector3f(0, 0, 1));
+    assertEquals(new Point3f(0, 0, 0), p);
+    
+    p = Geometry.pointOnPlaneZ(1, 1, new Point3f(0, 0, 0), 
+        new Vector3f(0, 0, 1));
+    assertEquals(new Point3f(1, 1, 0), p);
+    
+    p = Geometry.pointOnPlaneZ(1, 1, new Point3f(0, 0, 0), 
+        new Vector3f(0, 1, 1));
+    assertEquals(new Point3f(1, 1, -1), p);
+    
+    p = Geometry.pointOnPlaneZ(1, 1, new Point3f(0, 0, 0), 
+        new Vector3f(0, 1, 0));
+    assertEquals(null, p);
+    
+    p = Geometry.pointOnPlaneZ(1, 0, new Point3f(0, 0, 0), 
+        new Vector3f(0, 1, 0));
+    assertEquals(new Point3f(1, 0, 0), p);
+  }
 }
