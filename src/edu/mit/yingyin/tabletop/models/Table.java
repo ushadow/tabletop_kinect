@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
-import org.OpenNI.GeneralException;
 import org.OpenNI.Point3D;
+import org.OpenNI.StatusException;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
@@ -37,6 +37,7 @@ public class Table {
   private boolean initialized = false;
   private Vector3f surfaceNormal;
   private Point3f center;
+  private FullOpenNIDevice openni;
   
   /**
    * Initializes the table statistics.
@@ -46,23 +47,27 @@ public class Table {
    * @param avgWidthStep
    * @param diffWidthStep
    * @param scale used to scale the depth value.
+   * @throws StatusException 
    */
   public Table(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-      int diffWidthStep, int width, int height) {
+      int diffWidthStep, int width, int height, FullOpenNIDevice openni)
+      throws StatusException {
     this.avg = avg;
     this.diff = diff;
     this.avgWidthStep = avgWidthStep;
     this.diffWidthStep = diffWidthStep;
     this.width = width;
     this.height = height;
+    this.openni = openni;
     computeGeometry();
     initialized = true;
   }
 
-  public Table(Background background) {
+  public Table(Background background, FullOpenNIDevice openni) 
+      throws StatusException {
     this(background.avgBuffer(), background.diffBuffer(),
         background.avgBufferWidthStep(), background.diffBufferWidthStep(),
-        background.width(), background.height());
+        background.width(), background.height(), openni);
   }
 
   /**
@@ -117,16 +122,15 @@ public class Table {
     return diff.get(y * diffWidthStep + x);
   }
 
-  private void computeGeometry() {
-    HandTrackingEngine engine = null;
-    try {
-      engine = HandTrackingEngine.instance();
-      if (engine == null)
-        return;
-    } catch (GeneralException ge) {
-      logger.severe(ge.getMessage());
-      System.exit(-1);
-    }
+  /**
+   * Computes the geometry of the table in the world coordinates. If openni is
+   * null, the geometry cannot be computed.
+   * @throws StatusException
+   */
+  private void computeGeometry() throws StatusException {
+    if (openni == null)
+      return;
+    
     Point3D[] points = new Point3D[width];
     int h = height / 2;
     int startIndex = h * avgWidthStep;
@@ -135,7 +139,7 @@ public class Table {
       points[i] = new Point3D(i, h, depth);
     }
 
-    Point3D[] converted = engine.convertProjectiveToRealWorld(points);
+    Point3D[] converted = openni.convertProjectiveToRealWorld(points);
     // projective = image coordinate space ((0,0) is top left corner of the
     // image)
     CvMat pointMat = CvMat.create(1, width, CV_32FC3);
@@ -158,7 +162,7 @@ public class Table {
       points[i] = new Point3D(w, i, avg.get(avgWidthStep * i + w));
     }
 
-    converted = engine.convertProjectiveToRealWorld(points);
+    converted = openni.convertProjectiveToRealWorld(points);
     pointMat = CvMat.create(1, height, CV_32FC3);
     for (int i = 0; i < converted.length; i++) {
       pointMat.put(i * 3, converted[i].getX());

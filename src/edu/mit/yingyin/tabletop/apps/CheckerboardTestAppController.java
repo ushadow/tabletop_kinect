@@ -82,7 +82,7 @@ public class CheckerboardTestAppController {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
       heController = new HandEventsController(image, 
           new Dimension(TABLETOP_WIDTH, TABLETOP_HEIGHT));
-      engine = HandTrackingEngine.initInstance(OPENNI_CONFIG_FILE, CALIB_FILE, 
+      engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE, 
           EnvConstants.DEFAULT_MAX_DEPTH);
       packetController = new ProcessPacketController(engine.depthWidth(), 
           engine.depthHeight(), null);
@@ -105,11 +105,13 @@ public class CheckerboardTestAppController {
   
   public void start() {
     while (!engine.isDone() && heController.isViewVisible()) {
-      engine.step();
       try {
+        engine.step();
         packetController.show(engine.packet());
       } catch (GeneralException e) {
         logger.severe(e.getMessage());
+        engine.release();
+        System.exit(-1);
       }
     }
     exit();

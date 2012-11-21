@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.FloatBuffer;
 
+import org.OpenNI.StatusException;
 import org.junit.Test;
 
 import edu.mit.yingyin.tabletop.models.Table;
@@ -24,11 +25,17 @@ public class TableTest {
     while(diff.remaining() > 0)
       diff.put(1);
     
-    Table table = new Table(avg, diff, WIDTH, WIDTH, WIDTH, HEIGHT);
-    assertTrue(table.isInContact(0, 0, 1));
-    assertTrue(table.isInContact(0, 1, (float)1.9));
-    assertTrue(table.isInContact(1, 1, (float)0.1));
-    assertTrue(!table.isInContact(2, 2, (float)6.3));
-    assertTrue(!table.isInContact(3, 3, (float)-6.1));
+    Table table;
+    try {
+      table = new Table(avg, diff, WIDTH, WIDTH, WIDTH, HEIGHT, null);
+      assertTrue(table.isInContact(0, 0, 1));
+      assertTrue(table.isInContact(0, 1, (float)1.9));
+      assertTrue(table.isInContact(1, 1, (float)0.1));
+      assertTrue(!table.isInContact(2, 2, (float)6.3));
+      assertTrue(!table.isInContact(3, 3, (float)-6.1));
+    } catch (StatusException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 }

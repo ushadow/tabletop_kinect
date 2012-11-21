@@ -159,7 +159,7 @@ public class HandTrackingApp extends KeyAdapter {
       displayOn = false;
     
     try {
-      engine = HandTrackingEngine.initInstance(openniConfigFile, calibrationFile, 
+      engine = new HandTrackingEngine(openniConfigFile, calibrationFile, 
           maxDepth);
     } catch (GeneralException ge) {
       logger.info("OpenNI config file = " + openniConfigFile);
@@ -190,28 +190,29 @@ public class HandTrackingApp extends KeyAdapter {
     }
     
     while (isRunning()) {
-      if (isPaused())
-        continue;
-      engine.step();
-      
-      if (packetController != null) {
-        try {
+      try {
+        if (isPaused())
+          continue;
+        engine.step();
+        
+        if (packetController != null) 
           packetController.show(engine.packet());
-        } catch (GeneralException ge) {
-          logger.severe(ge.getMessage());
+        
+        if (engine.isTableInitialized() && tableFrame == null) {
+          tableFrame = new Table3DFrame(engine.table());
+          Rectangle rect = packetController.getViewBounds();
+          tableFrame.setLocation(rect.width, 0);
+          tableFrame.addKeyListener(this);
+          tableFrame.showUI();
         }
+        
+        if (tableFrame != null)
+          tableFrame.redraw(engine.packet());
+      } catch (GeneralException ge) {
+        logger.severe(ge.getMessage());
+        engine.release();
+        System.exit(-1);
       }
-      
-      if (engine.isTableInitialized() && tableFrame == null) {
-        tableFrame = new Table3DFrame(engine.table());
-        Rectangle rect = packetController.getViewBounds();
-        tableFrame.setLocation(rect.width, 0);
-        tableFrame.addKeyListener(this);
-        tableFrame.showUI();
-      }
-      
-      if (tableFrame != null)
-        tableFrame.redraw(engine.packet());
     }
 
     print();

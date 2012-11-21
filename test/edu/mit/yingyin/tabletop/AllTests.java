@@ -16,6 +16,7 @@ import edu.mit.yingyin.tabletop.models.TableTest;
                TableTest.class, HandAnalyzerTest.class, EnvTest.class,
                CvUtilTest.class, BackgroundTest.class, 
                CalibrationExampleTest.class, JavaCVTest.class,
-               HandTrackingEngineTest.class})
+               HandTrackingEngineTest.class, 
+               TableTest.class})
 public class AllTests {
 }

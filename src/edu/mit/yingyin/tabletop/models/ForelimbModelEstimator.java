@@ -13,8 +13,8 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 
-import org.OpenNI.GeneralException;
 import org.OpenNI.Point3D;
+import org.OpenNI.StatusException;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRect;
@@ -47,22 +47,16 @@ public class ForelimbModelEstimator {
       * FINGERTIP_WIDTH / 4;
 
   private int width, height;
-  HandTrackingEngine engine;
+  private FullOpenNIDevice openni;
 
-  public ForelimbModelEstimator(int width, int height) {
+  public ForelimbModelEstimator(int width, int height, 
+      FullOpenNIDevice openni) {
     this.width = width;
     this.height = height;
-    try {
-      engine = HandTrackingEngine.instance();
-      if (engine == null) 
-        System.exit(-1);
-    } catch (GeneralException e) {
-      logger.severe(e.getMessage());
-      System.exit(-1);
-    }
+    this.openni = openni;
   }
 
-  public void updateModel(ProcessPacket packet) {
+  public void updateModel(ProcessPacket packet) throws StatusException {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion == null)
         continue;
@@ -74,7 +68,7 @@ public class ForelimbModelEstimator {
         Point3f point = fingertipsI.get(i).value;
         points[i] = new Point3D(point.x, point.y, point.z);
       }
-      Point3D[] converted = engine.convertProjectiveToRealWorld(points);
+      Point3D[] converted = openni.convertProjectiveToRealWorld(points);
       List<Point3f> fingertipsW = new ArrayList<Point3f>(converted.length);
       for (Point3D p : converted)
         fingertipsW.add(new Point3f(p.getX(), p.getY(), p.getZ()));
@@ -364,8 +358,10 @@ public class ForelimbModelEstimator {
    * @return a list of 3D points. The first point is the 3D location of the arm
    *         joint in the image, and the 2nd one is the location in the world
    *         coordinate. The list is empty if the arm joint cannot be found.
+   * @throws StatusException 
    */
-  private List<Point3f> findArmJoint(ProcessPacket packet, CvRect rect) {
+  private List<Point3f> findArmJoint(ProcessPacket packet, CvRect rect) 
+      throws StatusException {
     List<Point3f> res = new ArrayList<Point3f>(2);
 
     if (rect == null)
@@ -396,7 +392,7 @@ public class ForelimbModelEstimator {
 
     Point3D[] points = new Point3D[list.size()];
     list.toArray(points);
-    Point3D[] converted = engine.convertProjectiveToRealWorld(points);
+    Point3D[] converted = openni.convertProjectiveToRealWorld(points);
     float centerx = 0, centery = 0, centerz = 0;
     for (Point3D point : converted) {
       centerx += point.getX();

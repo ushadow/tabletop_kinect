@@ -13,7 +13,7 @@ public class HandTrackingEngineTest {
   @Test
   public void testStep() {
     try {
-      HandTrackingEngine engine = HandTrackingEngine.initInstance(
+      HandTrackingEngine engine = new HandTrackingEngine(
           OPENNI_CONFIG_FILE, CALIB_FILE, MAX_DEPTH);
       engine.step();
     } catch (GeneralException ge) {

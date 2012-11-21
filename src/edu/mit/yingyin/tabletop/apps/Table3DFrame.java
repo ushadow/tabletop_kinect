@@ -67,6 +67,7 @@ public class Table3DFrame extends JFrame {
   private BufferedImage frontImage;
   private Table table;
   private TransformGroup worldTransformGroup = new TransformGroup();
+  private Point3d viewrLoc = new Point3d(-700, 0, -300);
   
   public Table3DFrame(Table table) {
     setPreferredSize(new Dimension(IMAGE_WIDTH, IMAGE_HEIGHT));
@@ -100,16 +101,10 @@ public class Table3DFrame extends JFrame {
     }
     forelimbGroup = new BranchGroup();
     forelimbGroup.setCapability(BranchGroup.ALLOW_DETACH);
-    TransformGroup tg = new TransformGroup();
-    Transform3D transform = new Transform3D();
-    transform.setTranslation(new Vector3d(0, 0, 900));
-    tg.addChild(createSphere(30));
-    tg.setTransform(transform);
-    forelimbGroup.addChild(tg);
+    for (Forelimb fl : packet.forelimbs) {
+      forelimbGroup.addChild(createForelimb(fl));
+    }
     worldTransformGroup.addChild(forelimbGroup);
-//    for (Forelimb fl : packet.forelimbs) {
-//      forelimbGroup.addChild(createForelimb(fl));
-//    }
   }
   
   private Sphere createSphere(float radius) {
@@ -124,16 +119,18 @@ public class Table3DFrame extends JFrame {
       return null;
     
     Point3f armJointLoc = fl.armJointW();
-    Point3f fingerLoc = new Point3f();
+    logger.info("arm joint: " + armJointLoc);
+    Point3f fingerLoc = fl.getFingertipsW().get(0);
+    logger.info("fingertip: " + fingerLoc);
     
-    Sphere armJoint = new Sphere(2);
+    Sphere armJoint = createSphere(30);
     TransformGroup armJointTg = new TransformGroup();
     Transform3D armJointTransform = new Transform3D();
     armJointTransform.setTranslation(new Vector3f(armJointLoc));
     armJointTg.addChild(armJoint);
     armJointTg.setTransform(armJointTransform);
     
-    Sphere fingertip = new Sphere(0.5f);
+    Sphere fingertip = createSphere(10f);
     TransformGroup fingerTg = new TransformGroup();
     Transform3D fingerTransform = new Transform3D();
     fingerTransform.setTranslation(new Vector3f(fingerLoc));
@@ -148,8 +145,8 @@ public class Table3DFrame extends JFrame {
   
   private void addLights(BranchGroup group) {
     Color3f light1Color = new Color3f(0.7f, 0.8f, 0.8f);
-    BoundingSphere bounds = new BoundingSphere(new Point3d(0, 0, 200),
-        table.center().z);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(0, 0, -200),
+        1200);
     Vector3f light1Direction = new Vector3f(0, 0, 1);
     DirectionalLight light1 = new DirectionalLight(light1Color, 
         light1Direction);
@@ -177,14 +174,15 @@ public class Table3DFrame extends JFrame {
     axesTransformGroup.addChild(createAxesGroup());
     Transform3D axesTransform = new Transform3D();
     axesTransform.setScale(200);
-    axesTransform.setTranslation(new Vector3f(0, 0, table.center().z - 100));
+    axesTransform.setTranslation(new Vector3f(0, 0, table.center().z + 100));
     axesTransformGroup.setTransform(axesTransform);
     
     
     worldTransformGroup.addChild(createTable());
     worldTransformGroup.addChild(axesTransformGroup);
     MouseRotate behavior = new MouseRotate();
-    BoundingSphere bounds = new BoundingSphere(new Point3d(), table.center().z);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(table.center()), 
+        1200);
     behavior.setSchedulingBounds(bounds);
     behavior.setTransformGroup(worldTransformGroup);
     worldTransformGroup.addChild(behavior);
@@ -279,12 +277,12 @@ public class Table3DFrame extends JFrame {
   private void positionViewer() {
     ViewingPlatform vp = universe.getViewingPlatform();
     Transform3D lookAt = new Transform3D();
-    lookAt.lookAt(new Point3d(), new Point3d(0, 0, 1), new Vector3d(0, 1, 0));
+    lookAt.lookAt(viewrLoc, new Point3d(0, 0, -1100), new Vector3d(0, 0, 1));
     lookAt.invert();
     vp.getViewPlatformTransform().setTransform(lookAt);
     View view = universe.getViewer().getView();
     view.setBackClipDistance(1200);
-    view.setFrontClipDistance(200);
-    view.setFieldOfView(2 * Math.atan2(1000, 1200));
+    view.setFrontClipDistance(1);
+    view.setFieldOfView(2 * Math.atan2(600, 1200));
   }
 }

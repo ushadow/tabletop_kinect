@@ -28,6 +28,8 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
+import org.OpenNI.StatusException;
+
 import com.googlecode.javacpp.Loader;
 import com.googlecode.javacv.cpp.opencv_core.CvContour;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
@@ -92,12 +94,14 @@ public class HandAnalyzer {
    * Initializes the data structures.
    * @param width
    * @param height
+   * @param egnine reference to the <code>HandTrackingEngine</code>.
    */
-  public HandAnalyzer(int width, int height, int maxDepth) {
+  public HandAnalyzer(int width, int height, int maxDepth, 
+      FullOpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
     filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
-    forelimbModelEstimator = new ForelimbModelEstimator(width, height);
+    forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
   }
   
   /**
@@ -126,8 +130,9 @@ public class HandAnalyzer {
   /**
    * Hand data analysis pipeline.
    * @param packet contains all the relevant data for analysis.
+   * @throws StatusException 
    */
-  public void analyzeData(ProcessPacket packet) {
+  public void analyzeData(ProcessPacket packet) throws StatusException {
     packet.clear();
     
     if (packet.depthFrameID < BG_INGNORE_FRAMES)

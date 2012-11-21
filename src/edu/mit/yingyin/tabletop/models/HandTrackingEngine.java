@@ -29,10 +29,6 @@ public class HandTrackingEngine {
     public void fingerPressed(List<FingerEvent> feList);
   }
   
-  private static HandTrackingEngine instance;
-  private static String openniConfigFile, calibrationFile;
-  private static int maxDepth;
-  
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
@@ -45,39 +41,6 @@ public class HandTrackingEngine {
   private Table table;
 
   /**
-   * Initialize and returns the instance of <code>HandTrackingEngine</code>.
-   * @param _openniConfigFile
-   * @param _calibrationFile
-   * @param _maxDepth
-   * @return
-   * @throws GeneralException
-   */
-  public static HandTrackingEngine initInstance(String _openniConfigFile, 
-      String _calibrationFile, int _maxDepth) throws GeneralException {
-    openniConfigFile = _openniConfigFile;
-    calibrationFile = _calibrationFile;
-    maxDepth = _maxDepth;
-    return instance();
-  }
-  
-  /**
-   * Gets the singleton <code>HandTrackingEngine</code> instance. Can be null if
-   * the instance cannot be initialized.
-   * @return the <code>HandTrackingEngine</code> instance or null if it cannot
-   *    be initialized.
-   * @throws GeneralException
-   */
-  public static HandTrackingEngine instance() throws GeneralException {
-    if (openniConfigFile == null) {
-      logger.severe("HandTrackingEngine is not initialized");
-      instance = null;
-    } else if (instance == null)
-      instance = new HandTrackingEngine(openniConfigFile, calibrationFile, 
-          maxDepth);
-    return instance;
-  }
-  
-  /**
    * Creates a new <code>HandTrackingEngine</code>.
    * 
    * @param openniConfigFile
@@ -85,14 +48,14 @@ public class HandTrackingEngine {
    * @param maxDepth
    * @throws GeneralException
    */
-  private HandTrackingEngine(String openniConfigFile, 
+  public HandTrackingEngine(String openniConfigFile, 
       String calibrationFile, int maxDepth) throws GeneralException {
     
     openni = new FullOpenNIDevice(openniConfigFile);
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    analyzer = new HandAnalyzer(depthWidth, depthHeight, maxDepth);
+    analyzer = new HandAnalyzer(depthWidth, depthHeight, maxDepth, openni);
     packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
 
     tracker = new HandTracker(new CalibModel(calibrationFile));
@@ -132,19 +95,19 @@ public class HandTrackingEngine {
       openni.getDepthArray(packet.depthRawData);
       prevDepthFrameID = packet.depthFrameID;
       packet.depthFrameID = openni.getDepthFrameID();
+
+      analyzer.analyzeData(packet);
+    
+      if (table == null && analyzer.isBgInitialized()) {
+        table = new Table(analyzer.aveBg(), analyzer.diffBg(), 
+            analyzer.aveBgWidthStep(), analyzer.diffBgWidthStep(), depthWidth,
+            depthHeight, openni);
+      }
+      tracker.update(packet.forelimbs, packet.depthFrameID);
     } catch (Exception e) {
       logger.severe(e.getMessage());
       System.exit(-1);
     }
-
-    analyzer.analyzeData(packet);
-    
-    if (table == null && analyzer.isBgInitialized()) {
-      table = new Table(analyzer.aveBg(), analyzer.diffBg(), 
-          analyzer.aveBgWidthStep(), analyzer.diffBgWidthStep(), depthWidth,
-          depthHeight);
-    }
-    tracker.update(packet.forelimbs, packet.depthFrameID);
   }
   
   public void getRgbImage(BufferedImage bi) throws GeneralException {

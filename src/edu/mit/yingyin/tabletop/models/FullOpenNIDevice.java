@@ -203,7 +203,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
   
   public Point3D[] convertProjectiveToRealWorld(Point3D[] points) 
       throws StatusException {
-    return depthGen.convertProjectiveToRealWorld(points);
+    Point3D[] converted = depthGen.convertProjectiveToRealWorld(points);
+    for (Point3D p : converted) {
+      p.setPoint(p.getX(), p.getY(), -p.getZ());
+    }
+    return converted;
   }
   
   private void updateMetaData() {
