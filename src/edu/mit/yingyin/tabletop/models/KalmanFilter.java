@@ -134,7 +134,7 @@ public class KalmanFilter {
     float y = (float)yk.get(1);
     Point2f p1 = new Point2f(x, y);
     
-    for (Point3f tip : forelimb.getFingertips()) {
+    for (Point3f tip : forelimb.getFingertipsI()) {
       Point2f p2 = new Point2f(tip.x, tip.y);
       float distance2 = p1.distanceSquared(p2);
       if (distance2 < minDistance2) {
@@ -165,7 +165,7 @@ public class KalmanFilter {
     // TODO(yingyin): need to consider different hand orientation.
     float bestY = height;
     Point3f bestPoint = null;
-    for (Point3f tip : forelimb.getFingertips()) {
+    for (Point3f tip : forelimb.getFingertipsI()) {
       if (tip.y < bestY) {
         bestY = tip.y;
         bestPoint = tip;

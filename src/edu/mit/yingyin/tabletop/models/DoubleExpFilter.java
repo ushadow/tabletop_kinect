@@ -28,7 +28,7 @@ public class DoubleExpFilter {
     }
     
     Forelimb forelimb = packet.forelimbs.get(0);
-    Point3f tip = forelimb.getFingertips().get(0);
+    Point3f tip = forelimb.getFingertipsI().get(0);
     s1 = s2;
     s2 = new Point3f(tip);
     Point3f temp = new Point3f();

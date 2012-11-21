@@ -209,6 +209,9 @@ public class HandTrackingApp extends KeyAdapter {
         tableFrame.addKeyListener(this);
         tableFrame.showUI();
       }
+      
+      if (tableFrame != null)
+        tableFrame.redraw(engine.packet());
     }
 
     print();
