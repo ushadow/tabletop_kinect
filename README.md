@@ -22,7 +22,7 @@ This code is part of the research project for gestural input on a tabletop displ
   
 ## Jar files
 ### Put the following jar files in the *lib* directory:
-* [JavaCV (javacv-0.2-bin.zip)] (http://code.google.com/p/javacv/) 
+* [JavaCV (javacv-0.3-bin.zip)] (http://code.google.com/p/javacv/) 
   * javacpp.jar  
   * javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV.)
   * javacv.jar
@@ -33,7 +33,7 @@ This code is part of the research project for gestural input on a tabletop displ
 * org.OpenNI.jar - compiled from OpenNI installation and by default is in the */usr/share/java/* folder. The build.xml file assumes the jar file is in that folder.
 
 ## Other dependencies:
-* [OpenCV 2.4.2] (http://sourceforge.net/projects/opencvlibrary/files/)
+* [OpenCV 2.4.3] (http://sourceforge.net/projects/opencvlibrary/files/)
   * For compilation instruction, follow this [guide] (http://opencv.willowgarage.com/wiki/InstallGuide%20%3A%20Debian).
   * There are a few changes needed to install all the necessary libaries:
 	 
