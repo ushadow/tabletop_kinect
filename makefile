@@ -1,2 +1,2 @@
 clean:
-	rm *.log *.swp
+	rm -rf *.log *.swp

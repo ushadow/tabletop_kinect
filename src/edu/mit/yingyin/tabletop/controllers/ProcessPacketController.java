@@ -123,7 +123,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   }
   
   public Rectangle getViewBounds() {
-    return packetView.getBunnds();
+    return packetView.getBounds();
   }
   
   /**

@@ -82,13 +82,9 @@ public class HandAnalyzer {
   private static final int HAND_HEIGHT_SCALE = 11;
   private static final int ARM_JOINT_HEIGHT_SCALE = 20;
   
-  private static final float SMOOTH_FACTOR = (float) 0.9;
-  private static final float TREND_SMOOTH_FACTOR = (float) 0.9;
-  
   private Background background;
   private IplImage tempImage;
   private ForelimbModelEstimator forelimbModelEstimator;
-  private DoubleExpFilter filter;
   
   /**
    * Initializes the data structures.
@@ -100,7 +96,6 @@ public class HandAnalyzer {
       FullOpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
-    filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
   }
   
@@ -156,7 +151,6 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     forelimbModelEstimator.updateModel(packet);
-    filter.filter(packet);
   }
   
   /**

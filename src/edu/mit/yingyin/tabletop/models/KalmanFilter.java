@@ -12,6 +12,8 @@ import static com.googlecode.javacv.cpp.opencv_video.cvKalmanCorrect;
 import static com.googlecode.javacv.cpp.opencv_video.cvKalmanPredict;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -19,6 +21,9 @@ import javax.vecmath.Point3f;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRNG;
 import com.googlecode.javacv.cpp.opencv_video.CvKalman;
+
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 public class KalmanFilter {
   /**
@@ -68,25 +73,28 @@ public class KalmanFilter {
   /*
    * Filters the detected fingertips.
    */
-  public void filter(ProcessPacket packet) {
-    if (packet.forelimbs.isEmpty()) {
+  public List<Point3f> filter(ProcessPacket packet) {
+    List<Point3f> res = new ArrayList<Point3f>();
+    
+    if (packet.forelimbFeatures.isEmpty()) {
       resetKalman();
+      return null;
     } else {
       // Hack(ushadow): assumes one forelimb only.
       // TODO(ushadow): use multiple kalman filters for multiple forelimbs.
-      for (Forelimb forelimb : packet.forelimbs) {
-        if (initialized) {
-          Point3f tip = filter(forelimb);
-          if (tip != null)
-            forelimb.filteredFingertips.add(tip);
-        } else if (forelimb.numFingertips() > 0) {
-          // Finds the best point to initialize Kalman filter.
-          Point3f tip = findBestPoint(forelimb); 
-          initKalman(tip.x, tip.y);
-          forelimb.filteredFingertips.add(tip);
-        }
+      ForelimbFeatures ff = packet.forelimbFeatures.get(0);
+      if (initialized) {
+        Point3f tip = filter(ff);
+        if (tip != null)
+          res.add(tip);
+      } else if (ff.fingertips.size() > 0) {
+        // Finds the best point to initialize Kalman filter.
+        Point3f tip = findBestPoint(ff.fingertips); 
+        initKalman(tip.x, tip.y);
+        res.add(tip);
       }
     }
+    return res;
   }
   
   /**
@@ -123,7 +131,7 @@ public class KalmanFilter {
    * @return a point that is most likely to be the fingertip based on the 
    *    updated model.
    */
-  private Point3f filter(Forelimb forelimb) {
+  private Point3f filter(ForelimbFeatures ff) {
     Point3f closest = null;
     Point3f result = null;
     float minDistance2 = Float.MAX_VALUE;
@@ -134,7 +142,8 @@ public class KalmanFilter {
     float y = (float)yk.get(1);
     Point2f p1 = new Point2f(x, y);
     
-    for (Point3f tip : forelimb.getFingertipsI()) {
+    for (ValConfiPair<Point3f> vcp : ff.fingertips) {
+      Point3f tip = vcp.value;
       Point2f p2 = new Point2f(tip.x, tip.y);
       float distance2 = p1.distanceSquared(p2);
       if (distance2 < minDistance2) {
@@ -153,19 +162,20 @@ public class KalmanFilter {
   }
   
   /**
-   * Returns a new point which is the best canditate from all the fingertips in 
+   * Returns a new point which is the best candidate from all the fingertips in 
    * the forelimb.
    * @param forelimb the <code>Forelimb</code> that contains the fingertips.
    * @return a point that is most likely as the fingertip.
    */
-  private Point3f findBestPoint(Forelimb forelimb) {
+  private Point3f findBestPoint(List<ValConfiPair<Point3f>> fingertips) {
     // Hack(yingyin): assumes the point that is nearest to the center of the 
     // of the image as the fintertip. Assumes hand is extended from the bottom 
     // of the image.
     // TODO(yingyin): need to consider different hand orientation.
     float bestY = height;
     Point3f bestPoint = null;
-    for (Point3f tip : forelimb.getFingertipsI()) {
+    for (ValConfiPair<Point3f> vcp : fingertips) {
+      Point3f tip = vcp.value;
       if (tip.y < bestY) {
         bestY = tip.y;
         bestPoint = tip;

@@ -16,6 +16,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -34,6 +35,7 @@ import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Forelimb;
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
@@ -49,24 +51,30 @@ public class ProcessPacketView {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
 
-    private List<Forelimb> forelimbs;
+    private List<Point3f> fingertips;
+    private List<ValConfiPair<Point3f>> unfilteredFingertips;
     private List<Point> labels;
 
     public ForelimbView(Dimension d) {
       super(d);
     }
 
-    public void setFingertips(List<Forelimb> forelimbs, List<Point> labels) {
-      this.forelimbs = forelimbs;
+    public void setFingertips(List<Forelimb> forelimbs, 
+        List<ForelimbFeatures> ffs, List<Point> labels) {
+      fingertips = new ArrayList<Point3f>();
+      unfilteredFingertips = new ArrayList<ValConfiPair<Point3f>>();
+      for (Forelimb fl : forelimbs) {
+        fingertips.addAll(fl.getFingertipsI());
+      }
+      for (ForelimbFeatures ff : ffs) {
+        unfilteredFingertips.addAll(ff.fingertips);
+      }
       this.labels = labels;
     }
 
     @Override
     public void paint(Graphics g) {
       super.paint(g);
-
-      if (forelimbs == null)
-        return;
 
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.green);
@@ -79,19 +87,16 @@ public class ProcessPacketView {
       }
 
       // Draws measured points.
-      synchronized (forelimbs) {
-        for (Forelimb forelimb : forelimbs) {
-          g2d.setColor(Color.red);
-          for (Point3f p : forelimb.getFingertipsI()) {
-            g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
-                (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
-          }
-          g2d.setColor(Color.blue);
-          for (Point3f p : forelimb.filteredFingertips) {
-            g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
-                (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
-          }
-        }
+      g2d.setColor(Color.red);
+      for (ValConfiPair<Point3f> vcp : unfilteredFingertips) {
+        Point3f p = vcp.value;
+        g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
+            (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+      }
+      g2d.setColor(Color.blue);
+      for (Point3f p : fingertips) {
+        g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
+            (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
       }
     }
   }
@@ -100,16 +105,18 @@ public class ProcessPacketView {
    * Toggles for viewing different diagnostic frames.
    */
   public enum Toggles {
-    SHOW_RGB_IMAGE, SHOW_DEPTH_IMAGE, SHOW_DIAGNOSTIC_IMAGE, 
-    SHOW_CONVEXITY_DEFECTS, SHOW_HULL, SHOW_MORPHED, SHOW_FINGERTIP, 
+    SHOW_RGB_IMAGE, SHOW_DEPTH_IMAGE, SHOW_DIAGNOSTIC_IMAGE,
+    SHOW_CONVEXITY_DEFECTS, SHOW_HULL, SHOW_MORPHED, SHOW_FINGERTIP,
     SHOW_BOUNDING_BOX, SHOW_LABELS
   }
 
-  private static final Logger logger = Logger.getLogger(ProcessPacketView.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(ProcessPacketView.class.getName());
 
   private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
 
-  private HashMap<Toggles, Boolean> toggleMap = new HashMap<ProcessPacketView.Toggles, Boolean>();
+  private HashMap<Toggles, Boolean> toggleMap =
+      new HashMap<ProcessPacketView.Toggles, Boolean>();
   private CanvasFrame[] frames = new CanvasFrame[2];
   private IplImage analysisImage;
   private IplImage appImage;
@@ -134,8 +141,8 @@ public class ProcessPacketView {
     diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, fingertipView);
     Rectangle rect = frames[0].getBounds();
     diagnosticFrame.setLocation(0, rect.y + rect.height);
-    bufferedImage = new BufferedImage(width, height,
-        BufferedImage.TYPE_USHORT_GRAY);
+    bufferedImage =
+        new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
 
     initToggles();
   }
@@ -145,7 +152,8 @@ public class ProcessPacketView {
     if (histogram == null)
       histogram = new float[packet.maxDepth() + 1];
 
-    fingertipView.setFingertips(packet.forelimbs, fingertipLabels);
+    fingertipView.setFingertips(packet.forelimbs, packet.forelimbFeatures,
+        fingertipLabels);
 
     showAnalysisImage(packet);
     if (toggleMap.get(Toggles.SHOW_DIAGNOSTIC_IMAGE))
@@ -160,7 +168,7 @@ public class ProcessPacketView {
     showHeatMap(packet);
   }
 
-  public Rectangle getBunnds() {
+  public Rectangle getBounds() {
     Rectangle rect = frames[0].getBounds();
     return new Rectangle(0, 0, rect.width * 2, rect.height * 2);
   }
@@ -281,27 +289,16 @@ public class ProcessPacketView {
       if (toggleMap.get(Toggles.SHOW_HULL)) {
         CvUtil.drawHull(ff.hull, ff.approxPoly, analysisImage);
       }
-    }
 
-    // Shows unfiltered fingertips.
-    if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
-      for (Forelimb forelimb : packet.forelimbs) {
-        for (Point3f p : forelimb.getFingertipsI()) {
+      // Shows unfiltered fingertips.
+      if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
+        for (ValConfiPair<Point3f> vcp : ff.fingertips) {
+          Point3f p = vcp.value;
           cvCircle(analysisImage, new CvPoint((int) p.x, (int) p.y), 4,
               CvScalar.GREEN, -1, 8, 0);
         }
-        Point3f armJoint = forelimb.armJointI();
-        if (armJoint != null) {
-          cvCircle(analysisImage, new CvPoint((int) armJoint.x,
-              (int) armJoint.y), 4, CvScalar.CYAN, -1, 8, 0);
-        }
-
-        Point3f armJointW = forelimb.armJointW();
-        if (armJointW != null)
-          logger.fine("arm joint world coordinate: " + armJointW);
       }
     }
-
     frames[0].showImage(analysisImage);
   }
 

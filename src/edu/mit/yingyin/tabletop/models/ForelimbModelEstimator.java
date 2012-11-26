@@ -30,7 +30,8 @@ import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
 
 /**
- * A detector for forelimb features including fingertip positions.
+ * Estimates forelimb model including fingertip positions based on features
+ * derived from the image.
  * 
  * @author yingyin
  * 
@@ -45,15 +46,20 @@ public class ForelimbModelEstimator {
 
   private static final float FINGERTIP_WIDTH_THRESHOLD = FINGERTIP_WIDTH
       * FINGERTIP_WIDTH / 4;
-
+  
+  private static final float SMOOTH_FACTOR = (float) 0.9;
+  private static final float TREND_SMOOTH_FACTOR = (float) 0.9;
+  
   private int width, height;
   private FullOpenNIDevice openni;
+  private DoubleExpFilter filter;
 
   public ForelimbModelEstimator(int width, int height, 
       FullOpenNIDevice openni) {
     this.width = width;
     this.height = height;
     this.openni = openni;
+    filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
   }
 
   public void updateModel(ProcessPacket packet) throws StatusException {
@@ -61,11 +67,17 @@ public class ForelimbModelEstimator {
       if (ff.handRegion == null)
         continue;
 
-      List<ValConfiPair<Point3f>> fingertipsI = findFingertipsConvexityDefects(
-          ff, packet);
-      Point3D[] points = new Point3D[fingertipsI.size()];
-      for (int i = 0; i < fingertipsI.size(); i++) {
-        Point3f point = fingertipsI.get(i).value;
+      findFingertipsConvexityDefects(ff, packet);
+    }  
+    
+    List<Point3f> filteredFingertips = filter.filter(packet);
+    
+    if (packet.forelimbFeatures.size() > 0 && filteredFingertips != null ) {
+      ForelimbFeatures ff = packet.forelimbFeatures.get(0);
+      // Convert to world coordinates.
+      Point3D[] points = new Point3D[filteredFingertips.size()];
+      for (int i = 0; i < filteredFingertips.size(); i++) {
+        Point3f point = filteredFingertips.get(i);
         points[i] = new Point3D(point.x, point.y, point.z);
       }
       Point3D[] converted = openni.convertProjectiveToRealWorld(points);
@@ -74,7 +86,8 @@ public class ForelimbModelEstimator {
         fingertipsW.add(new Point3f(p.getX(), p.getY(), p.getZ()));
       
       List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
-      Forelimb forelimb = new Forelimb(fingertipsI, fingertipsW, armJoints);
+      Forelimb forelimb = new Forelimb(filteredFingertips, fingertipsW, 
+          armJoints);
       packet.forelimbs.add(forelimb);
     }
   }
@@ -85,12 +98,10 @@ public class ForelimbModelEstimator {
    * 
    * @param packet
    */
-  private  List<ValConfiPair<Point3f>> findFingertipsConvexityDefects(
-      ForelimbFeatures ff, ProcessPacket packet) {
+  private  void findFingertipsConvexityDefects(ForelimbFeatures ff, 
+      ProcessPacket packet) {
     CvSeq defects = ff.convexityDefects;
 
-    List<ValConfiPair<Point3f>> fingertips = 
-        new ArrayList<ValConfiPair<Point3f>>();
     for (int i = 0; i < defects.total(); i++) {
       CvConvexityDefect defect1 = new CvConvexityDefect(cvGetSeqElem(defects,
           i));
@@ -101,11 +112,10 @@ public class ForelimbModelEstimator {
           ValConfiPair<Point3f> fingertip = findFingertip(defect1, defect2,
               packet);
           if (fingertip != null)
-            fingertips.add(fingertip);
+            ff.fingertips.add(fingertip);
         }
       }
     }
-    return fingertips;
   }
 
   /**

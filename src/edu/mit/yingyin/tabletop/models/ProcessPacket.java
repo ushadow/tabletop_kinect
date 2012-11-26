@@ -9,8 +9,9 @@ import static com.googlecode.javacv.cpp.opencv_core.cvReleaseMemStorage;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
 
@@ -20,6 +21,8 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+
 
 /**
  * ProcessPacket contains the data related to the current frame.
@@ -28,7 +31,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
  */
 public class ProcessPacket {
   /**
-   * Features for a forelimb.
+   * Image features for a forelimb.
    * @author yingyin
    *
    */
@@ -37,6 +40,8 @@ public class ProcessPacket {
     public CvRect boundingBox;
     public CvSeq convexityDefects;
     public CvRect handRegion, armJointRegion;
+    public List<ValConfiPair<Point3f>> fingertips = 
+        new ArrayList<ValConfiPair<Point3f>>();
     
     public void release() {
       if (approxPoly != null)
@@ -55,7 +60,7 @@ public class ProcessPacket {
   public CvMemStorage tempMem;
   public List<ForelimbFeatures> forelimbFeatures = 
       new ArrayList<ForelimbFeatures>();
-  public List<Forelimb> forelimbs;
+  public List<Forelimb> forelimbs = new ArrayList<Forelimb>();
   public int depthFrameID;
   public int width, height;
   
@@ -86,8 +91,6 @@ public class ProcessPacket {
     this.height = height;
     this.maxDepth = maxDepth;
     this.engine = engine;
-    
-    forelimbs = Collections.synchronizedList(new ArrayList<Forelimb>());
   }
   
   public int maxDepth() {

@@ -95,7 +95,7 @@ public class HandTracker {
   public List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs) 
-      for (Point3f tip : forelimb.filteredFingertips)
+      for (Point3f tip : forelimb.getFingertipsI())
         fingerEventList.add(createFingerEvent(tip, frameID, 
                                             FingerEventType.PRESSED));
     return fingerEventList;
@@ -111,7 +111,7 @@ public class HandTracker {
                                          int frameID) {
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
     for (Forelimb forelimb : forelimbs)
-      for (Point3f tip : forelimb.filteredFingertips) {
+      for (Point3f tip : forelimb.getFingertipsI()) {
         float tipDepth = tip.z + Hand.FINGER_THICKNESS; 
         boolean inContact = table.isInContact((int)tip.x, (int)tip.y, tipDepth);
         if (inContact) {

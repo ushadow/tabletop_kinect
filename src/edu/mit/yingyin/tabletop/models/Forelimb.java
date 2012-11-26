@@ -29,8 +29,7 @@ public class Forelimb {
   /**
    * Fingertip locations in the image coordinate.
    */
-  private List<ValConfiPair<Point3f>> fingertipsI;
-  private List<Point3f> fingertipsW;
+  private List<Point3f> fingertipsI, fingertipsW;
   
   /**
    * Arm joint location in the world coordinate. Can be null.
@@ -41,7 +40,6 @@ public class Forelimb {
    * Arm joint location in the image coordinate. Can be null;
    */
   private Point3f armJointI;
-  public List<Point3f> filteredFingertips = new ArrayList<Point3f>();
   
   /**
    * Creates a forelimb model from the parameters. The model references the 
@@ -49,10 +47,10 @@ public class Forelimb {
    * @param fingertipsI
    * @param armJoints
    */
-  public Forelimb(List<ValConfiPair<Point3f>> fingertipsI, 
+  public Forelimb(List<Point3f> fingertipsI, 
       List<Point3f> fingertipsW, List<Point3f> armJoints) {
     if (fingertipsI == null) {
-      fingertipsI = new ArrayList<ValConfiPair<Point3f>>();
+      fingertipsI = new ArrayList<Point3f>();
       fingertipsW = new ArrayList<Point3f>();
     } else if (fingertipsI.size() != fingertipsW.size()) {
       logger.severe("Number of fingertips in fingertipsI and fingertipsW are" +
@@ -71,17 +69,15 @@ public class Forelimb {
   public Forelimb(Forelimb other) {
     armJointW = new Point3f(other.armJointW);
     fingertipsI.clear();
-    for (ValConfiPair<Point3f> p : other.fingertipsI) {
-      fingertipsI.add(new ValConfiPair<Point3f>(
-          new Point3f(p.value), p.confidence));
+    for (Point3f p : other.fingertipsI) {
+      fingertipsI.add(new Point3f(p));
     }
   }
   
   public List<Point3f> getFingertipsI() {
     List<Point3f> res = new ArrayList<Point3f>();
-    for (ValConfiPair<Point3f> p : fingertipsI) {
-      if (p.confidence > 0.5)
-        res.add(new Point3f(p.value));
+    for (Point3f p : fingertipsI) {
+      res.add(new Point3f(p));
     }
     return res;
   }

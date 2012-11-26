@@ -106,6 +106,7 @@ public class HandTrackingEngine {
       tracker.update(packet.forelimbs, packet.depthFrameID);
     } catch (Exception e) {
       logger.severe(e.getMessage());
+      e.printStackTrace();
       System.exit(-1);
     }
   }
