@@ -119,9 +119,7 @@ public class Table3DFrame extends JFrame {
       return null;
     
     Point3f armJointLoc = fl.armJointW();
-    logger.info("arm joint: " + armJointLoc);
     Point3f fingerLoc = fl.getFingertipsW().get(0);
-    logger.info("fingertip: " + fingerLoc);
     
     Sphere armJoint = createSphere(30);
     TransformGroup armJointTg = new TransformGroup();
