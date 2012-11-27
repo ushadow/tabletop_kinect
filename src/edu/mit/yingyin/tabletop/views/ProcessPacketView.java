@@ -85,18 +85,23 @@ public class ProcessPacketView {
           g2d.drawOval(p.x - OVAL_WIDTH / 2, p.y - OVAL_WIDTH / 2, OVAL_WIDTH,
               OVAL_WIDTH);
       }
-
-      // Draws measured points.
-      g2d.setColor(Color.red);
-      for (ValConfiPair<Point3f> vcp : unfilteredFingertips) {
-        Point3f p = vcp.value;
-        g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
-            (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+      
+      if (unfilteredFingertips != null) {
+          // Draws measured points.
+          g2d.setColor(Color.red);
+          for (ValConfiPair<Point3f> vcp : unfilteredFingertips) {
+            Point3f p = vcp.value;
+            g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
+                (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+          }
       }
-      g2d.setColor(Color.blue);
-      for (Point3f p : fingertips) {
-        g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
-            (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+      
+      if (fingertips != null) {
+        g2d.setColor(Color.blue);
+        for (Point3f p : fingertips) {
+          g2d.drawOval((int) p.x - OVAL_WIDTH / 2,
+              (int) p.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+        }
       }
     }
   }

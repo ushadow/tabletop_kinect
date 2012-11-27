@@ -1,6 +1,6 @@
 <OpenNI>
   <Licenses>
-    <!-- Add licenses here 
+    <!-- Add licenses here
     <License vendor="vendor" key="key"/>
     -->
   </Licenses>
@@ -15,7 +15,7 @@
   </Log>
   <ProductionNodes>
     <Recording file="./data/sample.oni" />
-    <!-- 
+    <!--
     <Node type="Depth" name="Depth1">
       <Configuration>
         <Mirror on="true"/>
