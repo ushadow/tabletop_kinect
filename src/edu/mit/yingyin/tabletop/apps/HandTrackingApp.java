@@ -25,6 +25,7 @@ import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.ObjectIO;
 
@@ -199,10 +200,11 @@ public class HandTrackingApp extends KeyAdapter {
         if (packetController != null)
           packetController.show(engine.packet());
 
-        if (displayOn && engine.isTableInitialized() && tableFrame == null) {
-          tableFrame = new Table3DFrame(engine.table());
+        if (displayOn && InteractionSurface.instanceInitialized() && 
+            tableFrame == null) {
+          tableFrame = new Table3DFrame(InteractionSurface.instance());
           Rectangle rect = packetController.getViewBounds();
-          tableFrame.setLocation(rect.width / 2, rect.height / 2);
+          tableFrame.setLocation(rect.width / 4, rect.height / 2);
           tableFrame.addKeyListener(this);
           tableFrame.showUI();
         }

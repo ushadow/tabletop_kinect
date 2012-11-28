@@ -25,10 +25,12 @@ import edu.mit.yingyin.util.Geometry;
  * @author yingyin
  * 
  */
-public class Table {
-  private static final Logger logger = Logger.getLogger(Table.class.getName());
+public class InteractionSurface {
+  private static final Logger logger = 
+      Logger.getLogger(InteractionSurface.class.getName());
   private static final int DIFF_SCALE = 5;
-
+  private static InteractionSurface instance;
+  
   /**
    * Average depth and depth difference in mm.
    */
@@ -38,6 +40,42 @@ public class Table {
   private Vector3f surfaceNormal;
   private Point3f center;
   private FullOpenNIDevice openni;
+  
+  public static InteractionSurface initInstance(FloatBuffer avg, 
+      FloatBuffer diff, int avgWidthStep, int diffWidthStep, int width, 
+      int height, FullOpenNIDevice openni) throws StatusException {
+    if (!instanceInitialized()) {
+      instance = new InteractionSurface(avg, diff, avgWidthStep, diffWidthStep,
+          width, height, openni);
+    } else {
+      logger.warning("Instance has already been initialized, and can only be" +
+      		"initialized once.");
+    }
+    return instance;
+  }
+  
+  public static InteractionSurface initInstance(Background background, 
+      FullOpenNIDevice openni) throws StatusException {
+    if (!instanceInitialized()) {
+      instance = new InteractionSurface(background, openni);
+    } else {
+      logger.warning("Instance has already been initialized, and can only be" +
+          "initialized once.");
+    }
+    return instance;
+  }
+  
+  public static InteractionSurface instance() {
+    if (instance == null) {
+      logger.severe("Instance is not initialized. You need to call " +
+      		"initInstance first.");
+    }
+    return instance;
+  }
+  
+  public static boolean instanceInitialized() {
+    return instance != null;
+  }
   
   /**
    * Initializes the table statistics.
@@ -49,7 +87,7 @@ public class Table {
    * @param scale used to scale the depth value.
    * @throws StatusException 
    */
-  public Table(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
+  private InteractionSurface(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
       int diffWidthStep, int width, int height, FullOpenNIDevice openni)
       throws StatusException {
     this.avg = avg;
@@ -63,7 +101,7 @@ public class Table {
     initialized = true;
   }
 
-  public Table(Background background, FullOpenNIDevice openni) 
+  private InteractionSurface(Background background, FullOpenNIDevice openni) 
       throws StatusException {
     this(background.avgBuffer(), background.diffBuffer(),
         background.avgBufferWidthStep(), background.diffBufferWidthStep(),

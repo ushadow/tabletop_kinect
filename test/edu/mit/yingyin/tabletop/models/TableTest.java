@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 import org.OpenNI.StatusException;
 import org.junit.Test;
 
-import edu.mit.yingyin.tabletop.models.Table;
+import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.util.DirectBufferUtil;
 
 public class TableTest {
@@ -25,9 +25,10 @@ public class TableTest {
     while(diff.remaining() > 0)
       diff.put(1);
     
-    Table table;
+    InteractionSurface table;
     try {
-      table = new Table(avg, diff, WIDTH, WIDTH, WIDTH, HEIGHT, null);
+      table = InteractionSurface.initInstance(avg, diff, WIDTH, WIDTH, WIDTH, 
+          HEIGHT, null);
       assertTrue(table.isInContact(0, 0, 1));
       assertTrue(table.isInContact(0, 1, (float)1.9));
       assertTrue(table.isInContact(1, 1, (float)0.1));

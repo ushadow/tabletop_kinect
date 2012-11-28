@@ -52,7 +52,6 @@ public class HandTracker {
   private List<IHandEventListener> listeners = 
       new ArrayList<IHandEventListener>();
   
-  private Table table;
   /** Counts the duration of contact or noncontact. */
   private int pressedCounter = 0, releasedCounter = 0;
   /** True if finger is pressed, false otherwise. */
@@ -62,8 +61,6 @@ public class HandTracker {
   public HandTracker(CalibModel calibExample) {
     this.calibExample = calibExample;
   }
-  
-  public void setTable(Table table) { this.table = table; }
   
   /**
    * Updates forelimbs information and generates events.
@@ -109,8 +106,13 @@ public class HandTracker {
    */
   public List<FingerEvent> filterPressed(List<Forelimb> forelimbs, 
                                          int frameID) {
+    InteractionSurface table = InteractionSurface.instance();
     List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
-    for (Forelimb forelimb : forelimbs)
+    
+    if (table == null) 
+      return fingerEventList;
+    
+    for (Forelimb forelimb : forelimbs) {
       for (Point3f tip : forelimb.getFingertipsI()) {
         float tipDepth = tip.z + Hand.FINGER_THICKNESS; 
         boolean inContact = table.isInContact((int)tip.x, (int)tip.y, tipDepth);
@@ -131,6 +133,7 @@ public class HandTracker {
                                                 FingerEventType.RELEASED));
         }
       }
+    }
     return fingerEventList;
   }
   

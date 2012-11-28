@@ -41,7 +41,7 @@ import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.Table;
+import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.util.Geometry;
 
 /**
@@ -56,8 +56,8 @@ public class Table3DFrame extends JFrame {
   private static final Color3f RED = new Color3f(Color.RED);
   private static final int TABLE_WIDTH = 1200; // mm
   private static final int TABLE_HEIGHT = 920; // mm
-  private static final int IMAGE_HEIGHT = 256;
-  private static final int IMAGE_WIDTH = 256;
+  private static final int IMAGE_HEIGHT = 480;
+  private static final int IMAGE_WIDTH = 640;
   
   private static final long serialVersionUID = 1L;
   private Canvas3D canvas;
@@ -65,11 +65,11 @@ public class Table3DFrame extends JFrame {
   private BranchGroup scene = new BranchGroup();
   private BranchGroup forelimbGroup = new BranchGroup();
   private BufferedImage frontImage;
-  private Table table;
+  private InteractionSurface table;
   private TransformGroup worldTransformGroup = new TransformGroup();
   private Point3d viewrLoc = new Point3d(-700, 0, -300);
   
-  public Table3DFrame(Table table) {
+  public Table3DFrame(InteractionSurface table) {
     setPreferredSize(new Dimension(IMAGE_WIDTH, IMAGE_HEIGHT));
     this.table = table;
     setLayout(new BorderLayout());

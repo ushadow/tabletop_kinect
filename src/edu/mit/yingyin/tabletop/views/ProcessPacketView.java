@@ -120,6 +120,8 @@ public class ProcessPacketView {
 
   private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
 
+  private static final boolean DEFAULT_SHOW_DIAGNOSTIC_IMAGE = false;
+
   private HashMap<Toggles, Boolean> toggleMap =
       new HashMap<ProcessPacketView.Toggles, Boolean>();
   private CanvasFrame[] frames = new CanvasFrame[2];
@@ -253,7 +255,7 @@ public class ProcessPacketView {
   private void initToggles() {
     toggleMap.put(Toggles.SHOW_RGB_IMAGE, false);
     toggleMap.put(Toggles.SHOW_DEPTH_IMAGE, true);
-    toggleMap.put(Toggles.SHOW_DIAGNOSTIC_IMAGE, true);
+    toggleMap.put(Toggles.SHOW_DIAGNOSTIC_IMAGE, DEFAULT_SHOW_DIAGNOSTIC_IMAGE);
     toggleMap.put(Toggles.SHOW_CONVEXITY_DEFECTS, false);
     toggleMap.put(Toggles.SHOW_HULL, false);
     toggleMap.put(Toggles.SHOW_MORPHED, true);
