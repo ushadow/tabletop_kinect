@@ -14,18 +14,11 @@
     </Dumps>
   </Log>
   <ProductionNodes>
-    <Recording file="./data/sample.oni" />
-    <!-- 
+<!--    <Recording file="./data/sample.oni" /> -->
     <Node type="Depth" name="Depth1">
-      <Configuration>
-        <Mirror on="true"/>
-      </Configuration>
     </Node>
     <Node type="Image" name="Image1" stopOnError="false">
-      <Configuration>
-        <Mirror on="true"/>
-      </Configuration>
-    </Node>  -->
+    </Node>  
     <!--
     <Node type="Audio" name="Audio1"/>
     -->
