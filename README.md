@@ -1,7 +1,7 @@
 This code is part of the research project for gestural input on a tabletop display. One Microsoft's Kinect is used for tracking hands. The Kinect is placed above the tabletop about 1.2m above. This [picture] (http://people.csail.mit.edu/yingyin/resources/image/tabletop.png) shows the setup. Currently, the code is only tested with this setup. Certain parameters are set based on the assumptions according to this setup, e.g., the distance of the tabletop from the Kinect. A different setup may cause some issues.
 
 # Environment 
-* Tested on Ubuntu 11.10 and 12.04.
+* Currently developing on Ubuntu 12.04 with Sun Java 7.
 
 # Prerequisites
 

@@ -33,25 +33,24 @@ import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Forelimb;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 
 public class ProcessPacketView {
   /**
-   * Image component for visualizing fingertips.
+   * Image component for visualizing forelimbs.
    * @author yingyin
    *
    */
-  private class FingertipView extends ImageComponent {
+  private class ForelimbView extends ImageComponent {
     private static final long serialVersionUID = 3880292315260748112L;
     private static final int OVAL_WIDTH = 6;
     
     private List<Forelimb> forelimbs;
     private List<Point> labels;
     
-    public FingertipView(Dimension d) {
+    public ForelimbView(Dimension d) {
       super(d);
     }
     
@@ -81,11 +80,9 @@ public class ProcessPacketView {
       synchronized (forelimbs) {
         for (Forelimb forelimb : forelimbs){
           g2d.setColor(Color.red);
-          for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-            if (p.confidence > 0.5)
-              g2d.drawOval((int)p.value.x - OVAL_WIDTH / 2, 
-                  (int)p.value.y - OVAL_WIDTH / 2, 
-                  OVAL_WIDTH, OVAL_WIDTH);
+          for (Point3f p : forelimb.getFingertips()) {
+            g2d.drawOval((int)p.x - OVAL_WIDTH / 2, (int)p.y - OVAL_WIDTH / 2, 
+                OVAL_WIDTH, OVAL_WIDTH);
           }
           g2d.setColor(Color.blue);
           for (Point3f p : forelimb.filteredFingertips) {
@@ -115,7 +112,7 @@ public class ProcessPacketView {
   private IplImage appImage;
   private ImageFrame diagnosticFrame, rgbFrame;
   private BufferedImage bufferedImage;
-  private FingertipView fingertipView;
+  private ForelimbView fingertipView;
   private float[] histogram;
   private int width, height;
   
@@ -130,11 +127,10 @@ public class ProcessPacketView {
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
-    fingertipView = new FingertipView(new Dimension(width, height));
+    fingertipView = new ForelimbView(new Dimension(width, height));
     diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, fingertipView);
     Rectangle rect = frames[0].getBounds();
     diagnosticFrame.setLocation(0, rect.y + rect.height);
-    
     bufferedImage = new BufferedImage(width, height, 
         BufferedImage.TYPE_USHORT_GRAY);
     
@@ -159,6 +155,11 @@ public class ProcessPacketView {
       showRgbImage(packet);
     
     showHeatMap(packet);
+  }
+  
+  public Rectangle getBunnds() {
+    Rectangle rect = frames[0].getBounds();
+    return new Rectangle(0, 0, rect.width * 2, rect.height * 2);
   }
   
   public void addKeyListener(KeyListener kl) {
@@ -262,6 +263,13 @@ public class ProcessPacketView {
             new CvPoint(rect.x(), rect.y()), 
             new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
             CvScalar.WHITE, 1, 8, 0);
+        rect = ff.armJointRegion;
+        if (rect != null) {
+          cvRectangle(analysisImage, 
+              new CvPoint(rect.x(), rect.y()), 
+              new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()), 
+              CvScalar.WHITE, 1, 8, 0);
+        }
       }
     
       if (toggleMap.get(Toggles.SHOW_CONVEXITY_DEFECTS)) {
@@ -275,19 +283,25 @@ public class ProcessPacketView {
     }
 
     // Shows unfiltered fingertips.
-    if (toggleMap.get(Toggles.SHOW_FINGERTIP))
-      for (Forelimb forelimb : packet.forelimbs)
-        for (ValConfiPair<Point3f> p : forelimb.fingertips) {
-          if (p.confidence > 0.5)
-            cvCircle(analysisImage, new CvPoint((int)p.value.x, (int)p.value.y), 
-                4, CvScalar.GREEN, -1, 8, 0);
+    if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
+      for (Forelimb forelimb : packet.forelimbs) {
+        for (Point3f p : forelimb.getFingertips()) {
+          cvCircle(analysisImage, new CvPoint((int)p.x, (int)p.y), 
+              4, CvScalar.GREEN, -1, 8, 0);
         }
+        Point3f armJoint = forelimb.armJointI();
+        if (armJoint != null) {
+          cvCircle(analysisImage, new CvPoint((int)armJoint.x, (int)armJoint.y), 4, CvScalar.CYAN, -1, 
+                   8, 0);
+        }
+      }
+    }
 
     frames[0].showImage(analysisImage);
   }
   
   /**
-   * Shows the depth image.
+   * Shows the histogram based depth image.
    * @param packet
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
@@ -315,9 +329,9 @@ public class ProcessPacketView {
    * @param packet
    */
   private void showDiagnosticImage(ProcessPacket packet) {
-    ImageConvertUtils.floatBuffer2UShortGrayBufferedImage( 
-        packet.derivative.getFloatBuffer(), bufferedImage, 
-        packet.derivative.widthStep() / 4);
+    ImageConvertUtils.floatBufferToGrayBufferedImage(
+        packet.depthImage32F.getFloatBuffer(),
+        bufferedImage);
     diagnosticFrame.updateImage(bufferedImage);
   }
 

@@ -15,7 +15,6 @@ public class TableTest {
   
   @Test
   public void testTableContact() {
-    Table table = Table.instance();
     FloatBuffer avg = DirectBufferUtil.allocateFloatBuffer(WIDTH * HEIGHT);
     FloatBuffer diff = DirectBufferUtil.allocateFloatBuffer(WIDTH * HEIGHT);
     avg.rewind();
@@ -25,7 +24,7 @@ public class TableTest {
     while(diff.remaining() > 0)
       diff.put(1);
     
-    table.init(avg, diff, WIDTH, WIDTH);
+    Table table = new Table(avg, diff, WIDTH, WIDTH, WIDTH, HEIGHT);
     assertTrue(table.isInContact(0, 0, 1));
     assertTrue(table.isInContact(0, 1, (float)1.9));
     assertTrue(table.isInContact(1, 1, (float)0.1));

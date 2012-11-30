@@ -1,6 +1,7 @@
 package edu.mit.yingyin.tabletop.apps;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
@@ -20,6 +21,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
@@ -33,17 +35,55 @@ import edu.mit.yingyin.util.ObjectIO;
  * @author yingyin
  *
  */
-public class HandTrackingAppController extends KeyAdapter {
+public class HandTrackingApp extends KeyAdapter {
 
+  /**
+   * Listens to hand events.
+   * @author yingyin
+   *
+   */
+  private class HandEventListener implements IHandEventListener {
+    /**
+     * List of finger events detected in a frame.
+     */
+    private List<List<FingerEvent>> fingerEventList = 
+        new ArrayList<List<FingerEvent>>();
+    
+    @Override
+    public void fingerPressed(List<FingerEvent> feList) {
+      if (packetController != null) {
+        for (FingerEvent fe : feList)
+          packetController.drawCircle((int)fe.posImage.x, (int)fe.posImage.y);
+      }
+      fingerEventList.add(feList);
+    }
+    
+    public void toOutput(PrintWriter pw) {
+      pw.println("# frame-id x y z x y z ...");
+      for (List<FingerEvent> list : fingerEventList) {
+        for (int i = 0; i < list.size(); i++) {
+          if (i == 0) {
+            pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
+                (int)list.get(i).posImage.x, (int)list.get(i).posImage.y, 
+                (int)list.get(i).posImage.z));
+          } else {
+            pw.print(String.format("%d %d %d ", (int)list.get(i).posImage.x, 
+                (int)list.get(i).posImage.y, (int)list.get(i).posImage.z));
+          }
+        }
+        pw.println();
+      }
+    }
+  }
+  
   private static Logger logger = Logger.getLogger(
-      HandTrackingAppController.class.getName());
+      HandTrackingApp.class.getName());
   
   private static final String CONFIG_FILE = 
       "/config/fingertip_tracking.properties";
   private static final String DATA_DIR = "/data/";
   private static final String FINGERTIP_DIR = DATA_DIR + "fingertip/";
-  private static final String TIME_FORMAT = "yyyy-MM-dd_HH-MM-SS";
-  private static final int DEFAULT_MAX_DEPTH = 1600;
+  private static final String TIME_FORMAT = "yyyy-MM-dd_HH-mm-SS";
   
   @SuppressWarnings("static-access")
   public static void main(String[] args) {
@@ -55,7 +95,7 @@ public class HandTrackingAppController extends KeyAdapter {
     CommandLineOptions.addOption(mainDirOpt);
     CommandLineOptions.parse(args);
     String mainDir = CommandLineOptions.getOptionValue("d", "./");
-    new HandTrackingAppController(mainDir);
+    new HandTrackingApp(mainDir);
   }
   
   private HandTrackingEngine engine;
@@ -65,9 +105,10 @@ public class HandTrackingAppController extends KeyAdapter {
   private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
   private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
-
+  private Table3DFrame tableFrame;
+  
   @SuppressWarnings("unchecked")
-  public HandTrackingAppController(String mainDir)  {
+  public HandTrackingApp(String mainDir)  {
     logger.info("java.library.path = " + 
         System.getProperty("java.library.path"));
     
@@ -101,7 +142,7 @@ public class HandTrackingAppController extends KeyAdapter {
     
     String displayOnProperty = config.getProperty("display-on", "true");
     
-    int maxDepth = DEFAULT_MAX_DEPTH;
+    int maxDepth = EnvConstants.DEFAULT_MAX_DEPTH;
     try {
       maxDepth = Integer.parseInt(config.getProperty("max-depth", "1600"));
     } catch(NumberFormatException efe) {
@@ -118,7 +159,7 @@ public class HandTrackingAppController extends KeyAdapter {
       displayOn = false;
     
     try {
-      engine = new HandTrackingEngine(openniConfigFile, calibrationFile, 
+      engine = HandTrackingEngine.initInstance(openniConfigFile, calibrationFile, 
           maxDepth);
     } catch (GeneralException ge) {
       logger.info("OpenNI config file = " + openniConfigFile);
@@ -137,9 +178,11 @@ public class HandTrackingAppController extends KeyAdapter {
 
         packetController = new ProcessPacketController(engine.depthWidth(), 
             engine.depthHeight(), labels);
+        
         packetController.addKeyListener(this);
         packetController.derivativeSaveDir = derivativeSaveDir;
         packetController.showUI();
+        
       } catch (IOException e) {
         System.err.println(e.getMessage());
         System.exit(-1);
@@ -157,6 +200,13 @@ public class HandTrackingAppController extends KeyAdapter {
         } catch (GeneralException ge) {
           logger.severe(ge.getMessage());
         }
+      }
+      
+      if (engine.isTableInitialized() && tableFrame == null) {
+        tableFrame = new Table3DFrame(engine.tableNormal());
+        Rectangle rect = packetController.getViewBounds();
+        tableFrame.setLocation(rect.width, 0);
+        tableFrame.showUI();
       }
     }
 
@@ -212,45 +262,6 @@ public class HandTrackingAppController extends KeyAdapter {
         break;
       default:
         break;
-    }
-  }
-
-  /**
-   * Listens to hand events.
-   * @author yingyin
-   *
-   */
-  private class HandEventListener implements IHandEventListener {
-    /**
-     * List of finger events detected in a frame.
-     */
-    private List<List<FingerEvent>> fingerEventList = 
-        new ArrayList<List<FingerEvent>>();
-    
-    @Override
-    public void fingerPressed(List<FingerEvent> feList) {
-      if (packetController != null) {
-        for (FingerEvent fe : feList)
-          packetController.drawCircle((int)fe.posImage.x, (int)fe.posImage.y);
-      }
-      fingerEventList.add(feList);
-    }
-    
-    public void toOutput(PrintWriter pw) {
-      pw.println("# frame-id x y z x y z ...");
-      for (List<FingerEvent> list : fingerEventList) {
-        for (int i = 0; i < list.size(); i++) {
-          if (i == 0) {
-            pw.print(String.format("%d %d %d %d ", list.get(i).frameID, 
-                (int)list.get(i).posImage.x, (int)list.get(i).posImage.y, 
-                (int)list.get(i).posImage.z));
-          } else {
-            pw.print(String.format("%d %d %d ", (int)list.get(i).posImage.x, 
-                (int)list.get(i).posImage.y, (int)list.get(i).posImage.z));
-          }
-        }
-        pw.println();
-      }
     }
   }
 }

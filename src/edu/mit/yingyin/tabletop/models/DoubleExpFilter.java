@@ -22,13 +22,13 @@ public class DoubleExpFilter {
     // Hack(yingyin): only considers one forelimb and one fingertip.
     // TODO(yingyin): consider all forelimbs and all fingertips.
     if (packet.forelimbs.isEmpty() || 
-        packet.forelimbs.get(0).fingertips.isEmpty()) {
+        packet.forelimbs.get(0).numFingertips() <= 0) {
       reset();
       return;
     }
     
     Forelimb forelimb = packet.forelimbs.get(0);
-    Point3f tip = forelimb.fingertips.get(0).value;
+    Point3f tip = forelimb.getFingertips().get(0);
     s1 = s2;
     s2 = new Point3f(tip);
     Point3f temp = new Point3f();

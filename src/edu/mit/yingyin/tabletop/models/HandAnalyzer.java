@@ -58,7 +58,6 @@ public class HandAnalyzer {
    */
   private static final int BG_INIT_FRAMES = BG_INGNORE_FRAMES + 40;
   
-
   private static final float BG_DIFF_LSCALE = 6;
   private static final float BG_DIFF_HSCALE = 15;
   
@@ -79,14 +78,14 @@ public class HandAnalyzer {
    * is in the view.
    */
   private static final int HAND_HEIGHT_SCALE = 11;
+  private static final int ARM_JOINT_HEIGHT_SCALE = 20;
   
   private static final float SMOOTH_FACTOR = (float) 0.9;
   private static final float TREND_SMOOTH_FACTOR = (float) 0.9;
   
   private Background background;
   private IplImage tempImage;
-  private IplImage foregroundMask;
-  private ForelimbFeatureDetector ffd;
+  private ForelimbModelEstimator forelimbModelEstimator;
   private DoubleExpFilter filter;
   
   /**
@@ -94,14 +93,16 @@ public class HandAnalyzer {
    * @param width
    * @param height
    */
-  public HandAnalyzer(int width, int height) {
+  public HandAnalyzer(int width, int height, int maxDepth) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
-    foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     filter = new DoubleExpFilter(SMOOTH_FACTOR, TREND_SMOOTH_FACTOR);
-    ffd = new ForelimbFeatureDetector(width, height);
+    forelimbModelEstimator = new ForelimbModelEstimator(width, height);
   }
   
+  /**
+   * @return true if background is initialized.
+   */
   public boolean isBgInitialized() {
     return background.isInitialized();
   }
@@ -110,7 +111,7 @@ public class HandAnalyzer {
     return background.avgBuffer();
   }
   
-  public int aveBgWidth() {
+  public int aveBgWidthStep() {
     return background.avgBufferWidthStep();
   }
   
@@ -118,7 +119,7 @@ public class HandAnalyzer {
     return background.diffBuffer();
   }
   
-  public int diffBgWidth() {
+  public int diffBgWidthStep() {
     return background.diffBufferWidthStep();
   }
   
@@ -132,8 +133,8 @@ public class HandAnalyzer {
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
       return;
     
-    CvUtil.intToFloatImage(packet.depthRawData, packet.depthImage32F, 
-                           packet.maxDepth());
+    CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F, 
+                           (float) 1 / packet.maxDepth());
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
     
     if (packet.depthFrameID < BG_INIT_FRAMES) {
@@ -142,7 +143,6 @@ public class HandAnalyzer {
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float) BG_DIFF_LSCALE,
 	  (float) BG_DIFF_HSCALE);
-      Table.instance().init(background);
       logger.info(background.stats());
     }
     
@@ -150,7 +150,7 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
-    ffd.extractFingertipsConvexityDefects(packet);
+    forelimbModelEstimator.updateModel(packet);
     filter.filter(packet);
   }
   
@@ -160,7 +160,6 @@ public class HandAnalyzer {
   public void release() {
     tempImage.release();
     background.release();
-    foregroundMask.release();
     logger.info("HandAnalyzer released.");
   } 
   
@@ -168,10 +167,10 @@ public class HandAnalyzer {
     int[] depthData = packet.depthRawData;
     IplImage depthImage = packet.depthImage8U;
  
-    background.backgroundDiff(depthData, foregroundMask);
+    background.backgroundDiff(packet.depthRawData, packet.foregroundMask);
     ByteBuffer depthBuffer = depthImage.getByteBuffer();
-    ByteBuffer maskBuffer = foregroundMask.getByteBuffer();
-    int maskWidthStep = foregroundMask.widthStep();
+    ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
+    int maskWidthStep = packet.foregroundMask.widthStep();
     int depthWidthStep = depthImage.widthStep();
     int width = packet.width;
     for (int h = 0; h < packet.height; h++)
@@ -200,8 +199,7 @@ public class HandAnalyzer {
   }
   
   /**
-   * Cleans up the foreground segmentation mask, and finds connected components
-   * as forelimbs.
+   * Finds connected components as forelimbs.
    * 
    * @param packet ProcessPacket containing the data necessary for the analysis.
    * @param perimScale len = (image.width + image.height) / perimScale. If 
@@ -224,7 +222,8 @@ public class HandAnalyzer {
       double len = cvContourPerimeter(c);
       if (len > q) {
         ForelimbFeatures ff = new ForelimbFeatures();
-        // Approximates the contour with fewer vertices.
+        // Approximates the contour with fewer vertices. Only CV_POLY_APPROX_DP
+        // is supported which corresponds to Douglas-Peucker algorithm.
         CvSeq approxPoly = cvApproxPoly(c, Loader.sizeof(CvContour.class), 
             packet.tempMem, CV_POLY_APPROX_DP, CONTOUR_APPROX_LEVEL, 0);
         CvPoint approxPolyPts = new CvPoint(approxPoly.total());
@@ -250,16 +249,25 @@ public class HandAnalyzer {
    */
   private void findHandRegions(ProcessPacket packet) {
     int handHeight = packet.height / HAND_HEIGHT_SCALE;
+    int armJointHeight = packet.height / ARM_JOINT_HEIGHT_SCALE;
+
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       CvRect rect = ff.boundingBox;
       if (rect.height() >= handHeight) {
         int ymid = packet.height / 2;
         int y1 = rect.y();
         int y2 = y1 + rect.height();
-        int yhand = y1;
-        if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) 
+        int yhand = y1, yarm = y2 - armJointHeight; 
+        if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) {
           yhand = y2 - handHeight;
+          yarm = y1;
+        }
         ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
+        
+        if (rect.height() - handHeight >= armJointHeight) {
+          ff.armJointRegion = cvRect(rect.x(), yarm, rect.width(), 
+              armJointHeight);
+        }
       } 
     }
   }

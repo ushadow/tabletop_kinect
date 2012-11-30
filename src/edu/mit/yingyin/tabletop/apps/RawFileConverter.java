@@ -6,6 +6,8 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.Option;
 
@@ -19,6 +21,7 @@ import edu.mit.yingyin.util.CommandLineOptions;
  *
  */
 public class RawFileConverter {
+  private static final Logger logger = Logger.getLogger(RawFileConverter.class.getName());
   private static final String USAGE = "Usage: Arguments: <input file name> " +
   		"[-t type] [-w width] [-h height]";
   private static final String DEFAULT_WIDTH = "640";
@@ -57,8 +60,9 @@ public class RawFileConverter {
       bufferedImageType = BufferedImage.TYPE_USHORT_GRAY;
     }
     
+    BufferedInputStream bis = null;
     try {
-      BufferedInputStream bis = new BufferedInputStream(
+      bis = new BufferedInputStream(
           new FileInputStream(inputFile));
       int length = width * height * bytesPerPixel;
       byte[] buffer = new byte[length];
@@ -80,6 +84,17 @@ public class RawFileConverter {
     } catch (IOException e) {
       e.printStackTrace();
       System.exit(-1);
+    } finally {
+      closeQuietly(bis);
+    }
+  }
+  
+  protected static void closeQuietly(InputStream is) {
+    try {
+      if (is != null)
+        is.close();
+    } catch (IOException e) {
+      logger.severe("Exception when closing input stream: " + e);
     }
   }
 }

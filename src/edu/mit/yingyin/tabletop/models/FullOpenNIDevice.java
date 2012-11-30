@@ -16,6 +16,7 @@ import org.OpenNI.NodeType;
 import org.OpenNI.OutArg;
 import org.OpenNI.Player;
 import org.OpenNI.PlayerSeekOrigin;
+import org.OpenNI.Point3D;
 import org.OpenNI.ScriptNode;
 import org.OpenNI.StatusException;
 
@@ -198,6 +199,11 @@ public class FullOpenNIDevice implements OpenNIDevice {
   public void seekFrameBy(int diff) throws StatusException {
     if (player != null)
       player.seekToFrame(depthGen, PlayerSeekOrigin.CURRENT, diff);
+  }
+  
+  public Point3D[] convertProjectiveToRealWorld(Point3D[] points) 
+      throws StatusException {
+    return depthGen.convertProjectiveToRealWorld(points);
   }
   
   private void updateMetaData() {

@@ -12,6 +12,9 @@ import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector2f;
 
+import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
+
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
@@ -24,14 +27,14 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.Geometry;
 import edu.mit.yingyin.util.Matrix;
-import edu.mit.yingyin.util.Vector2fUtil;
+import edu.mit.yingyin.util.VectorUtil;
 
 /**
  * A detector for forelimb features including fingertip positions.
  * @author yingyin
  *
  */
-public class ForelimbFeatureDetector {
+public class ForelimbModelEstimator {
   // Around 45 deg.
   private static final float FINGERTIP_ANGLE = (float)0.8;
   
@@ -42,19 +45,28 @@ public class ForelimbFeatureDetector {
  
   private int width, height;
 
-  public ForelimbFeatureDetector(int width, int height) {
+  public ForelimbModelEstimator(int width, int height) {
     this.width = width;
     this.height = height;
   }
   
-  public void extractFingertipsConvexityDefects(ProcessPacket packet) {
+  public void updateModel(ProcessPacket packet) {
+    findFingertipsConvexityDefects(packet);
+  }
+  
+  /**
+   * Finds fingertip positions using convexity defects method.
+   * @param packet
+   */
+  private void findFingertipsConvexityDefects(ProcessPacket packet) {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion == null)
         continue;
       
-      Forelimb forelimb = new Forelimb();
-      
       CvSeq defects = ff.convexityDefects;
+      
+      List<ValConfiPair<Point3f>> fingertips = 
+          new ArrayList<ValConfiPair<Point3f>>();
       for (int i = 0; i < defects.total(); i++) {
         CvConvexityDefect defect1 = new CvConvexityDefect(
             cvGetSeqElem(defects, i));
@@ -62,21 +74,27 @@ public class ForelimbFeatureDetector {
           CvConvexityDefect defect2 = new CvConvexityDefect(
               cvGetSeqElem(defects, (i + 1) % defects.total()));
           if (CvUtil.pointInRect(defect2.start(), ff.handRegion)) {
-            ValConfiPair<Point3f> fingertip = getFingertip(defect1, defect2, 
+            ValConfiPair<Point3f> fingertip = findFingertip(defect1, defect2, 
                                                            packet);
             if (fingertip != null)  
-              forelimb.fingertips.add(fingertip);
+              fingertips.add(fingertip);
           }
         }
       }
-      CvRect bb = ff.boundingBox;
-      forelimb.center = new Point(bb.x() + bb.width() / 2, 
-                                  bb.y() + bb.height() / 2);
+      List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
+      Forelimb forelimb = new Forelimb(fingertips, armJoints);
       packet.forelimbs.add(forelimb);
     }
   }
   
-  private ValConfiPair<Point3f> getFingertip(CvConvexityDefect defect1, 
+  /**
+   * Finds a fingertip from two convexity defects.
+   * @param defect1
+   * @param defect2
+   * @param packet
+   * @return
+   */
+  private ValConfiPair<Point3f> findFingertip(CvConvexityDefect defect1, 
       CvConvexityDefect defect2, ProcessPacket packet) {
     Vector2f v1 = new Vector2f(
         defect1.depth_point().x() - defect1.end().x(),
@@ -86,7 +104,7 @@ public class ForelimbFeatureDetector {
         defect2.depth_point().y() - defect2.start().y());
     float distance2 = CvUtil.distance2(defect1.depth_point(), 
                                        defect2.depth_point());
-    if (Vector2fUtil.angle(v1, v2) <= FINGERTIP_ANGLE && 
+    if (VectorUtil.angle(v1, v2) <= FINGERTIP_ANGLE && 
         distance2 >= FINGERTIP_WIDTH_THRESHOLD) {
       int mx = (defect1.end().x() + defect2.start().x()) / 2;
       int my = (defect1.end().y() + defect2.start().y()) / 2;
@@ -149,13 +167,13 @@ public class ForelimbFeatureDetector {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       CvRect handRect = ff.handRegion;
       if (handRect != null) {
-        Forelimb forelimb = new Forelimb();
         
         CvMat hull = ff.hull;
         CvMat approxPoly = ff.approxPoly;
-        CvRect rect = ff.boundingBox;
         int numPolyPts = approxPoly.length();
   
+        List<ValConfiPair<Point3f>> fingertips = 
+            new ArrayList<ValConfiPair<Point3f>>();
         for (int j = 0; j < hull.length(); j++) {
           int idx = (int)hull.get(j);
           int pdx = (idx - 1 + numPolyPts) % numPolyPts;
@@ -171,13 +189,12 @@ public class ForelimbFeatureDetector {
           if (angle < FINGERTIP_ANGLE_THRESH && C.y >= handRect.y() && 
               C.y <= handRect.y() + handRect.height()) {
             float z = packet.depthRawData[C.y * packet.width + C.x];
-            forelimb.fingertips.add(new ValConfiPair<Point3f>(
+            fingertips.add(new ValConfiPair<Point3f>(
                 new Point3f(C.x, C.y, z), 1));
           }
         }
-        forelimb.center = new Point(rect.x() + rect.width() / 2, 
-            rect.y() + rect.height() / 2);
-        
+        List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
+        Forelimb forelimb = new Forelimb(fingertips, armJoints);
         packet.forelimbs.add(forelimb);
       }
     }
@@ -211,7 +228,6 @@ public class ForelimbFeatureDetector {
     int widthStep = packet.morphedImage.widthStep();
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       CvRect rect = ff.handRegion;
-      Forelimb forelimb = new Forelimb();
       
       if (rect != null) {
         byte[][] pixels = new byte[rect.height()][rect.width()];
@@ -245,6 +261,8 @@ public class ForelimbFeatureDetector {
           }
         
         List<Point3f> finger = new ArrayList<Point3f>();
+        List<ValConfiPair<Point3f>> fingertips = 
+            new ArrayList<ValConfiPair<Point3f>>();
         for (Point p : extractFinger(pixels)) {
           int x = rect.x() + p.x; 
           int y = rect.y() + p.y;
@@ -252,13 +270,12 @@ public class ForelimbFeatureDetector {
           finger.add(new Point3f(x, y, z));
         }
         if (!finger.isEmpty()) {
-          forelimb.fingers.add(finger);
-          forelimb.fingertips.add(new ValConfiPair<Point3f>(
+          fingertips.add(new ValConfiPair<Point3f>(
               new Point3f(finger.get(finger.size() - 1)), 1));
         }
-        forelimb.center = new Point(rect.x() + rect.width() / 2, 
-                                    rect.y() + rect.height() / 2);
+        List<Point3f> armJoints = findArmJoint(packet, ff.armJointRegion);
         
+        Forelimb forelimb = new Forelimb(fingertips, armJoints);
         packet.forelimbs.add(forelimb);
       }
     }
@@ -325,5 +342,59 @@ public class ForelimbFeatureDetector {
     if (j + 1 < w && pixels[i][j + 1] == BinaryFast.foreground)
       return false;
     return true;
+  }
+  
+  /**
+   * Finds the center of the arm joint of a forelimb in the image and the in the world coordinates.
+   * @param packet
+   * @param rect
+   * @return a list of 3D points. The first point is the 3D location of the arm joint in the image,
+   *    and the 2nd one is the location in the world coordinate. The list is empty if the arm joint
+   *    cannot be found.
+   */
+  private List<Point3f> findArmJoint(ProcessPacket packet, CvRect rect) {
+    List<Point3f> res = new ArrayList<Point3f>(2);
+
+    if (rect == null)
+      return res;
+    
+    try {
+      HandTrackingEngine engine = HandTrackingEngine.instance();
+      ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
+      int maskStepWidth = packet.foregroundMask.widthStep();
+      List<Point3D> list = new ArrayList<Point3D>();
+      for (int y = rect.y(); y < rect.y() + rect.height(); y++) 
+        for (int x = rect.x(); x < rect.x() + rect.width(); x++) {
+          if ((maskBuffer.get(y * maskStepWidth + x) & 0xff) == 255) {
+            list.add(new Point3D(x, y, 
+                packet.depthRawData[y * packet.width + x]));
+          }
+        }
+      if (list.size() == 0)
+        return null;
+      
+      float imagex = 0, imagey = 0, imagez = 0;
+      for (Point3D point : list) {
+        imagex += point.getX();
+        imagey += point.getY();
+        imagez += point.getZ();
+      }
+      
+      res.add(new Point3f(imagex / list.size(), imagey / list.size(), imagez / list.size()));
+      
+      Point3D[] points = new Point3D[list.size()];
+      list.toArray(points);
+      Point3D[] converted = engine.convertProjectiveToRealWorld(points);
+      float centerx = 0, centery = 0, centerz = 0;
+      for (Point3D point : converted) {
+        centerx += point.getX();
+        centery += point.getY();
+        centerz += point.getZ();
+      }
+      res.add(new Point3f(centerx / list.size(), centery / list.size(), centerz / list.size()));
+    } catch (GeneralException e) {
+      e.printStackTrace();
+    }
+    return res;
   }
 }

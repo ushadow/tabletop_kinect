@@ -3,7 +3,6 @@ package edu.mit.yingyin.util;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -12,7 +11,7 @@ public class CommandLineOptions {
   private static CommandLineParser parser = new GnuParser();
   private static CommandLine line;
   
-  public static void addOption(Option option) {
+  public static void addOption(org.apache.commons.cli.Option option) {
     options.addOption(option);
   }
   

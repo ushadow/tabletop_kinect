@@ -1,6 +1,7 @@
 package edu.mit.yingyin.tabletop.controllers;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -119,6 +120,10 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
         allLabels.value().get(packet.depthFrameID) : null;
     packetView.update(packet, labels);
     fpsCounter.computeFPS();
+  }
+  
+  public Rectangle getViewBounds() {
+    return packetView.getBunnds();
   }
   
   /**

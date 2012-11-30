@@ -12,7 +12,7 @@ import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
 /**
  * <code>HandTracker</code> tracks hand events based on estimated hand model 
- * parameters.
+ * parameters, and maintains a reference to the table model.
  * @author yingyin
  *
  */
@@ -52,9 +52,6 @@ public class HandTracker {
   private List<IHandEventListener> listeners = 
       new ArrayList<IHandEventListener>();
   
-  /**
-   * Reference to the table.
-   */
   private Table table;
   /** Counts the duration of contact or noncontact. */
   private int pressedCounter = 0, releasedCounter = 0;
@@ -63,9 +60,10 @@ public class HandTracker {
   private CalibModel calibExample;
   
   public HandTracker(CalibModel calibExample) {
-    table = Table.instance();
     this.calibExample = calibExample;
   }
+  
+  public void setTable(Table table) { this.table = table; }
   
   /**
    * Updates forelimbs information and generates events.

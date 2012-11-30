@@ -20,8 +20,6 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRNG;
 import com.googlecode.javacv.cpp.opencv_video.CvKalman;
 
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
-
 public class KalmanFilter {
   /**
    * Transition matrix describing relationship between model parameters at step
@@ -81,7 +79,7 @@ public class KalmanFilter {
           Point3f tip = filter(forelimb);
           if (tip != null)
             forelimb.filteredFingertips.add(tip);
-        } else if (!forelimb.fingertips.isEmpty()) {
+        } else if (forelimb.numFingertips() > 0) {
           // Finds the best point to initialize Kalman filter.
           Point3f tip = findBestPoint(forelimb); 
           initKalman(tip.x, tip.y);
@@ -136,12 +134,12 @@ public class KalmanFilter {
     float y = (float)yk.get(1);
     Point2f p1 = new Point2f(x, y);
     
-    for (ValConfiPair<Point3f> tip : forelimb.fingertips) {
-      Point2f p2 = new Point2f(tip.value.x, tip.value.y);
+    for (Point3f tip : forelimb.getFingertips()) {
+      Point2f p2 = new Point2f(tip.x, tip.y);
       float distance2 = p1.distanceSquared(p2);
       if (distance2 < minDistance2) {
         minDistance2 = distance2;
-        closest = tip.value;
+        closest = tip;
       }
     }
     
@@ -167,10 +165,10 @@ public class KalmanFilter {
     // TODO(yingyin): need to consider different hand orientation.
     float bestY = height;
     Point3f bestPoint = null;
-    for (ValConfiPair<Point3f> tip : forelimb.fingertips) {
-      if (tip.value.y < bestY) {
-        bestY = tip.value.y;
-        bestPoint = tip.value;
+    for (Point3f tip : forelimb.getFingertips()) {
+      if (tip.y < bestY) {
+        bestY = tip.y;
+        bestPoint = tip;
       }
     }
     return new Point3f(bestPoint);

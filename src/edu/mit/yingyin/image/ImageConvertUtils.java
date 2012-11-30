@@ -302,45 +302,6 @@ public class ImageConvertUtils {
   } 
 
   /**
-   * Converts float values to an unsigned short <code>BufferedImage</code>.
-   * 
-   * @param floatBuffer contains float values. The size of the buffer must be at
-   *    least as big as the size of the image.
-   * @param bi <code>BufferedImage</code> with type TYPE_USHORT_GRAY. 
-   * @param widthStep number of float values per row in 
-   *    <code>floatBuffer</code>.
-   * @return
-   */
-  public static BufferedImage floatBuffer2UShortGrayBufferedImage(
-      FloatBuffer floatBuffer, BufferedImage bi, int widthStep) {
-    final int MAX = 65535;
-    float min = Float.MAX_VALUE;
-    float max = Float.MIN_VALUE;
-    int width = bi.getWidth();
-    int height = bi.getHeight();
-    for (int h = 0; h < height; h++)
-      for (int w = 0; w < width; w++) {
-        float value = floatBuffer.get(h * widthStep + w);
-        min = Math.min(min, value);
-        max = Math.max(max, value);
-      }
-    short[] array = ((DataBufferUShort)bi.getRaster().getDataBuffer()).
-        getData();
-    
-    float range = max - min;
-    if (range == 0)
-      range = 1;
-    for (int h = 0; h < height; h++)
-      for (int w = 0; w < width; w++) {
-        float value = floatBuffer.get(h * widthStep + w);
-        int converted = Math.round(((value - min) * MAX / range));
-        array[h * width + w] = (short)converted;
-      }
-    return bi;
-  }
-  
-  
-  /**
    * Converts an array of depth values to a gray BufferedImage.
    * 
    * The size of the array must equal to the product of width and height.
@@ -408,20 +369,24 @@ public class ImageConvertUtils {
   }
 
   /**
-   * Converts depth values in <code>ShortBuffer</code> to a gray scale 
+   * Converts values in <code>ShortBuffer</code> to a unsigned short gray scale 
    * <code>BufferedImage</code>.
    * @param buffer
    * @param bi <BufferedImage> of with type <code>TYPE_USHORT_GRAY</code>
    */
-  public static void depthToGrayBufferedImage(ShortBuffer buffer,
+  public static void shortBufferToGrayBufferedImage(ShortBuffer buffer,
       BufferedImage bi) {
-    final int MAX_DEPTH = 65535;
+    if (bi.getType() != BufferedImage.TYPE_USHORT_GRAY)
+      throw new IllegalArgumentException("Invalid image type. Expect image " +
+          "type BufferedImage.TYPE_USHORT_GRAY.");
+
+    int maxDepth = 1 << 16 - 1;
+    
     short[] imageArray = ((DataBufferUShort) bi.getRaster().getDataBuffer()).
         getData();
     buffer.rewind();
     int max = 0;
-    int min = MAX_DEPTH; // Two bytes.
-    logger.fine(String.format("buffer remaining = %d", buffer.remaining()));
+    int min = maxDepth; // Two bytes.
     while (buffer.remaining() > 0) {
       int value = buffer.get() & 0x0000ffff;
       if (value != 0) {
@@ -429,7 +394,7 @@ public class ImageConvertUtils {
         min = Math.min(min, value);
       }
     }
-    logger.fine(String.format("min = %d, max = %d", min, max));
+    logger.info(String.format("max = %d, min = %d", max, min));
     if (min == max) {
       Arrays.fill(imageArray, (short) 0);
     } else {
@@ -438,9 +403,74 @@ public class ImageConvertUtils {
         int pos = buffer.position();
         int value = buffer.get() & 0x0000ffff;
         imageArray[pos] = value == 0 ? 0
-            : (short) ((max - value) * MAX_DEPTH / (max - min));
+            : (short) ((max - value) * maxDepth / (max - min));
       }
     }
+  }
+  
+  /**
+   * Converts depth values in <code>ShortBuffer</code> to a gray scale 
+   * <code>BufferedImage</code>.
+   * @param buffer
+   * @param bi <BufferedImage> of with type <code>TYPE_USHORT_GRAY</code>
+   */
+  public static void byteBufferToGrayBufferedImage(ByteBuffer buffer, 
+      BufferedImage bi) {
+    if (bi.getType() != BufferedImage.TYPE_USHORT_GRAY)
+      throw new IllegalArgumentException("Invalid image type. Expect image " +
+          "type BufferedImage.TYPE_USHORT_GRAY.");
+    int maxDepth = 1 << 16 - 1;
+    
+    short[] imageArray = ((DataBufferUShort) bi.getRaster().getDataBuffer()).
+        getData();
+    buffer.rewind();
+    while (buffer.remaining() > 0) {
+      int pos = buffer.position();
+      int value = buffer.get() & 0x0000ffff;
+      imageArray[pos] = value == 0 ? 0
+          : (short) (value * maxDepth / 255);
+    }
+  }
+  
+  /**
+   * Converts float values to an unsigned short <code>BufferedImage</code>.
+   * 
+   * @param floatBuffer contains float values. The size of the buffer must be at
+   *    least as big as the size of the image.
+   * @param bi <code>BufferedImage</code> with type TYPE_USHORT_GRAY. 
+   * @param widthStep number of float values per row in 
+   *    <code>floatBuffer</code>.
+   * @return
+   */
+  public static BufferedImage floatBufferToGrayBufferedImage(
+      FloatBuffer floatBuffer, BufferedImage bi) {
+    if (bi.getType() != BufferedImage.TYPE_USHORT_GRAY)
+      throw new IllegalArgumentException("Invalid image type. Expect image " +
+          "type BufferedImage.TYPE_USHORT_GRAY.");
+    int maxDepth = 1 << 16 - 1;
+    
+    float min = Float.MAX_VALUE;
+    float max = Float.MIN_VALUE;
+    floatBuffer.rewind();
+    while (floatBuffer.remaining() > 0) {
+      float value = floatBuffer.get();
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    }
+    short[] array = ((DataBufferUShort)bi.getRaster().getDataBuffer()).
+        getData();
+    
+    float range = max - min;
+    if (range == 0)
+      range = 1;
+    floatBuffer.rewind();
+    while (floatBuffer.remaining() > 0) {
+      int pos = floatBuffer.position();
+      float value = floatBuffer.get();
+      int converted = Math.round(((value - min) * maxDepth / range));
+      array[pos] = (short) converted;
+    }
+    return bi;
   }
   
   /**
@@ -560,7 +590,7 @@ public class ImageConvertUtils {
     bb.rewind();
     BufferedImage image = new BufferedImage(width, height,
         BufferedImage.TYPE_USHORT_GRAY);
-    depthToGrayBufferedImage(bb.asShortBuffer(), image);
+    shortBufferToGrayBufferedImage(bb.asShortBuffer(), image);
     return image;
   }
 }
