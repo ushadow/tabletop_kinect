@@ -41,8 +41,8 @@
             <classpath refid="tabletop_kinect.classpath"/>
         </javac>
     </target>
-    <target name="HandTrackingAppController">
-        <java classname="edu.mit.yingyin.tabletop.apps.HandTrackingAppController" failonerror="true" fork="yes">
+    <target name="HandTrackingApp">
+        <java classname="edu.mit.yingyin.tabletop.apps.HandTrackingApp" failonerror="true" fork="yes">
             <classpath refid="tabletop_kinect.classpath"/>
 	    <jvmarg value="-Djava.util.logging.config.file=config/logging.properties"/>
         </java>
