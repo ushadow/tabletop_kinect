@@ -209,4 +209,32 @@ public class Geometry {
       return new Point3f(x, y, z);
     }
   }
+  
+  /**
+   * 
+   * @param p0 a point on the line.
+   * @param p1 a point on the line.
+   * @param v0 a point on the plane.
+   * @param n normal of the plane.
+   * @return null if the line p0p1 is parallel to the plane.
+   */
+  public static Point3f linePlaneIntersection(Point3f p0, Point3f p1, 
+      Point3f v0, Vector3f n) {
+    Vector3f u = new Vector3f();
+    u.sub(p1, p0);
+    Vector3f w = new Vector3f();
+    w.sub(p0, v0);
+    
+    float d1 = n.dot(u);
+    if (Math.abs(d1) < EPS)
+      return null;
+    
+    float d2 = -n.dot(w);
+    float s = d2 / d1;
+    
+    Point3f res = new Point3f();
+    res.scale(s, u);
+    res.add(p0);
+    return res;
+  }
 }

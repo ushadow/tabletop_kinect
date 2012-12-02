@@ -74,6 +74,11 @@ public class Forelimb {
     }
   }
   
+  /**
+   * 
+   * @return a list of fingertips in image coordinates. Empty if there are no
+   *    fingertips.
+   */
   public List<Point3f> getFingertipsI() {
     List<Point3f> res = new ArrayList<Point3f>();
     for (Point3f p : fingertipsI) {
@@ -82,6 +87,11 @@ public class Forelimb {
     return res;
   }
   
+  /**
+   * 
+   * @return a list of fingertips in world coordinates. Empty if there are not 
+   *    fingertips.
+   */
   public List<Point3f> getFingertipsW() {
     List<Point3f> res = new ArrayList<Point3f>();
     for (Point3f p : fingertipsW)

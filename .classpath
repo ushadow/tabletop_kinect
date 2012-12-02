@@ -6,9 +6,11 @@
 	<classpathentry kind="lib" path="lib/javacpp.jar"/>
 	<classpathentry kind="lib" path="lib/javacv-linux-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/javacv.jar"/>
-	<classpathentry kind="lib" path="/usr/share/java/org.OpenNI.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/java3d-lib"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/org.OpenNI.jar"/>
+	<classpathentry kind="lib" path="lib/j3dcore.jar"/>
+	<classpathentry kind="lib" path="lib/j3dutils.jar"/>
+	<classpathentry kind="lib" path="lib/vecmath.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
