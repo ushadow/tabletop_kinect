@@ -108,7 +108,7 @@ public class HandTrackingApp extends KeyAdapter {
             + "The default dir is the current directory.").create("d");
     CommandLineOptions.addOption(mainDirOpt);
     CommandLineOptions.parse(args);
-    String mainDir = CommandLineOptions.getOptionValue("d", ".c");
+    String mainDir = CommandLineOptions.getOptionValue("d", ".");
     new HandTrackingApp(mainDir);
   }
 
