@@ -18,13 +18,14 @@ import edu.mit.yingyin.tabletop.controllers.HandEventsController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.util.FileUtil;
 
 /**
  * Tests the fingertip tracking with the checkerboard calibration image.
  * @author yingyin
  *
  */
-public class CheckerboardTestAppController {
+public class CheckerboardTestApp {
   
   private class KeyController extends KeyAdapter {
     @Override
@@ -40,21 +41,22 @@ public class CheckerboardTestAppController {
   }
   
   private static Logger logger = Logger.getLogger(
-      CheckerboardTestAppController.class.getName());
-  private static final String MAIN_DIR = "./";
-  private static final String OPENNI_CONFIG_FILE = 
-      MAIN_DIR + "config/config.xml";
-  private static final String CALIB_FILE = MAIN_DIR + 
-      "data/calibration/calibration.txt";
-  private static final String IMAGE_FILE_NAME = MAIN_DIR + 
-    "data/calibration/checkerboard.png";
+      CheckerboardTestApp.class.getName());
+  private static final String MAIN_DIR = ".";
+  private static final String CALIB_DIR = FileUtil.join("data", "calibration");
+  private static final String OPENNI_CONFIG_FILE = FileUtil.join(
+      MAIN_DIR, "config", "config.xml");
+  private static final String CALIB_FILE = FileUtil.join(MAIN_DIR, 
+      CALIB_DIR, "calibration.txt");
+  private static final String IMAGE_FILE_NAME = FileUtil.join(MAIN_DIR,
+      CALIB_DIR, "checkerboard.png");
   
   private static final int TABLETOP_WIDTH = 1920 * 2;
   private static final int TABLETOP_HEIGHT = 1080 * 2;
   
   public static void main(String[] args) {
-    final CheckerboardTestAppController controller = 
-        new CheckerboardTestAppController();
+    final CheckerboardTestApp controller = 
+        new CheckerboardTestApp();
     
     try {
       SwingUtilities.invokeAndWait(new Runnable() {
@@ -77,7 +79,7 @@ public class CheckerboardTestAppController {
   private HandEventsController heController;
   private ProcessPacketController packetController;
   
-  public CheckerboardTestAppController() {
+  public CheckerboardTestApp() {
     try {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
       heController = new HandEventsController(image, 

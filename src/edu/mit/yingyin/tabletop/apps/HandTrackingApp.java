@@ -49,7 +49,8 @@ public class HandTrackingApp extends KeyAdapter {
     /**
      * List of finger events detected in a frame.
      */
-    private List<List<FingerEvent>> fingerEventList = new ArrayList<List<FingerEvent>>();
+    private List<List<FingerEvent>> fingerEventList = 
+        new ArrayList<List<FingerEvent>>();
 
     @Override
     public void fingerPressed(List<FingerEvent> feList) {
