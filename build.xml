@@ -6,12 +6,14 @@
     <property name="source" value="1.6"/>
     <path id="tabletop_kinect.classpath">
         <pathelement location="bin"/>
-        <pathelement location="lib/vecmath-1.3.1.jar"/>
+        <pathelement location="lib/vecmath.jar"/>
         <pathelement location="lib/javacpp.jar"/>
-        <pathelement location="lib/javacv-linux-x86.jar"/>
+        <pathelement location="lib/javacv-os.jar"/>
         <pathelement location="lib/javacv.jar"/>
 	<pathelement location="lib/org.OpenNI.jar"/>
         <pathelement location="lib/commons-cli-1.2.jar"/>
+        <pathelement location="lib/j3dcore.jar"/>
+        <pathelement location="lib/j3dutils.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
