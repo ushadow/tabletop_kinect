@@ -18,6 +18,9 @@ import org.OpenNI.StatusException;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
 import edu.mit.yingyin.util.Geometry;
+import edu.mit.yingyin.util.Option;
+import edu.mit.yingyin.util.Option.None;
+import edu.mit.yingyin.util.Option.Some;
 
 /**
  * Model of a tabletop.
@@ -133,8 +136,13 @@ public class InteractionSurface {
     return surfaceNormal == null ? null : new Vector3f(surfaceNormal);
   }
   
-  public Point3f center() {
-    return center == null ? null : new Point3f(center);
+  /**
+   * Returns the optional center of the interface in the world coordinates.
+   * @return a new point of the center of the interface.
+   */
+  public Option<Point3f> center() {
+    return center == null ? new None<Point3f>() : 
+                            new Some<Point3f>(new Point3f(center));
   }
 
   /**

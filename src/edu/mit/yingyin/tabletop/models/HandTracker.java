@@ -57,6 +57,7 @@ public class HandTracker {
   /** True if finger is pressed, false otherwise. */
   private boolean pressed = false;
   private CalibModel calibExample;
+  private DiecticGestureHandler dgh = new DiecticGestureHandler();
   
   public HandTracker(CalibModel calibExample) {
     this.calibExample = calibExample;

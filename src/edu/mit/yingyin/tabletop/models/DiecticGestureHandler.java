@@ -14,6 +14,7 @@ import edu.mit.yingyin.util.Geometry;
  *
  */
 public class DiecticGestureHandler {
+  
   public List<Point3f> update(List<Forelimb> forelimbs) {
     InteractionSurface is = InteractionSurface.instance();
     List<Point3f> res = new ArrayList<Point3f>();
@@ -21,11 +22,20 @@ public class DiecticGestureHandler {
       return res;
     
     for (Forelimb fl : forelimbs) {
-      
+      Point3f p = computeIntersection(fl, is);
+      if (p != null) {
+        res.add(p);
+      }
     }
     return res;
   }
   
+  /**
+   * 
+   * @param fl
+   * @param is
+   * @return null if there is no fingertip or arm joint in {@code fl}.
+   */
   private Point3f computeIntersection(Forelimb fl, InteractionSurface is) {
     if (fl.numFingertips() <= 0) 
       return null;
@@ -37,7 +47,10 @@ public class DiecticGestureHandler {
     if (armJoint == null)
       return null;
     
-    return Geometry.linePlaneIntersection(armJoint, fingertip, is.center(), 
-        is.surfaceNormal());
+    if (is.center().isNone())
+      return null;
+    
+    return Geometry.linePlaneIntersection(armJoint, fingertip, 
+        is.center().value(), is.surfaceNormal());
   }
 }

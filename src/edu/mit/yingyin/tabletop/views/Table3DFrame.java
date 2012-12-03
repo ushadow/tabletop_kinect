@@ -1,4 +1,4 @@
-package edu.mit.yingyin.tabletop.apps;
+package edu.mit.yingyin.tabletop.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -160,6 +160,10 @@ public class Table3DFrame extends JFrame {
   }
 
   private void getScene() {
+    if (table.center().isNone())
+      return;
+    
+    Point3f tableCenter = table.center().value();
     addLights(scene);
 
     frontImage = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
@@ -172,15 +176,15 @@ public class Table3DFrame extends JFrame {
     axesTransformGroup.addChild(createAxesGroup());
     Transform3D axesTransform = new Transform3D();
     axesTransform.setScale(200);
-    axesTransform.setTranslation(new Vector3f(0, 0, table.center().z + 100));
+    axesTransform.setTranslation(new Vector3f(0, 0, tableCenter.z + 100));
     axesTransformGroup.setTransform(axesTransform);
     
-    
-    worldTransformGroup.addChild(createTable());
+    Group tableGroup = createTable();
+    if (tableGroup != null)
+      worldTransformGroup.addChild(tableGroup);
     worldTransformGroup.addChild(axesTransformGroup);
     MouseRotate behavior = new MouseRotate();
-    BoundingSphere bounds = new BoundingSphere(new Point3d(table.center()), 
-        1200);
+    BoundingSphere bounds = new BoundingSphere(new Point3d(tableCenter), 1200);
     behavior.setSchedulingBounds(bounds);
     behavior.setTransformGroup(worldTransformGroup);
     worldTransformGroup.addChild(behavior);
@@ -191,7 +195,9 @@ public class Table3DFrame extends JFrame {
   }
   
   private Group createTable() {
-    Point3f center = table.center();
+    if (table.center().isNone())
+      return null;
+    Point3f center = table.center().value();
     Vector3f n = table.surfaceNormal();
     Point3f p1 = Geometry.pointOnPlaneZ(center.x + TABLE_WIDTH / 2, 
         center.y + TABLE_HEIGHT / 2, center, n);
