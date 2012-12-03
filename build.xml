@@ -10,7 +10,7 @@
         <pathelement location="lib/javacpp.jar"/>
         <pathelement location="lib/javacv-os.jar"/>
         <pathelement location="lib/javacv.jar"/>
-	<pathelement location="lib/org.OpenNI.jar"/>
+        <pathelement location="lib/org.OpenNI.jar"/>
         <pathelement location="lib/commons-cli-1.2.jar"/>
         <pathelement location="lib/j3dcore.jar"/>
         <pathelement location="lib/j3dutils.jar"/>
@@ -46,7 +46,7 @@
     <target name="HandTrackingApp">
         <java classname="edu.mit.yingyin.tabletop.apps.HandTrackingApp" failonerror="true" fork="yes">
             <classpath refid="tabletop_kinect.classpath"/>
-	    <jvmarg value="-Djava.util.logging.config.file=config/logging.properties"/>
+            <jvmarg value="-Djava.util.logging.config.file=config/logging.properties"/>
         </java>
     </target>
     <target name="CalibrationAppController">
