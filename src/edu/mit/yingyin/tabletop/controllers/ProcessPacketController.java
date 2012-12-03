@@ -7,8 +7,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,7 +17,6 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView.Toggles;
-import edu.mit.yingyin.util.CvUtil;
 import edu.mit.yingyin.util.FPSCounter;
 import edu.mit.yingyin.util.Option;
 import edu.mit.yingyin.util.Option.None;
@@ -32,8 +29,6 @@ import edu.mit.yingyin.util.Option.Some;
  */
 public class ProcessPacketController extends KeyAdapter implements MouseListener 
 {
-  public String derivativeSaveDir = "data/derivative/";
-
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
   private ProcessPacketView packetView;
@@ -85,20 +80,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
       break;
     case KeyEvent.VK_L:
       packetView.toggle(Toggles.SHOW_LABELS);
-      break;
-    case KeyEvent.VK_S:
-      PrintWriter pw = null;
-      try {
-        pw = new PrintWriter(
-            String.format(derivativeSaveDir + "%03d", packet.depthFrameID));
-        CvUtil.saveImage(pw, packet.derivative);
-        System.out.println("Saved image.");
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      } finally {
-        if (pw != null)
-          pw.close();
-      }
       break;
     case KeyEvent.VK_R:
       // Showing RGB image.

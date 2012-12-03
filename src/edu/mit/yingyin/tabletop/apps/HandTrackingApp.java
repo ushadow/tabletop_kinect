@@ -27,6 +27,7 @@ import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.util.CommandLineOptions;
+import edu.mit.yingyin.util.FileUtil;
 import edu.mit.yingyin.util.ObjectIO;
 
 /**
@@ -81,9 +82,19 @@ public class HandTrackingApp extends KeyAdapter {
 
   private static Logger logger = Logger.getLogger(HandTrackingApp.class.getName());
 
-  private static final String CONFIG_FILE = "/config/fingertip_tracking.properties";
-  private static final String DATA_DIR = "/data/";
-  private static final String FINGERTIP_DIR = DATA_DIR + "fingertip/";
+  private static final String CONFIG_DIR = "config";
+  private static final String DATA_DIR = "data";
+  private static final String FINGERTIP_DIR = FileUtil.join(DATA_DIR, 
+      "fingertip");
+  /**
+   * Application properties.
+   */
+  private static final String APP_PROPS = FileUtil.join(CONFIG_DIR, 
+      "fingertip_tracking.properties");
+  private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
+      CONFIG_DIR, "config.xml");
+  private static final String DEFAULT_CALIB_FILE = FileUtil.join(DATA_DIR, 
+      "calibration/calibration.txt");
   private static final String TIME_FORMAT = "yyyy-MM-dd_HH-mm-SS";
   private static final String OUTPUT_EXTENSION = ".log";
 
@@ -96,7 +107,7 @@ public class HandTrackingApp extends KeyAdapter {
             + "The default dir is the current directory.").create("d");
     CommandLineOptions.addOption(mainDirOpt);
     CommandLineOptions.parse(args);
-    String mainDir = CommandLineOptions.getOptionValue("d", "./");
+    String mainDir = CommandLineOptions.getOptionValue("d", ".c");
     new HandTrackingApp(mainDir);
   }
 
@@ -118,11 +129,11 @@ public class HandTrackingApp extends KeyAdapter {
     Properties config = new Properties();
     FileInputStream in = null;
     try {
-      in = new FileInputStream(mainDir + CONFIG_FILE);
+      in = new FileInputStream(FileUtil.join(mainDir, APP_PROPS));
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
-      logger.info("congfig file not found: " + mainDir + CONFIG_FILE);
+      logger.info("congfig file not found: " + mainDir + APP_PROPS);
       logger.severe(fnfe.getMessage());
       System.exit(-1);
     } catch (IOException ioe) {
@@ -130,8 +141,8 @@ public class HandTrackingApp extends KeyAdapter {
       System.exit(-1);
     }
 
-    String openniConfigFile = mainDir
-        + config.getProperty("openni-config", "config/config.xml");
+    String openniConfigFile = FileUtil.join(mainDir,
+        config.getProperty("openni-config", DEFAULT_OPENNI_CONFIG_FILE));
 
     String saveFingertipProperty = config.getProperty("save-fingertip-data",
         "false");
@@ -140,7 +151,7 @@ public class HandTrackingApp extends KeyAdapter {
 
     String labelFile = config.getProperty("fingertip-label-file", null);
     if (labelFile != null)
-      labelFile = mainDir + FINGERTIP_DIR + labelFile;
+      labelFile = FileUtil.join(mainDir, FINGERTIP_DIR, labelFile);
 
     String displayOnProperty = config.getProperty("display-on", "true");
 
@@ -152,11 +163,8 @@ public class HandTrackingApp extends KeyAdapter {
       System.err.println(String.format("maxDepth = %d", maxDepth));
     }
 
-    String derivativeSaveDir = mainDir
-        + config.getProperty("derivative-dir", "data/derivative/");
-    String calibrationFile = mainDir
-        + config.getProperty("calibration-file",
-            "data/calibration/calibration.txt");
+    String calibrationFile = FileUtil.join(mainDir,
+        config.getProperty("calibration-file", DEFAULT_CALIB_FILE));
 
     if (displayOnProperty.equals("false"))
       displayOn = false;
@@ -182,7 +190,6 @@ public class HandTrackingApp extends KeyAdapter {
             engine.depthHeight(), labels);
 
         packetController.addKeyListener(this);
-        packetController.derivativeSaveDir = derivativeSaveDir;
         packetController.showUI();
 
       } catch (IOException e) {
@@ -233,8 +240,8 @@ public class HandTrackingApp extends KeyAdapter {
     PrintWriter pw = null;
     try {
       Date date = new Date();
-      String fingertipFile = mainDir + FINGERTIP_DIR + dateFormat.format(date)
-          + OUTPUT_EXTENSION;
+      String fingertipFile = FileUtil.join(mainDir, FINGERTIP_DIR, 
+          dateFormat.format(date) + OUTPUT_EXTENSION);
       pw = new PrintWriter(fingertipFile);
       handEventListener.toOutput(pw);
       logger.info("Tracker controller output done.");
@@ -247,7 +254,10 @@ public class HandTrackingApp extends KeyAdapter {
   }
 
   public boolean isRunning() {
-    return ((packetController != null && packetController.isVisible() || displayOn == false) && !engine.isDone());
+    return ((packetController != null && 
+             packetController.isVisible() || 
+             displayOn == false) && 
+            !engine.isDone());
   }
 
   public boolean isPaused() {
