@@ -5,6 +5,8 @@ import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.vecmath.Point3f;
+
 import org.OpenNI.GeneralException;
 import org.OpenNI.Point3D;
 import org.OpenNI.StatusException;
@@ -27,6 +29,7 @@ public class HandTrackingEngine {
    */
   public static interface IHandEventListener {
     public void fingerPressed(List<FingerEvent> feList);
+    public void fingerPointed(List<Point3f> points);
   }
   
   private static Logger logger = Logger.getLogger(
@@ -96,8 +99,9 @@ public class HandTrackingEngine {
       packet.depthFrameID = openni.getDepthFrameID();
 
       analyzer.analyzeData(packet);
-    
-      tracker.update(packet.forelimbs, packet.depthFrameID);
+      
+      if (interactionSurfaceInitialize())
+        tracker.update(packet.forelimbs, packet.depthFrameID);
     } catch (Exception e) {
       logger.severe(e.getMessage());
       e.printStackTrace();
@@ -138,5 +142,13 @@ public class HandTrackingEngine {
       System.exit(-1);
     }
     return converted;
+  }
+  
+  public boolean interactionSurfaceInitialize() {
+    return InteractionSurface.instanceInitialized();
+  }
+  
+  public InteractionSurface interactionSurface() {
+    return InteractionSurface.instance();
   }
 }

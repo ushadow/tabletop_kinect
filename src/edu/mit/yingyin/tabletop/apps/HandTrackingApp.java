@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import javax.vecmath.Point3f;
+
 import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
@@ -80,9 +82,16 @@ public class HandTrackingApp extends KeyAdapter {
         pw.println();
       }
     }
+
+    @Override
+    public void fingerPointed(List<Point3f> points) {
+      // TODO Auto-generated method stub
+      
+    }
   }
 
-  private static Logger logger = Logger.getLogger(HandTrackingApp.class.getName());
+  private static Logger logger = Logger.getLogger(
+      HandTrackingApp.class.getName());
 
   private static final String CONFIG_DIR = "config";
   private static final String DATA_DIR = "data";
@@ -209,12 +218,13 @@ public class HandTrackingApp extends KeyAdapter {
         if (packetController != null)
           packetController.show(engine.packet());
 
-        if (displayOn && InteractionSurface.instanceInitialized() && 
+        if (displayOn && engine.interactionSurfaceInitialize() && 
             tableFrame == null) {
-          tableFrame = new Table3DFrame(InteractionSurface.instance());
+          tableFrame = new Table3DFrame(engine.interactionSurface());
           Rectangle rect = packetController.getViewBounds();
           tableFrame.setLocation(rect.width / 4, rect.height / 2);
           tableFrame.addKeyListener(this);
+          engine.addListener(tableFrame);
           tableFrame.showUI();
         }
 

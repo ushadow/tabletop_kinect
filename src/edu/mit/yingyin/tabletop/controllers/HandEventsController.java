@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.gui.ImageComponent;
@@ -126,6 +127,12 @@ public class HandEventsController extends KeyAdapter
         BufferedImage.TYPE_INT_ARGB);
     scaleOp.filter(image, after);
     return after;
+  }
+
+  @Override
+  public void fingerPointed(List<Point3f> points) {
+    // TODO Auto-generated method stub
+    
   }
 }
 

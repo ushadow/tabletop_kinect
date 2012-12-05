@@ -74,6 +74,9 @@ public class HandTracker {
       for (IHandEventListener l : listeners) 
         l.fingerPressed(fingerEventList);
     }
+    List<Point3f> intersections = dgh.update(forelimbs);
+    for (IHandEventListener l : listeners)
+      l.fingerPointed(intersections);
   }
   
   public void addListener(IHandEventListener l) {

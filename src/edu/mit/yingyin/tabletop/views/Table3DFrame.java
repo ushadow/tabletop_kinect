@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.media.j3d.AmbientLight;
@@ -40,8 +41,10 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import edu.mit.yingyin.tabletop.models.Forelimb;
+import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.util.Geometry;
 
 /**
@@ -49,7 +52,7 @@ import edu.mit.yingyin.util.Geometry;
  * @author yingyin
  *
  */
-public class Table3DFrame extends JFrame {
+public class Table3DFrame extends JFrame implements IHandEventListener {
 
   private static final Logger logger = Logger.getLogger(
       Table3DFrame.class.getName());
@@ -63,7 +66,8 @@ public class Table3DFrame extends JFrame {
   private Canvas3D canvas;
   private SimpleUniverse universe;
   private BranchGroup scene = new BranchGroup();
-  private BranchGroup forelimbGroup = new BranchGroup();
+  private BranchGroup forelimbGroup;
+  private BranchGroup intersectionGroup;
   private BufferedImage frontImage;
   private InteractionSurface table;
   private TransformGroup worldTransformGroup = new TransformGroup();
@@ -80,7 +84,6 @@ public class Table3DFrame extends JFrame {
     
     worldTransformGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
     worldTransformGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-    forelimbGroup.setCapability(BranchGroup.ALLOW_DETACH);
     startDrawing();
   }
   
@@ -96,6 +99,7 @@ public class Table3DFrame extends JFrame {
   
   public void redraw(ProcessPacket packet) {
     if (forelimbGroup != null) {
+      // Detach from parent.
       forelimbGroup.detach();
       worldTransformGroup.removeChild(forelimbGroup);
     }
@@ -105,6 +109,29 @@ public class Table3DFrame extends JFrame {
       forelimbGroup.addChild(createForelimb(fl));
     }
     worldTransformGroup.addChild(forelimbGroup);
+  }
+  
+  public void fingerPointed(List<Point3f> points) {
+    if (intersectionGroup != null) {
+      intersectionGroup.detach();
+      worldTransformGroup.removeChild(intersectionGroup);
+    }
+    intersectionGroup = new BranchGroup();
+    intersectionGroup.setCapability(BranchGroup.ALLOW_DETACH);
+    for (Point3f p : points) {
+      intersectionGroup.addChild(createSphere(10, new Vector3f(p)));
+    }
+    worldTransformGroup.addChild(intersectionGroup);
+  }
+  
+  private TransformGroup createSphere(float radius, Vector3f translation) {
+    Sphere sphere = createSphere(radius);
+    TransformGroup tg = new TransformGroup();
+    Transform3D t = new Transform3D();
+    t.setTranslation(new Vector3f(translation));
+    tg.addChild(sphere);
+    tg.setTransform(t);
+    return tg;
   }
   
   private Sphere createSphere(float radius) {
@@ -121,22 +148,8 @@ public class Table3DFrame extends JFrame {
     Point3f armJointLoc = fl.armJointW();
     Point3f fingerLoc = fl.getFingertipsW().get(0);
     
-    Sphere armJoint = createSphere(30);
-    TransformGroup armJointTg = new TransformGroup();
-    Transform3D armJointTransform = new Transform3D();
-    armJointTransform.setTranslation(new Vector3f(armJointLoc));
-    armJointTg.addChild(armJoint);
-    armJointTg.setTransform(armJointTransform);
-    
-    Sphere fingertip = createSphere(10f);
-    TransformGroup fingerTg = new TransformGroup();
-    Transform3D fingerTransform = new Transform3D();
-    fingerTransform.setTranslation(new Vector3f(fingerLoc));
-    fingerTg.addChild(fingertip);
-    fingerTg.setTransform(fingerTransform);
-
-    group.addChild(armJointTg);
-    group.addChild(fingerTg);
+    group.addChild(createSphere(30, new Vector3f(armJointLoc)));
+    group.addChild(createSphere(10, new Vector3f(fingerLoc)));
     group.addChild(createLine(armJointLoc, fingerLoc, new Color3f(Color.CYAN)));
     return group;
   }
@@ -288,5 +301,11 @@ public class Table3DFrame extends JFrame {
     view.setBackClipDistance(1200);
     view.setFrontClipDistance(1);
     view.setFieldOfView(2 * Math.atan2(600, 1200));
+  }
+
+  @Override
+  public void fingerPressed(List<FingerEvent> feList) {
+    // TODO Auto-generated method stub
+    
   }
 }

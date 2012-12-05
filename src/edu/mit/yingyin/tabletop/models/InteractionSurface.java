@@ -72,6 +72,7 @@ public class InteractionSurface {
     if (instance == null) {
       logger.severe("Instance is not initialized. You need to call " +
       		"initInstance first.");
+      Thread.dumpStack();
     }
     return instance;
   }

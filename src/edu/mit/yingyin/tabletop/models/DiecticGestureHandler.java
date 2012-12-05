@@ -15,6 +15,10 @@ import edu.mit.yingyin.util.Geometry;
  */
 public class DiecticGestureHandler {
   
+  /**
+   * @param forelimbs
+   * @return a list of intersections of diectic gestures.
+   */
   public List<Point3f> update(List<Forelimb> forelimbs) {
     InteractionSurface is = InteractionSurface.instance();
     List<Point3f> res = new ArrayList<Point3f>();
