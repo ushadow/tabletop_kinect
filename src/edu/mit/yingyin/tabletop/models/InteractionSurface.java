@@ -42,11 +42,11 @@ public class InteractionSurface {
   private boolean initialized = false;
   private Vector3f surfaceNormal;
   private Point3f center;
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
   
   public static InteractionSurface initInstance(FloatBuffer avg, 
       FloatBuffer diff, int avgWidthStep, int diffWidthStep, int width, 
-      int height, FullOpenNIDevice openni) throws StatusException {
+      int height, OpenNIDevice openni) throws StatusException {
     if (!instanceInitialized()) {
       instance = new InteractionSurface(avg, diff, avgWidthStep, diffWidthStep,
           width, height, openni);
@@ -58,7 +58,7 @@ public class InteractionSurface {
   }
   
   public static InteractionSurface initInstance(Background background, 
-      FullOpenNIDevice openni) throws StatusException {
+      OpenNIDevice openni) throws StatusException {
     if (!instanceInitialized()) {
       instance = new InteractionSurface(background, openni);
     } else {
@@ -92,7 +92,7 @@ public class InteractionSurface {
    * @throws StatusException 
    */
   private InteractionSurface(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-      int diffWidthStep, int width, int height, FullOpenNIDevice openni)
+      int diffWidthStep, int width, int height, OpenNIDevice openni)
       throws StatusException {
     this.avg = avg;
     this.diff = diff;
@@ -105,7 +105,7 @@ public class InteractionSurface {
     initialized = true;
   }
 
-  private InteractionSurface(Background background, FullOpenNIDevice openni) 
+  private InteractionSurface(Background background, OpenNIDevice openni) 
       throws StatusException {
     this(background.avgBuffer(), background.diffBuffer(),
         background.avgBufferWidthStep(), background.diffBufferWidthStep(),

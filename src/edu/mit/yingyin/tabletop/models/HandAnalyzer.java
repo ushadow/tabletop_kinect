@@ -86,7 +86,7 @@ public class HandAnalyzer {
   private Background background;
   private IplImage tempImage;
   private ForelimbModelEstimator forelimbModelEstimator;
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
 
   /**
    * Initializes the data structures.
@@ -96,7 +96,7 @@ public class HandAnalyzer {
    * @param egnine reference to the <code>HandTrackingEngine</code>.
    */
   public HandAnalyzer(int width, int height, int maxDepth,
-      FullOpenNIDevice openni) {
+      OpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = new Background(width, height);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);

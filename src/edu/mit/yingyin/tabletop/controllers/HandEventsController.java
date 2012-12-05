@@ -15,11 +15,11 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.calib.CalibFrame;
 import edu.mit.yingyin.gui.ImageComponent;
-import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.util.SystemUtil;
 
@@ -52,7 +52,7 @@ public class HandEventsController extends KeyAdapter
       
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.red);
-      for (FingerEvent fe : feList) {
+      for (ManipulativeEvent fe : feList) {
         Point2f p = scale(fe.posDisplay);
         Point pointInImageCoord = new Point((int) p.x, (int) p.y);
         SwingUtilities.convertPointFromScreen(pointInImageCoord, this);
@@ -70,7 +70,7 @@ public class HandEventsController extends KeyAdapter
     }
   }
   
-  private List<FingerEvent> feList;
+  private List<ManipulativeEvent> feList;
   private CalibFrame frame;
   private final Dimension tabletopRes;
   
@@ -92,7 +92,7 @@ public class HandEventsController extends KeyAdapter
   public void showUI() { frame.showUI(); }
   
   @Override
-  public void fingerPressed(List<FingerEvent> feList) {
+  public void fingerPressed(List<ManipulativeEvent> feList) {
     this.feList = feList;
     frame.repaint();
   }
@@ -130,7 +130,7 @@ public class HandEventsController extends KeyAdapter
   }
 
   @Override
-  public void fingerPointed(List<Point3f> points) {
+  public void fingerPointed(DiecticEvent de) {
     // TODO Auto-generated method stub
     
   }

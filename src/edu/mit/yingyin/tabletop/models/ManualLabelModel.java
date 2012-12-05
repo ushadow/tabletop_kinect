@@ -26,7 +26,7 @@ public class ManualLabelModel {
    */
   private HashMap<Integer, List<Point>> points;
 
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
   private BufferedImage depthImage, rgbImage;
   private short[] depthRawData;
   private int depthWidth, depthHeight, rgbWidth, rgbHeight;
@@ -48,7 +48,7 @@ public class ManualLabelModel {
   @SuppressWarnings("unchecked")
   public ManualLabelModel(String configFile, String replayFilename, 
       int maxDepth) throws IOException, GeneralException {
-    openni = new FullOpenNIDevice(configFile);
+    openni = new OpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     rgbWidth = openni.getImageWidth();

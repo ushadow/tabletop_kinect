@@ -5,15 +5,12 @@ import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.vecmath.Point3f;
-
 import org.OpenNI.GeneralException;
-import org.OpenNI.Point3D;
-import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 
 /**
  * Main interface to the hand tracking backend module that tracks the hand 
@@ -28,14 +25,14 @@ public class HandTrackingEngine {
    *
    */
   public static interface IHandEventListener {
-    public void fingerPressed(List<FingerEvent> feList);
-    public void fingerPointed(List<Point3f> points);
+    public void fingerPressed(List<ManipulativeEvent> feList);
+    public void fingerPointed(DiecticEvent de);
   }
   
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
   private int depthWidth, depthHeight;
   private ProcessPacket packet;
   private int prevDepthFrameID = -1;
@@ -53,14 +50,14 @@ public class HandTrackingEngine {
   public HandTrackingEngine(String openniConfigFile, 
       String calibrationFile, int maxDepth) throws GeneralException {
     
-    openni = new FullOpenNIDevice(openniConfigFile);
+    openni = new OpenNIDevice(openniConfigFile);
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight, maxDepth, openni);
     packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
 
-    tracker = new HandTracker(new CalibModel(calibrationFile));
+    tracker = new HandTracker(new CalibModel(calibrationFile), openni);
   }
   
   public int depthWidth() { return depthWidth; }
@@ -131,17 +128,6 @@ public class HandTrackingEngine {
   
   public int diffBgWidth() {
     return analyzer.diffBgWidthStep();
-  }
-  
-  public Point3D[] convertProjectiveToRealWorld(Point3D[] points) {
-    Point3D[] converted = null;
-    try {
-      converted = openni.convertProjectiveToRealWorld(points);
-    } catch (StatusException se) {
-      logger.severe(se.getMessage());
-      System.exit(-1);
-    }
-    return converted;
   }
   
   public boolean interactionSurfaceInitialize() {

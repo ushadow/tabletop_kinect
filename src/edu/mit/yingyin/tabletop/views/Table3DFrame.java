@@ -35,16 +35,19 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import org.OpenNI.Point3D;
+
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.geometry.Sphere;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import edu.mit.yingyin.tabletop.models.Forelimb;
-import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
-import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.models.InteractionSurface;
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.InteractionSurface;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.util.Geometry;
 
 /**
@@ -54,7 +57,7 @@ import edu.mit.yingyin.util.Geometry;
  */
 public class Table3DFrame extends JFrame implements IHandEventListener {
 
-  private static final Logger logger = Logger.getLogger(
+  private static final Logger LOGGER = Logger.getLogger(
       Table3DFrame.class.getName());
   private static final Color3f RED = new Color3f(Color.RED);
   private static final int TABLE_WIDTH = 1200; // mm
@@ -111,15 +114,16 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     worldTransformGroup.addChild(forelimbGroup);
   }
   
-  public void fingerPointed(List<Point3f> points) {
+  public void fingerPointed(DiecticEvent de) {
     if (intersectionGroup != null) {
       intersectionGroup.detach();
       worldTransformGroup.removeChild(intersectionGroup);
     }
     intersectionGroup = new BranchGroup();
     intersectionGroup.setCapability(BranchGroup.ALLOW_DETACH);
-    for (Point3f p : points) {
-      intersectionGroup.addChild(createSphere(10, new Vector3f(p)));
+    for (Point3D p : de.pointingLocationsW()) {
+      intersectionGroup.addChild(createSphere(10, 
+          new Vector3f(p.getX(), p.getY(), p.getZ())));
     }
     worldTransformGroup.addChild(intersectionGroup);
   }
@@ -220,10 +224,10 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
         center.y - TABLE_HEIGHT / 2, center, n);
     Point3f p4 = Geometry.pointOnPlaneZ(center.x - TABLE_WIDTH / 2, 
         center.y + TABLE_HEIGHT / 2, center, n);
-    logger.info("p1: " + p1);
-    logger.info("p2: " + p2);
-    logger.info("p3: " + p3);
-    logger.info("p4: " + p4);
+    LOGGER.info("p1: " + p1);
+    LOGGER.info("p2: " + p2);
+    LOGGER.info("p3: " + p3);
+    LOGGER.info("p4: " + p4);
     return createPlaneGroup(p1, p2, p3, p4);
   }
   
@@ -286,8 +290,8 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     double sineTheta = normal.length();
     double angle = Math.atan2(sineTheta, cosTheta);
     normal.normalize();
-    logger.info("axis of rotation is " + normal);
-    logger.info("angle of rotation is " + angle);
+    LOGGER.info("axis of rotation is " + normal);
+    LOGGER.info("angle of rotation is " + angle);
     return new AxisAngle4f(normal, (float) angle);
   }
 
@@ -304,7 +308,7 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
   }
 
   @Override
-  public void fingerPressed(List<FingerEvent> feList) {
+  public void fingerPressed(List<ManipulativeEvent> feList) {
     // TODO Auto-generated method stub
     
   }

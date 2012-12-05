@@ -11,7 +11,7 @@ import javax.vecmath.Point3f;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.util.DirectBufferUtil;
 
-public class PartialOpenNIDevice implements OpenNIDevice {
+public class PartialOpenNIDevice {
 
   static { 
     System.loadLibrary("openni-java-wrapper"); 

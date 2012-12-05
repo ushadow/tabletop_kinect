@@ -10,18 +10,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
+import edu.mit.yingyin.tabletop.models.OpenNIDevice;
 
 public class FullOpenNIDeviceTest {
   private static final int WIDTH = 640;
   private static final int HEIGHT = 480;
   
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
   
   @Before
   public void setUp() {
     try {
-      openni = new FullOpenNIDevice("test_data/config.xml");
+      openni = new OpenNIDevice("test_data/config.xml");
     } catch (GeneralException ge) {
       ge.printStackTrace();
       System.exit(-1);

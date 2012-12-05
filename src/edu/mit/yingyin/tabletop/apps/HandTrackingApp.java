@@ -16,15 +16,14 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import javax.vecmath.Point3f;
-
 import org.OpenNI.GeneralException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstants;
-import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.views.Table3DFrame;
@@ -51,13 +50,13 @@ public class HandTrackingApp extends KeyAdapter {
     /**
      * List of finger events detected in a frame.
      */
-    private List<List<FingerEvent>> fingerEventList = 
-        new ArrayList<List<FingerEvent>>();
+    private List<List<ManipulativeEvent>> fingerEventList = 
+        new ArrayList<List<ManipulativeEvent>>();
 
     @Override
-    public void fingerPressed(List<FingerEvent> feList) {
+    public void fingerPressed(List<ManipulativeEvent> feList) {
       if (packetController != null) {
-        for (FingerEvent fe : feList)
+        for (ManipulativeEvent fe : feList)
           packetController.drawCircle((int) fe.posImage.x, (int) fe.posImage.y);
       }
       fingerEventList.add(feList);
@@ -70,11 +69,11 @@ public class HandTrackingApp extends KeyAdapter {
      */
     public void toOutput(PrintWriter pw) {
       pw.println("# frame-id x y z x y z ...");
-      for (List<FingerEvent> list : fingerEventList) {
+      for (List<ManipulativeEvent> list : fingerEventList) {
         if (list.isEmpty())
           continue;
         pw.print(list.get(0).frameID + " ");
-        for (FingerEvent fe : list) {
+        for (ManipulativeEvent fe : list) {
           pw.print(String.format("%d %d %d ", (int) fe.posImage.x,
               (int) fe.posImage.y, (int) fe.posImage.z));
         }
@@ -83,10 +82,7 @@ public class HandTrackingApp extends KeyAdapter {
     }
 
     @Override
-    public void fingerPointed(List<Point3f> points) {
-      // TODO Auto-generated method stub
-      
-    }
+    public void fingerPointed(DiecticEvent de) {}
   }
 
   private static Logger logger = Logger.getLogger(

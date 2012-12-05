@@ -12,7 +12,7 @@ import org.OpenNI.GeneralException;
 import org.junit.Test;
 
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.FullOpenNIDevice;
+import edu.mit.yingyin.tabletop.models.OpenNIDevice;
 import edu.mit.yingyin.tabletop.models.PartialOpenNIDevice;
 import edu.mit.yingyin.util.Timer;
 
@@ -21,7 +21,7 @@ public class PerformanceTest {
   public void testShortBufferAndArry() {
     try {
       Timer timer = new Timer();
-      FullOpenNIDevice openni = new FullOpenNIDevice("test_data/config.xml");
+      OpenNIDevice openni = new OpenNIDevice("test_data/config.xml");
       int width = openni.getDepthWidth();
       int height = openni.getDepthHeight();
       short[] depthArray = new short[width * height];
@@ -79,7 +79,7 @@ public class PerformanceTest {
     int times = 20;
     long totalTime = 0;
     try {
-      FullOpenNIDevice openni = new FullOpenNIDevice(configFile);
+      OpenNIDevice openni = new OpenNIDevice(configFile);
       for (int i = 0; i < times; i++) {
         timer.tic();
         openni.waitDepthUpdateAll();

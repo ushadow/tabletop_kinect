@@ -115,7 +115,7 @@ public class ProcessPacketView {
     SHOW_BOUNDING_BOX, SHOW_LABELS
   }
 
-  private static final Logger logger =
+  private static final Logger LOGGER =
       Logger.getLogger(ProcessPacketView.class.getName());
 
   private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";

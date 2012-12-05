@@ -51,11 +51,11 @@ public class ForelimbModelEstimator {
   private static final float TREND_SMOOTH_FACTOR = (float) 0.9;
   
   private int width, height;
-  private FullOpenNIDevice openni;
+  private OpenNIDevice openni;
   private DoubleExpFilter filter;
 
   public ForelimbModelEstimator(int width, int height, 
-      FullOpenNIDevice openni) {
+      OpenNIDevice openni) {
     this.width = width;
     this.height = height;
     this.openni = openni;

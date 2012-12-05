@@ -2,12 +2,16 @@ package edu.mit.yingyin.tabletop.models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 
+import org.OpenNI.Point3D;
+import org.OpenNI.StatusException;
+
 import edu.mit.yingyin.calib.CalibModel;
-import edu.mit.yingyin.tabletop.models.HandTracker.FingerEvent.FingerEventType;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent.FingerEventType;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 
 /**
@@ -22,7 +26,7 @@ public class HandTracker {
    * @author yingyin
    *
    */
-  public static class FingerEvent {
+  public static class ManipulativeEvent {
     public enum FingerEventType {PRESSED, RELEASED};
     
     public int frameID;
@@ -33,7 +37,7 @@ public class HandTracker {
     public Point2f posDisplay;
     public FingerEventType type;
     
-    public FingerEvent(Point3f posImage, Point2f posDisplay,
+    public ManipulativeEvent(Point3f posImage, Point2f posDisplay,
         int frameID, FingerEventType type) { 
       this.posImage = posImage;
       this.posDisplay = posDisplay;
@@ -46,7 +50,42 @@ public class HandTracker {
           " Display position = " + posDisplay + "\n");
     }
   }
+  
+  public static class DiecticEvent {
+    private Point3D[] pointingLocationsI, pointingLocationsW;
+    
+    /**
+     * 
+     * @param imagePoints
+     * @param worldPoints the length of pointingLocationsI and 
+     *    pointingLocationsW should be the same.
+     */
+    public DiecticEvent(Point3D[] imagePoints, 
+                        Point3D[] worldPoints) {
+      pointingLocationsI = imagePoints;
+      pointingLocationsW = worldPoints;
+    }
+    
+    public Point3D[] pointingLocationsI() {
+      return copyArray(pointingLocationsI);
+    }
+    
+    public Point3D[] pointingLocationsW() {
+      return copyArray(pointingLocationsW);
+    }
+    
+    private Point3D[] copyArray(Point3D[] points) {
+      Point3D[] res = new Point3D[points.length];
+      for (int i = 0; i < points.length; i++) {
+        Point3D p = points[i];
+        res[i] = new Point3D(p.getX(), p.getY(), p.getZ());
+      }
+      return res;
+    }
+  }
 
+  private static final Logger LOGGER = Logger.getLogger(
+      HandTracker.class.getName());
   private static final int DEBOUNCE_COUNT = 3;
 
   private List<IHandEventListener> listeners = 
@@ -58,9 +97,11 @@ public class HandTracker {
   private boolean pressed = false;
   private CalibModel calibExample;
   private DiecticGestureHandler dgh = new DiecticGestureHandler();
+  private OpenNIDevice openni;
   
-  public HandTracker(CalibModel calibExample) {
+  public HandTracker(CalibModel calibExample, OpenNIDevice openni) {
     this.calibExample = calibExample;
+    this.openni = openni;
   }
   
   /**
@@ -69,14 +110,23 @@ public class HandTracker {
    * @param frameID frame ID for the current update.
    */
   public void update(List<Forelimb> forelimbs, int frameID) {
-    List<FingerEvent> fingerEventList = noFilter(forelimbs, frameID);
+    List<ManipulativeEvent> fingerEventList = noFilter(forelimbs, frameID);
     if (fingerEventList != null && !fingerEventList.isEmpty()) {
       for (IHandEventListener l : listeners) 
         l.fingerPressed(fingerEventList);
     }
-    List<Point3f> intersections = dgh.update(forelimbs);
-    for (IHandEventListener l : listeners)
-      l.fingerPointed(intersections);
+    try {
+      List<Point3D> intersections = dgh.update(forelimbs);
+      Point3D[] intersectionsW = new Point3D[intersections.size()];
+      intersections.toArray(intersectionsW);
+      Point3D[] intersectionsI = openni.convertRealWorldToProjective(
+          intersectionsW);
+      DiecticEvent de = new DiecticEvent(intersectionsI, intersectionsW);
+      for (IHandEventListener l : listeners)
+        l.fingerPointed(de);
+    } catch (StatusException e) {
+      LOGGER.severe(e.getMessage());
+    }
   }
   
   public void addListener(IHandEventListener l) {
@@ -93,8 +143,8 @@ public class HandTracker {
    * @param frameID frame ID.
    * @return a list of finger events.
    */
-  public List<FingerEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
-    List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
+  public List<ManipulativeEvent> noFilter(List<Forelimb> forelimbs, int frameID) {
+    List<ManipulativeEvent> fingerEventList = new ArrayList<ManipulativeEvent>();
     for (Forelimb forelimb : forelimbs) 
       for (Point3f tip : forelimb.getFingertipsI())
         fingerEventList.add(createFingerEvent(tip, frameID, 
@@ -108,10 +158,10 @@ public class HandTracker {
    * @param frameID
    * @return
    */
-  public List<FingerEvent> filterPressed(List<Forelimb> forelimbs, 
+  public List<ManipulativeEvent> filterPressed(List<Forelimb> forelimbs, 
                                          int frameID) {
     InteractionSurface table = InteractionSurface.instance();
-    List<FingerEvent> fingerEventList = new ArrayList<FingerEvent>();
+    List<ManipulativeEvent> fingerEventList = new ArrayList<ManipulativeEvent>();
     
     if (table == null) 
       return fingerEventList;
@@ -141,9 +191,9 @@ public class HandTracker {
     return fingerEventList;
   }
   
-  private FingerEvent createFingerEvent(Point3f posImage, int frameID, 
+  private ManipulativeEvent createFingerEvent(Point3f posImage, int frameID, 
       FingerEventType type) {
-    return new FingerEvent(posImage, 
+    return new ManipulativeEvent(posImage, 
         calibExample.imageToDisplayCoords(posImage.x, posImage.y),
         frameID, type);
   }
