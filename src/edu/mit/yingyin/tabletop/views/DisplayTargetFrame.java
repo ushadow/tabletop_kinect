@@ -27,20 +27,17 @@ public class DisplayTargetFrame extends JFrame {
   private class TargetImageComponent extends ImageComponent {
     private static final long serialVersionUID = 7001378911756844295L;
     
-    private Dimension d;
     public TargetImageComponent(BufferedImage img) {
       super(img);
-      d = new Dimension(img.getWidth(), img.getHeight());
     }
     
     public void paint(Graphics g) {
       super.paint(g);
       Graphics2D g2d = (Graphics2D) g;
       g2d.setColor(Color.red);
-      if (currentPointIndex < displayPoints.size()) {
+      if (currentPointIndex >= 0 && currentPointIndex < displayPoints.size()) {
         Point p = displayPoints.get(currentPointIndex);
         g2d.fillOval(p.x, p.y, 100, 100);
-        currentPointIndex++;
       }
     }
   }
@@ -55,7 +52,8 @@ public class DisplayTargetFrame extends JFrame {
   private ImageComponent ic;
   private List<Point> displayPoints;
   private Dimension frameSize;
-  private int currentPointIndex = 0;
+  private int currentPointIndex = -1;
+  private Timer timer;
   
   public DisplayTargetFrame() {
     super("Display Target");
@@ -73,16 +71,18 @@ public class DisplayTargetFrame extends JFrame {
       
       @Override
       public void actionPerformed(ActionEvent e) {
+        currentPointIndex++;
         if (currentPointIndex < displayPoints.size())
           repaint();
       }
     };
-    new Timer(DISPLAY_INTERVAL, al).start();
+    timer = new Timer(DISPLAY_INTERVAL, al);
   }
   
   public void showUI() {
     pack();
     setVisible(true);
+    timer.start();
   }
   
   private List<Point> createDisplayPoints(Dimension bound) {
