@@ -32,16 +32,16 @@ import edu.mit.yingyin.util.FileUtil;
  * @author yingyin
  *
  */
-public class CalibrationAppController extends KeyAdapter {
+public class CalibrationApp extends KeyAdapter {
   private static final Logger logger = Logger.getLogger(
-      CalibrationAppController.class.getName());
+      CalibrationApp.class.getName());
 
   private static final int WIDTH = 640, HEIGHT = 480;
   
   private static final String DEFAULT_CALIB_DIR = "data/calibration/";
   
   public static void main(String args[]) {
-    new CalibrationAppController(args);
+    new CalibrationApp(args);
   }
 
   public void keyPressed(KeyEvent ke) {
@@ -79,7 +79,7 @@ public class CalibrationAppController extends KeyAdapter {
   private boolean isCurrentLabelImageTest = false;
   private boolean isCurrentLabelImageScrnCoord = true;
 
-  public CalibrationAppController(String args[]) {
+  public CalibrationApp(String args[]) {
     Properties config = new Properties();
     FileInputStream in = null;
     if (args.length < 1) {
