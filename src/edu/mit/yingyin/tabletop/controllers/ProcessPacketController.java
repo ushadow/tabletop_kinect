@@ -135,9 +135,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     packetView.drawCircle(x, y);
   }
   
-  public void showUI() {
-  }
-
   @Override
   public void mouseClicked(MouseEvent me) {
     Point p = me.getPoint();

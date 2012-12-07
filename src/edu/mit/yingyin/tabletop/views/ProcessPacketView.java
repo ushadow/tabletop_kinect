@@ -207,7 +207,7 @@ public class ProcessPacketView {
       }
     }
   }
-
+  
   public JFrame analysisFrame() {
     return frames.get(ANALYSIS_FRAME);
   }

@@ -68,7 +68,6 @@ public class DiecticGestureTest extends KeyAdapter {
         engine.depthHeight(), null);
 
     packetController.addKeyListener(this);
-    packetController.showUI();
     
     DisplayTargetFrame frame = new DisplayTargetFrame();
     frame.addKeyListener(this);

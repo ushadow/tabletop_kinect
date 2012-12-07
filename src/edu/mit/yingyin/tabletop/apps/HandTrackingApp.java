@@ -188,7 +188,6 @@ public class HandTrackingApp extends KeyAdapter {
             engine.depthHeight(), labels);
 
         packetController.addKeyListener(this);
-        packetController.showUI();
 
       } catch (IOException e) {
         System.err.println(e.getMessage());
