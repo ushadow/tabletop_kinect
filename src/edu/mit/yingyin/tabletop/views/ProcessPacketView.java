@@ -357,10 +357,13 @@ public class ProcessPacketView {
    */
   private void showDiagnosticImage(ProcessPacket packet, 
       List<Point> fingertipLabels) {
-    JFrame f = frames.get(DIAGNOSTIC_FRAME);
+    ImageFrame f = (ImageFrame) frames.get(DIAGNOSTIC_FRAME);
     if (f == null) {
       fingertipView = new ForelimbView(new Dimension(width, height));
       f = new ImageFrame(DIAGNOSTIC_FRAME, fingertipView);
+      frames.put(DIAGNOSTIC_FRAME, f);
+      tile();
+      f.showUI();
       bufferedImage =
           new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
     }
@@ -369,7 +372,7 @@ public class ProcessPacketView {
 
     ImageConvertUtils.floatBufferToGrayBufferedImage(
         packet.depthImage32F.getFloatBuffer(), bufferedImage);
-    ((ImageFrame)f).updateImage(bufferedImage);
+    f.updateImage(bufferedImage);
   }
 
   /**
@@ -381,7 +384,9 @@ public class ProcessPacketView {
   private void showRgbImage(ProcessPacket packet) throws GeneralException {
     ImageFrame f = (ImageFrame) frames.get(RGB_FRAME);
     if (f == null) {
-      f = new ImageFrame("RGB", new Dimension(width, height));
+      f = new ImageFrame(RGB_FRAME, new Dimension(width, height));
+      frames.put(RGB_FRAME, f);
+      tile();
       f.showUI();
     }
     f.updateImage(packet.rgbImage());
