@@ -53,11 +53,11 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   }
   
   public void showDiagnosticImage(boolean show) {
-    packetView.showDiagnosticImage(show);
+    packetView.setToggle(Toggles.SHOW_DIAGNOSTIC_IMAGE, show);
   }
   
   public void showDepthImage(boolean show) {
-    packetView.showDepthImage(show);
+    packetView.setToggle(Toggles.SHOW_DEPTH_IMAGE,show);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -136,7 +136,6 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   }
   
   public void showUI() {
-    packetView.showUI();
   }
 
   @Override

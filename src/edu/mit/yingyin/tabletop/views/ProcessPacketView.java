@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.swing.JFrame;
 import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
@@ -119,54 +120,54 @@ public class ProcessPacketView {
   private static final Logger LOGGER =
       Logger.getLogger(ProcessPacketView.class.getName());
 
-  private static final String DIAGNOSTIC_FRAME_TITLE = "Diagnostic";
+  private static final String DIAGNOSTIC_FRAME = "Diagnostic";
+  private static final String ANALYSIS_FRAME = "Analysis";
+  private static final String DEPTH_FRAME = "Depth";
+  private static final String RGB_FRAME = "RGB";
 
   private static final boolean DEFAULT_SHOW_DIAGNOSTIC_IMAGE = false;
 
   private HashMap<Toggles, Boolean> toggleMap =
       new HashMap<ProcessPacketView.Toggles, Boolean>();
-  private CanvasFrame[] frames = new CanvasFrame[2];
+
+  /**
+   * Frames.
+   */
+  private HashMap<String, JFrame> frames = new HashMap<String, JFrame>();
+  
   private IplImage analysisImage;
-  private IplImage appImage;
-  private ImageFrame diagnosticFrame, rgbFrame;
+  private IplImage depthImage;
   private BufferedImage bufferedImage;
   private ForelimbView fingertipView;
   private float[] histogram;
   private int width, height;
 
   public ProcessPacketView(int width, int height) {
+    initToggles();
+
     this.width = width;
     this.height = height;
-    frames[0] = new CanvasFrame("Processed");
-    frames[1] = new CanvasFrame("Depth");
-    for (CanvasFrame frame : frames)
-      frame.setCanvasSize(width, height);
+    frames.put(ANALYSIS_FRAME, new CanvasFrame(ANALYSIS_FRAME));
+    frames.put(DEPTH_FRAME, new CanvasFrame(DEPTH_FRAME));
+    for (JFrame frame : frames.values())
+      frame.setPreferredSize(new Dimension(width, height));
 
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
-    appImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-
-    fingertipView = new ForelimbView(new Dimension(width, height));
-    diagnosticFrame = new ImageFrame(DIAGNOSTIC_FRAME_TITLE, fingertipView);
-    Rectangle rect = frames[0].getBounds();
-    diagnosticFrame.setLocation(0, rect.y + rect.height);
-    bufferedImage =
-        new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
-
-    initToggles();
+    depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    
+    tile();
   }
 
   public void update(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
     
-    fingertipView.setFingertips(packet.forelimbs, packet.forelimbFeatures,
-        fingertipLabels);
-
     showAnalysisImage(packet);
-    if (toggleMap.get(Toggles.SHOW_DIAGNOSTIC_IMAGE))
-      showDiagnosticImage(packet);
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_IMAGE))
       showDepthImage(packet, fingertipLabels);
+    
+    if (toggleMap.get(Toggles.SHOW_DIAGNOSTIC_IMAGE))
+      showDiagnosticImage(packet, fingertipLabels);
 
     if (toggleMap.get(Toggles.SHOW_RGB_IMAGE))
       showRgbImage(packet);
@@ -175,60 +176,66 @@ public class ProcessPacketView {
   }
 
   public Rectangle getBounds() {
-    Rectangle rect = frames[0].getBounds();
+    Rectangle rect = frames.get(ANALYSIS_FRAME).getBounds();
     return new Rectangle(0, 0, rect.width * 2, rect.height * 2);
   }
 
   public void addKeyListener(KeyListener kl) {
-    for (CanvasFrame frame : frames)
+    for (JFrame frame : frames.values())
       frame.addKeyListener(kl);
-    diagnosticFrame.addKeyListener(kl);
   }
 
   public void addMouseListener(MouseListener ml) {
-    diagnosticFrame.addMouseListenerToImageComponent(ml);
+    ImageFrame f = (ImageFrame) frames.get(DIAGNOSTIC_FRAME);
+    if (f != null)
+      f.addMouseListenerToImageComponent(ml);
   }
 
-  public void showUI() {
-    CanvasFrame.tile(frames);
-    if (toggleMap.get(Toggles.SHOW_DIAGNOSTIC_IMAGE))
-      diagnosticFrame.showUI();
+  public void tile() {
+    int x = 0, y = 0;
+    int counter = 0;
+    for (JFrame f : frames.values()) {
+      if (!f.isVisible())
+        continue;
+      f.setLocation(x, y);
+      counter ++;
+      Dimension d = f.getPreferredSize();
+      x += d.width;
+      if (counter % 2 == 0) {
+        x = 0;
+        y += d.height;
+      }
+    }
   }
 
-  public void showDepthImage(boolean show) {
-    frames[1].setVisible(show);
-  }
-
-  public void showDiagnosticImage(boolean show) {
-    diagnosticFrame.setVisible(show);
-  }
-
-  public CanvasFrame analysisFrame() {
-    return frames[0];
+  public JFrame analysisFrame() {
+    return frames.get(ANALYSIS_FRAME);
   }
 
   public void release() {
     analysisImage.release();
-    appImage.release();
-    for (CanvasFrame frame : frames)
+    depthImage.release();
+    for (JFrame frame : frames.values())
       frame.dispose();
     LOGGER.info("ProcessPacketView released.");
   }
 
   public void hide() {
-    for (CanvasFrame frame : frames)
+    for (JFrame frame : frames.values())
       frame.setVisible(false);
   }
 
   public boolean isVisible() {
     boolean isVisible = true;
-    for (CanvasFrame frame : frames)
+    for (JFrame frame : frames.values())
       isVisible = isVisible && frame.isVisible();
     return isVisible;
   }
 
   public void setStatus(String status) {
-    diagnosticFrame.setStatus(status);
+    ImageFrame f = (ImageFrame) frames.get(DIAGNOSTIC_FRAME);
+    if (f != null)
+      f.setStatus(status);
   }
 
   public void toggle(Toggles name) {
@@ -247,8 +254,8 @@ public class ProcessPacketView {
    */
   public void drawCircle(int x, int y) {
     // cvCircle(img, center, radius, color, thickness, lineType, shift)
-    cvCircle(appImage, new CvPoint(x, y), 4, CvScalar.WHITE, -1, 8, 0);
-    frames[1].showImage(appImage);
+    cvCircle(depthImage, new CvPoint(x, y), 4, CvScalar.WHITE, -1, 8, 0);
+    ((CanvasFrame)frames.get(DEPTH_FRAME)).showImage(depthImage);
   }
 
   private void initToggles() {
@@ -305,7 +312,7 @@ public class ProcessPacketView {
         }
       }
     }
-    frames[0].showImage(analysisImage);
+    ((CanvasFrame)frames.get(ANALYSIS_FRAME)).showImage(analysisImage);
   }
 
   /**
@@ -323,8 +330,8 @@ public class ProcessPacketView {
     }
 
     ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
-    ByteBuffer ib = appImage.getByteBuffer();
-    int widthStep = appImage.widthStep();
+    ByteBuffer ib = depthImage.getByteBuffer();
+    int widthStep = depthImage.widthStep();
     
     for (int h = 0; h < packet.height; h++)
       for (int w = 0; w < packet.width; w++) {
@@ -336,10 +343,11 @@ public class ProcessPacketView {
     // Draws labeled points.
     if (labels != null) {
       for (Point p : labels)
-        cvCircle(appImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
+        cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
     }
-    frames[1].showImage(appImage);
-    frames[1].setTitle("Processed FrameID = " + packet.depthFrameID);
+    CanvasFrame frame = (CanvasFrame) frames.get(DEPTH_FRAME);
+    frame.showImage(depthImage);
+    frame.setTitle("Processed FrameID = " + packet.depthFrameID);
   }
 
   /**
@@ -347,10 +355,21 @@ public class ProcessPacketView {
    * 
    * @param packet
    */
-  private void showDiagnosticImage(ProcessPacket packet) {
+  private void showDiagnosticImage(ProcessPacket packet, 
+      List<Point> fingertipLabels) {
+    JFrame f = frames.get(DIAGNOSTIC_FRAME);
+    if (f == null) {
+      fingertipView = new ForelimbView(new Dimension(width, height));
+      f = new ImageFrame(DIAGNOSTIC_FRAME, fingertipView);
+      bufferedImage =
+          new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
+    }
+    fingertipView.setFingertips(packet.forelimbs, packet.forelimbFeatures,
+        fingertipLabels);
+
     ImageConvertUtils.floatBufferToGrayBufferedImage(
         packet.depthImage32F.getFloatBuffer(), bufferedImage);
-    diagnosticFrame.updateImage(bufferedImage);
+    ((ImageFrame)f).updateImage(bufferedImage);
   }
 
   /**
@@ -360,13 +379,12 @@ public class ProcessPacketView {
    * @throws GeneralException
    */
   private void showRgbImage(ProcessPacket packet) throws GeneralException {
-    if (rgbFrame == null) {
-      rgbFrame = new ImageFrame("RGB", new Dimension(width, height));
-      Rectangle bounds = diagnosticFrame.getBounds();
-      rgbFrame.setLocation(bounds.x + bounds.width, bounds.y);
-      rgbFrame.showUI();
+    ImageFrame f = (ImageFrame) frames.get(RGB_FRAME);
+    if (f == null) {
+      f = new ImageFrame("RGB", new Dimension(width, height));
+      f.showUI();
     }
-    rgbFrame.updateImage(packet.rgbImage());
+    f.updateImage(packet.rgbImage());
   }
 
   private void showHeatMap(ProcessPacket packet) {

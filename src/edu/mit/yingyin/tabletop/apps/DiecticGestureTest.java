@@ -113,9 +113,8 @@ public class DiecticGestureTest extends KeyAdapter {
   
           if (tableFrame != null)
             tableFrame.redraw(packet);
-            packet.release();
+          packet.release();
           } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
           } catch (GeneralException ge) {
             ge.printStackTrace();
