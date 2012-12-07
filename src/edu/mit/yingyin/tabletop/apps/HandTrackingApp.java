@@ -25,6 +25,7 @@ import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.views.Table3DFrame;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
@@ -180,7 +181,8 @@ public class HandTrackingApp extends KeyAdapter {
       try {
         HashMap<Integer, List<Point>> labels = null;
         if (labelFile != null)
-          labels = (HashMap<Integer, List<Point>>) ObjectIO.readObject(labelFile);
+          labels = (HashMap<Integer, List<Point>>) ObjectIO.readObject(
+              labelFile);
 
         packetController = new ProcessPacketController(engine.depthWidth(),
             engine.depthHeight(), labels);
@@ -198,10 +200,10 @@ public class HandTrackingApp extends KeyAdapter {
       try {
         if (isPaused())
           continue;
-        engine.step();
+        ProcessPacket packet = engine.step();
 
         if (packetController != null)
-          packetController.show(engine.packet());
+          packetController.show(packet);
 
         if (displayOn && engine.interactionSurfaceInitialize() && 
             tableFrame == null) {
@@ -214,7 +216,8 @@ public class HandTrackingApp extends KeyAdapter {
         }
 
         if (tableFrame != null)
-          tableFrame.redraw(engine.packet());
+          tableFrame.redraw(packet);
+        packet.release();
       } catch (GeneralException ge) {
         LOGGER.severe(ge.getMessage());
         engine.release();
@@ -224,6 +227,7 @@ public class HandTrackingApp extends KeyAdapter {
 
     print();
     engine.release();
+    packetController.release();
     System.exit(0);
   }
 
@@ -250,17 +254,6 @@ public class HandTrackingApp extends KeyAdapter {
     }
   }
 
-  public boolean isRunning() {
-    return ((packetController != null && 
-             packetController.isVisible() || 
-             displayOn == false) && 
-            !engine.isDone());
-  }
-
-  public boolean isPaused() {
-    return packetController != null && paused;
-  }
-
   public void keyPressed(KeyEvent ke) {
     switch (ke.getKeyCode()) {
       case KeyEvent.VK_N:
@@ -277,5 +270,16 @@ public class HandTrackingApp extends KeyAdapter {
       default:
         break;
     }
+  }
+
+  private boolean isRunning() {
+    return ((packetController != null && 
+        packetController.isVisible() || 
+        displayOn == false) && 
+        !engine.isDone());
+  }
+  
+  private boolean isPaused() {
+    return packetController != null && paused;
   }
 }

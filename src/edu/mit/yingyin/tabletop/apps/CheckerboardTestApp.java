@@ -17,6 +17,7 @@ import org.OpenNI.GeneralException;
 import edu.mit.yingyin.tabletop.controllers.HandEventsController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.util.FileUtil;
 
 /**
@@ -106,8 +107,8 @@ public class CheckerboardTestApp {
   public void start() {
     while (!engine.isDone() && heController.isViewVisible()) {
       try {
-        engine.step();
-        packetController.show(engine.packet());
+        ProcessPacket packet = engine.step();
+        packetController.show(packet);
       } catch (GeneralException e) {
         logger.severe(e.getMessage());
         engine.release();

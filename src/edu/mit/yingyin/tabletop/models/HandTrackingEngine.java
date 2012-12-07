@@ -33,8 +33,7 @@ public class HandTrackingEngine {
   
   private OpenNIDevice openni;
   private int depthWidth, depthHeight;
-  private ProcessPacket packet;
-  private int prevDepthFrameID = -1;
+  private int prevDepthFrameID = -1, currentDepthFrameID = -1;
   private HandTracker tracker;
   private HandAnalyzer analyzer;
 
@@ -53,7 +52,6 @@ public class HandTrackingEngine {
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
     analyzer = new HandAnalyzer(depthWidth, depthHeight, openni);
-    packet = new ProcessPacket(depthWidth, depthHeight, this);
 
     tracker = new HandTracker(new CalibModel(calibrationFile), openni);
   }
@@ -65,7 +63,6 @@ public class HandTrackingEngine {
   public void release() {
     openni.release();
     analyzer.release();
-    packet.release();
   }
 
   public void addListener(IHandEventListener l) {
@@ -76,22 +73,23 @@ public class HandTrackingEngine {
     tracker.removeListener(l);
   }
   
-  public ProcessPacket packet() { return packet; }
-  
   /**
    * Checks if all the frames are played.
    * @return true if all the frames are played.
    */
   public boolean isDone() {
-    return packet.depthFrameID < prevDepthFrameID;
+    return currentDepthFrameID < prevDepthFrameID;
   }
   
-  public void step() {
+  public ProcessPacket step() {
+    ProcessPacket packet = null;
     try {
       openni.waitDepthUpdateAll();
+      packet = new ProcessPacket(depthWidth, depthHeight, this);
       openni.getDepthArray(packet.depthRawData);
       prevDepthFrameID = packet.depthFrameID;
       packet.depthFrameID = openni.getDepthFrameID();
+      currentDepthFrameID = packet.depthFrameID;
 
       analyzer.analyzeData(packet);
       
@@ -102,6 +100,7 @@ public class HandTrackingEngine {
       e.printStackTrace();
       System.exit(-1);
     }
+    return packet;
   }
   
   public void getRgbImage(BufferedImage bi) throws GeneralException {

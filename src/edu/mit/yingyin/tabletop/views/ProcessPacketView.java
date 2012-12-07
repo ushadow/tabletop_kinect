@@ -212,7 +212,7 @@ public class ProcessPacketView {
     appImage.release();
     for (CanvasFrame frame : frames)
       frame.dispose();
-    System.out.println("ProcessPacketView released.");
+    LOGGER.info("ProcessPacketView released.");
   }
 
   public void hide() {
