@@ -85,7 +85,7 @@ public class HandTrackingApp extends KeyAdapter {
     public void fingerPointed(DiecticEvent de) {}
   }
 
-  private static Logger logger = Logger.getLogger(
+  private static Logger LOGGER = Logger.getLogger(
       HandTrackingApp.class.getName());
 
   private static final String CONFIG_DIR = "config";
@@ -128,7 +128,7 @@ public class HandTrackingApp extends KeyAdapter {
 
   @SuppressWarnings("unchecked")
   public HandTrackingApp(String mainDir) {
-    logger.info("java.library.path = "
+    LOGGER.info("java.library.path = "
         + System.getProperty("java.library.path"));
 
     this.mainDir = mainDir;
@@ -139,11 +139,11 @@ public class HandTrackingApp extends KeyAdapter {
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
-      logger.info("congfig file not found: " + mainDir + APP_PROPS);
-      logger.severe(fnfe.getMessage());
+      LOGGER.info("congfig file not found: " + mainDir + APP_PROPS);
+      LOGGER.severe(fnfe.getMessage());
       System.exit(-1);
     } catch (IOException ioe) {
-      logger.severe(ioe.getMessage());
+      LOGGER.severe(ioe.getMessage());
       System.exit(-1);
     }
 
@@ -179,8 +179,8 @@ public class HandTrackingApp extends KeyAdapter {
       engine = new HandTrackingEngine(openniConfigFile, calibrationFile,
           maxDepth);
     } catch (GeneralException ge) {
-      logger.info("OpenNI config file = " + openniConfigFile);
-      logger.severe(ge.getMessage());
+      LOGGER.info("OpenNI config file = " + openniConfigFile);
+      LOGGER.severe(ge.getMessage());
       System.exit(-1);
     }
     handEventListener = new HandEventListener();
@@ -226,7 +226,7 @@ public class HandTrackingApp extends KeyAdapter {
         if (tableFrame != null)
           tableFrame.redraw(engine.packet());
       } catch (GeneralException ge) {
-        logger.severe(ge.getMessage());
+        LOGGER.severe(ge.getMessage());
         engine.release();
         System.exit(-1);
       }
@@ -251,7 +251,7 @@ public class HandTrackingApp extends KeyAdapter {
           dateFormat.format(date) + OUTPUT_EXTENSION);
       pw = new PrintWriter(fingertipFile);
       handEventListener.toOutput(pw);
-      logger.info("Tracker controller output done.");
+      LOGGER.info("Tracker controller output done.");
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } finally {
