@@ -14,6 +14,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvRealScalar;
 import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
+import static com.googlecode.javacv.cpp.opencv_core.cvMinMaxLoc;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
 import java.nio.ByteBuffer;
@@ -25,7 +26,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.util.CvUtil;
 
 /**
- * Keeps track of statistics of the background model.
+ * A singleton class that keeps track of the statistics of the background model.
  * 
  * @author yingyin
  * 
@@ -33,7 +34,7 @@ import edu.mit.yingyin.util.CvUtil;
 public class Background {
   public static final float CENTER_COLUMN_WIDTH_FACTOR = (float) 0.2; 
 
-  private static Logger logger = Logger.getLogger(Background.class.getName());
+  private static Logger LOGGER = Logger.getLogger(Background.class.getName());
 
   private static final float MIN_DIFF = (float) 0.8; // mm
    
@@ -43,6 +44,23 @@ public class Background {
   
   private static final int PHYSICAL_DIST_FROM_CAMERA = 1160; // mm
 
+  private static Background instance;
+  
+  public static Background initInstance(int width, int height) {
+    if (instance != null) {
+      LOGGER.warning("Instance has been initialized. Cannot initialize again");
+    }
+    instance = new Background(width, height);
+    return instance;
+  }
+  
+  public static Background instance() {
+    if (instance == null) {
+      LOGGER.severe("Instance is not initialized!");
+    }
+    return instance;
+  }
+  
   /**
    * Float, 1-channel images. All the depth values are scaled between 0 and 1
    * according to <code>maxDepth
@@ -68,6 +86,9 @@ public class Background {
 
   private int width, height;
   private boolean initialized = false;
+  private double[] min = new double[1];
+  private double[] max = new double[1];
+  private double maxDepth = 0;
 
   /**
    * Initializes the background model.
@@ -75,7 +96,7 @@ public class Background {
    * @param width width of the background image.
    * @param height height of the background image.
    */
-  public Background(int width, int height) {
+  private Background(int width, int height) {
     this.width = width;
     this.height = height;
 
@@ -110,6 +131,8 @@ public class Background {
    */
   public void accumulateBackground(int[] depthRawData) {
     depthToImage(depthRawData, scratchI);
+    cvMinMaxLoc(scratchI, min, max);
+    maxDepth = Math.max(maxDepth, max[0]);
     cvAcc(scratchI, avgFI, null);
     count += 1;
     cvConvertScale(avgFI, scratchI2, 1.0 / count, 0); 
@@ -184,17 +207,21 @@ public class Background {
     lowFI.release();
     diffMask.release();
     scaleFI.release();
-    logger.info("Background relesed.");
+    LOGGER.info("Background relesed.");
   }
 
   /**
    * @return statistics of the background as a string.
    */
   public String stats() {
+    String lineSeparator = System.getProperty("line.separator");
     StringBuffer sb = new StringBuffer();
-    sb.append(String.format("Average background depth: %f\n", avgDepth()));
+    sb.append(String.format("Average background depth: %f", avgDepth()));
+    sb.append(lineSeparator);
     sb.append(String.format("Average background absolute difference before " +
-    		"adjustment: %f\n", avgDiff()));
+    		"adjustment: %f", avgDiff()));
+    sb.append(lineSeparator);
+    sb.append(String.format("Max depth: %.1f", maxDepth));
     return sb.toString();
   }
 
@@ -269,6 +296,8 @@ public class Background {
     return sb.toString();
   }
   
+  public int maxDepth() { return (int) maxDepth; }
+  
   private void appendBuffer(StringBuffer sb, FloatBuffer fb) {
     fb.rewind();
     int i = 0;
@@ -288,15 +317,15 @@ public class Background {
       for (int w = width / 3; w < width * 2 / 3; w++)
         bb.put(h * widthStep + w, (byte)1);
     float centerAveDiff = (float) cvAvg(diffFI.asCvMat(), mask).val(0);
-    logger.fine(String.format("Average diff at the center column = %f", 
+    LOGGER.fine(String.format("Average diff at the center column = %f", 
         centerAveDiff));
     avgDiff = (float) cvAvg(diffFI.asCvMat(), null).val(0);
     mask.release();
   }
 
   /**
-   * Scales integer depth values into a floating-point 1-channel image with
-   * values between 0 and 1.
+   * Converts depth values into a floating-point 1-channel image with no 
+   * scaling.
    * 
    * @param depthRawData int array of depth values.
    * @param image floating-point 1-channel image with the same number of pixels

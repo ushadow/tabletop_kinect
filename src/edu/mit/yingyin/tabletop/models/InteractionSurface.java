@@ -91,9 +91,9 @@ public class InteractionSurface {
    * @param scale used to scale the depth value.
    * @throws StatusException 
    */
-  private InteractionSurface(FloatBuffer avg, FloatBuffer diff, int avgWidthStep,
-      int diffWidthStep, int width, int height, OpenNIDevice openni)
-      throws StatusException {
+  private InteractionSurface(FloatBuffer avg, FloatBuffer diff, 
+      int avgWidthStep, int diffWidthStep, int width, int height, 
+      OpenNIDevice openni) throws StatusException {
     this.avg = avg;
     this.diff = diff;
     this.avgWidthStep = avgWidthStep;

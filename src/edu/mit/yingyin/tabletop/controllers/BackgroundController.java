@@ -1,16 +1,14 @@
 package edu.mit.yingyin.tabletop.controllers;
 
-import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.Background;
 import edu.mit.yingyin.tabletop.views.BackgroundFrame;
 
 public class BackgroundController {
   private BackgroundFrame bf;
-  private HandTrackingEngine engine;
   private boolean updated = false;
   
-  public BackgroundController(HandTrackingEngine engine) {
-    bf = new BackgroundFrame(engine.depthWidth(), engine.depthHeight());
-    this.engine = engine;
+  public BackgroundController(int width, int height) {
+    bf = new BackgroundFrame(width, height);
   }
   
   public void showUI() {
@@ -18,8 +16,12 @@ public class BackgroundController {
   }
   
   public void update() {
-    if (engine.isBgInitialized() && !updated ) {
-      bf.updateData(engine.diffBg(), engine.diffBgWidth());
+    Background bg = Background.instance();
+    if (bg == null)
+      return;
+    
+    if (bg.isInitialized() && !updated ) {
+      bf.updateData(bg.diffBuffer(), bg.diffBufferWidthStep());
       updated = true;
     }
   }

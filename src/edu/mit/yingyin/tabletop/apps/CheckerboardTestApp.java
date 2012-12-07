@@ -16,7 +16,6 @@ import org.OpenNI.GeneralException;
 
 import edu.mit.yingyin.tabletop.controllers.HandEventsController;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
-import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.util.FileUtil;
 
@@ -84,8 +83,7 @@ public class CheckerboardTestApp {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
       heController = new HandEventsController(image, 
           new Dimension(TABLETOP_WIDTH, TABLETOP_HEIGHT));
-      engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE, 
-          EnvConstants.DEFAULT_MAX_DEPTH);
+      engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE);
       packetController = new ProcessPacketController(engine.depthWidth(), 
           engine.depthHeight(), null);
       engine.addListener(heController);

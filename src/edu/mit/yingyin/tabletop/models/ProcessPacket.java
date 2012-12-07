@@ -66,7 +66,6 @@ public class ProcessPacket {
   
   private BufferedImage rgbImage;
   private HandTrackingEngine engine;
-  private int maxDepth;
   
   /**
    * Creates a new <code>ProcessPacket</code> and allocates memory.
@@ -75,8 +74,7 @@ public class ProcessPacket {
    * @param engine the <code>HandTrackingEngine</code> that updates this <code>
    *    ProcessPacket</code>.
    */
-  public ProcessPacket(int width, int height, int maxDepth, 
-      HandTrackingEngine engine) {
+  public ProcessPacket(int width, int height, HandTrackingEngine engine) {
     
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.
@@ -89,12 +87,7 @@ public class ProcessPacket {
     tempMem = cvCreateMemStorage(0);
     this.width = width;
     this.height = height;
-    this.maxDepth = maxDepth;
     this.engine = engine;
-  }
-  
-  public int maxDepth() {
-    return maxDepth;
   }
   
   /**

@@ -21,7 +21,7 @@ public class BackgroundTest {
   
   @Test
   public void testBackgroundDiffSimple() {
-    Background bg = new Background(WIDTH, HEIGHT);
+    Background bg = Background.initInstance(WIDTH, HEIGHT);
     int[] depthRawData = new int[WIDTH * HEIGHT];
     Arrays.fill(depthRawData, 1);
     
@@ -53,7 +53,7 @@ public class BackgroundTest {
   
   @Test
   public void testBackgroundDiffVaried() {
-    Background bg = new Background(WIDTH, HEIGHT);
+    Background bg = Background.initInstance(WIDTH, HEIGHT);
     int[] depthRawData = new int[WIDTH * HEIGHT];
     
     for (int i = 0; i < 11; i++) {
@@ -97,7 +97,7 @@ public class BackgroundTest {
   
   @Test
   public void testIsIncenterColumn() {
-    Background bg = new Background(WIDTH, HEIGHT);
+    Background bg = Background.initInstance(WIDTH, HEIGHT);
     assertTrue(bg.isInCenterColumn(4));
     assertTrue(bg.isInCenterColumn(5));
     assertFalse(bg.isInCenterColumn(WIDTH - 1));
@@ -105,7 +105,7 @@ public class BackgroundTest {
   
   @Test
   public void testWidthSteps() {
-    Background bg = new Background(WIDTH, HEIGHT);
+    Background bg = Background.initInstance(WIDTH, HEIGHT);
     assertEquals(WIDTH, bg.avgBufferWidthStep());
     assertEquals(WIDTH, bg.diffBufferWidthStep());
   }

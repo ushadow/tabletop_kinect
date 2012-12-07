@@ -25,7 +25,6 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
 import org.OpenNI.StatusException;
@@ -95,35 +94,12 @@ public class HandAnalyzer {
    * @param height
    * @param egnine reference to the <code>HandTrackingEngine</code>.
    */
-  public HandAnalyzer(int width, int height, int maxDepth,
+  public HandAnalyzer(int width, int height,
       OpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
-    background = new Background(width, height);
+    background = Background.initInstance(width, height);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
     this.openni = openni;
-  }
-
-  /**
-   * @return true if background is initialized.
-   */
-  public boolean isBgInitialized() {
-    return background.isInitialized();
-  }
-
-  public FloatBuffer aveBg() {
-    return background.avgBuffer();
-  }
-
-  public int aveBgWidthStep() {
-    return background.avgBufferWidthStep();
-  }
-
-  public FloatBuffer diffBg() {
-    return background.diffBuffer();
-  }
-
-  public int diffBgWidthStep() {
-    return background.diffBufferWidthStep();
   }
 
   /**
@@ -138,10 +114,6 @@ public class HandAnalyzer {
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
       return;
 
-    CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F,
-        (float) 1 / packet.maxDepth());
-    cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
-
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
@@ -151,6 +123,10 @@ public class HandAnalyzer {
       InteractionSurface.initInstance(background, openni);
       logger.info(background.stats());
     }
+
+    CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F,
+        (float) 1 / background.maxDepth());
+    cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
 
     subtractBackground(packet);
     cleanUpBackground(packet);
@@ -182,7 +158,8 @@ public class HandAnalyzer {
       for (int w = 0; w < packet.width; w++) {
         int pos = h * depthWidthStep + w;
         if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
-          byte d = (byte) (depthData[h * width + w] * 255 / packet.maxDepth());
+          byte d = (byte) (depthData[h * width + w] * 255 / 
+                           background.maxDepth());
           depthBuffer.put(pos, d);
         } else {
           depthBuffer.put(pos, (byte) 0);

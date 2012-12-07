@@ -1,7 +1,6 @@
 package edu.mit.yingyin.tabletop.models;
 
 import java.awt.image.BufferedImage;
-import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -44,18 +43,17 @@ public class HandTrackingEngine {
    * 
    * @param openniConfigFile
    * @param calibrationFile
-   * @param maxDepth
    * @throws GeneralException
    */
   public HandTrackingEngine(String openniConfigFile, 
-      String calibrationFile, int maxDepth) throws GeneralException {
+      String calibrationFile) throws GeneralException {
     
     openni = new OpenNIDevice(openniConfigFile);
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    analyzer = new HandAnalyzer(depthWidth, depthHeight, maxDepth, openni);
-    packet = new ProcessPacket(depthWidth, depthHeight, maxDepth, this);
+    analyzer = new HandAnalyzer(depthWidth, depthHeight, openni);
+    packet = new ProcessPacket(depthWidth, depthHeight, this);
 
     tracker = new HandTracker(new CalibModel(calibrationFile), openni);
   }
@@ -108,26 +106,6 @@ public class HandTrackingEngine {
   
   public void getRgbImage(BufferedImage bi) throws GeneralException {
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
-  }
-  
-  public boolean isBgInitialized() {
-    return analyzer.isBgInitialized();
-  }
-  
-  public FloatBuffer aveBg() {
-    return analyzer.aveBg();
-  }
-  
-  public int aveBgWidth() {
-    return analyzer.aveBgWidthStep();
-  }
-  
-  public FloatBuffer diffBg() {
-    return analyzer.diffBg();
-  }
-  
-  public int diffBgWidth() {
-    return analyzer.diffBgWidthStep();
   }
   
   public boolean interactionSurfaceInitialize() {

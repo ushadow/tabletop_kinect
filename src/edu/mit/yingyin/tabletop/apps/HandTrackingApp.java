@@ -21,7 +21,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
-import edu.mit.yingyin.tabletop.models.EnvConstants;
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
@@ -100,7 +99,7 @@ public class HandTrackingApp extends KeyAdapter {
   private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
       CONFIG_DIR, "config.xml");
   private static final String DEFAULT_CALIB_FILE = FileUtil.join(DATA_DIR, 
-      "calibration/calibration.txt");
+      "calibration", "calibration.txt");
   private static final String TIME_FORMAT = "yyyy-MM-dd_HH-mm-SS";
   private static final String OUTPUT_EXTENSION = ".log";
 
@@ -161,14 +160,6 @@ public class HandTrackingApp extends KeyAdapter {
 
     String displayOnProperty = config.getProperty("display-on", "true");
 
-    int maxDepth = EnvConstants.DEFAULT_MAX_DEPTH;
-    try {
-      maxDepth = Integer.parseInt(config.getProperty("max-depth", "1600"));
-    } catch (NumberFormatException efe) {
-      System.err.println(efe.getMessage());
-      System.err.println(String.format("maxDepth = %d", maxDepth));
-    }
-
     String calibrationFile = FileUtil.join(mainDir,
         config.getProperty("calibration-file", DEFAULT_CALIB_FILE));
 
@@ -176,8 +167,7 @@ public class HandTrackingApp extends KeyAdapter {
       displayOn = false;
 
     try {
-      engine = new HandTrackingEngine(openniConfigFile, calibrationFile,
-          maxDepth);
+      engine = new HandTrackingEngine(openniConfigFile, calibrationFile);
     } catch (GeneralException ge) {
       LOGGER.info("OpenNI config file = " + openniConfigFile);
       LOGGER.severe(ge.getMessage());

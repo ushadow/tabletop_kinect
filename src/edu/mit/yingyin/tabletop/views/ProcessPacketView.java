@@ -34,6 +34,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.tabletop.models.Background;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
@@ -156,9 +157,7 @@ public class ProcessPacketView {
 
   public void update(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
-    if (histogram == null)
-      histogram = new float[packet.maxDepth() + 1];
-
+    
     fingertipView.setFingertips(packet.forelimbs, packet.forelimbFeatures,
         fingertipLabels);
 
@@ -315,14 +314,23 @@ public class ProcessPacketView {
    * @param packet
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
+    Background bg = Background.instance();
+    if (bg == null || !bg.isInitialized())
+      return;
+    
+    if (histogram == null) {
+      histogram = new float[bg.maxDepth() + 1];
+    }
+
     ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
     ByteBuffer ib = appImage.getByteBuffer();
     int widthStep = appImage.widthStep();
+    
     for (int h = 0; h < packet.height; h++)
       for (int w = 0; w < packet.width; w++) {
         int depth = packet.depthRawData[h * packet.width + w];
-        if (depth > packet.maxDepth())
-          depth = packet.maxDepth();
+        if (depth > bg.maxDepth())
+          depth = bg.maxDepth();
         ib.put(h * widthStep + w, (byte) (histogram[depth] * 255));
       }
     // Draws labeled points.
