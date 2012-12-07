@@ -68,10 +68,8 @@ public class DisplayTargetFrame extends JFrame {
     displayPoints = createDisplayPoints(frameSize);
     
     ActionListener al = new ActionListener() {
-      
       @Override
       public void actionPerformed(ActionEvent e) {
-        LOGGER.info("Timer fired.");
         currentPointIndex++;
         if (currentPointIndex < displayPoints.size())
           repaint();

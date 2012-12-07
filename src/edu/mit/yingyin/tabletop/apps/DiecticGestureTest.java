@@ -3,6 +3,8 @@ package edu.mit.yingyin.tabletop.apps;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
@@ -13,6 +15,7 @@ import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.views.DisplayTargetFrame;
 import edu.mit.yingyin.tabletop.views.Table3DFrame;
 import edu.mit.yingyin.util.CommandLineOptions;
@@ -61,33 +64,26 @@ public class DiecticGestureTest extends KeyAdapter {
       System.exit(-1);
     }
     
+    packetController = new ProcessPacketController(engine.depthWidth(),
+        engine.depthHeight(), null);
+
+    packetController.addKeyListener(this);
+    packetController.showUI();
     
     DisplayTargetFrame frame = new DisplayTargetFrame();
     frame.addKeyListener(this);
     frame.showUI();
     
-    Thread thread = new Thread() {
+    final BlockingQueue<ProcessPacket> queue = 
+        new LinkedBlockingQueue<ProcessPacket>();
+    
+    Thread producer = new Thread() {
       @Override
       public void run() {
-        // TODO Auto-generated method stub
         while (isRunning()) {
           try {
-            engine.step();
-            
-//            if (packetController != null)
-//              packetController.show(engine.packet());
-            
-//        if (engine.interactionSurfaceInitialize() && tableFrame == null) {
-//          tableFrame = new Table3DFrame(engine.interactionSurface());
-//          Rectangle rect = packetController.getViewBounds();
-//          tableFrame.setLocation(rect.width / 4, rect.height / 2);
-//          tableFrame.addKeyListener(this);
-//          engine.addListener(tableFrame);
-//          tableFrame.showUI();
-//        }
-//
-//        if (tableFrame != null)
-//          tableFrame.redraw(engine.packet());
+            ProcessPacket packet = engine.step();
+            queue.offer(packet);
           } catch (Exception ge) {
             LOGGER.severe(ge.getMessage());
           }
@@ -97,7 +93,37 @@ public class DiecticGestureTest extends KeyAdapter {
         System.exit(0);
       }
     };
-    thread.start();
+    producer.start();
+    
+    Thread consumer = new Thread() {
+      @Override
+      public void run() {
+        while (isRunning()) {
+          ProcessPacket packet;
+          try {
+            packet = queue.take();
+            packetController.show(packet);
+          if (engine.interactionSurfaceInitialize() && tableFrame == null) {
+            tableFrame = new Table3DFrame(engine.interactionSurface());
+            Rectangle rect = packetController.getViewBounds();
+            tableFrame.setLocation(rect.width / 4, rect.height / 2);
+            engine.addListener(tableFrame);
+            tableFrame.showUI();
+          }
+  
+          if (tableFrame != null)
+            tableFrame.redraw(packet);
+            packet.release();
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch (GeneralException ge) {
+            ge.printStackTrace();
+          }
+        }
+      }
+    };
+    consumer.start();
   }
   
   public void keyPressed(KeyEvent ke) {
