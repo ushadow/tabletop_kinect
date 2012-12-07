@@ -49,11 +49,11 @@ public class DisplayTargetFrame extends JFrame {
   private static final int DISPLAY_INTERVAL = 2500; // milliseconds
   private static final int NROW = 2, NCOL = 5;
   
-  private ImageComponent ic;
-  private List<Point> displayPoints;
-  private Dimension frameSize;
+  private final ImageComponent ic;
+  private final List<Point> displayPoints;
+  private final Dimension frameSize;
   private int currentPointIndex = -1;
-  private Timer timer;
+  private final Timer timer;
   
   public DisplayTargetFrame() {
     super("Display Target");
