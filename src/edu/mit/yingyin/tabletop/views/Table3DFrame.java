@@ -62,8 +62,6 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
   private static final Color3f RED = new Color3f(Color.RED);
   private static final int TABLE_WIDTH = 1200; // mm
   private static final int TABLE_HEIGHT = 920; // mm
-  private static final int IMAGE_HEIGHT = 480;
-  private static final int IMAGE_WIDTH = 640;
   
   private static final long serialVersionUID = 1L;
   private Canvas3D canvas;
@@ -76,10 +74,9 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
   private TransformGroup worldTransformGroup = new TransformGroup();
   private Point3d viewrLoc = new Point3d(-700, 0, -300);
   
-  public Table3DFrame(InteractionSurface table) {
-    setPreferredSize(new Dimension(IMAGE_WIDTH, IMAGE_HEIGHT));
-    this.table = table;
+  public Table3DFrame() {
     setLayout(new BorderLayout());
+    
     GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
     canvas = new Canvas3D(config);
     universe = new SimpleUniverse(canvas);
@@ -87,8 +84,14 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     
     worldTransformGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
     worldTransformGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+  }
+  
+  public void initTable(InteractionSurface table) {
+    this.table = table;
     startDrawing();
   }
+  
+  public boolean talbeInitialized() { return table != null; }
   
   public void showUI() {
     pack();
@@ -183,11 +186,12 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     Point3f tableCenter = table.center().value();
     addLights(scene);
 
-    frontImage = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
+    Dimension d = getPreferredSize();
+    frontImage = new BufferedImage(d.width, d.height, 
         BufferedImage.TYPE_INT_RGB);
     Graphics2D g = (Graphics2D) frontImage.getGraphics();
     g.setColor(new Color(70, 70, 140));
-    g.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+    g.fillRect(0, 0, d.width, d.height);
 
     TransformGroup axesTransformGroup = new TransformGroup();
     axesTransformGroup.addChild(createAxesGroup());

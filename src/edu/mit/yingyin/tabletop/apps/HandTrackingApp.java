@@ -124,7 +124,6 @@ public class HandTrackingApp extends KeyAdapter {
   private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
   private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
-  private Table3DFrame tableFrame;
 
   @SuppressWarnings("unchecked")
   public HandTrackingApp(String mainDir) {
@@ -204,18 +203,6 @@ public class HandTrackingApp extends KeyAdapter {
         if (packetController != null)
           packetController.show(packet);
 
-        if (displayOn && engine.interactionSurfaceInitialize() && 
-            tableFrame == null) {
-          tableFrame = new Table3DFrame(engine.interactionSurface());
-          Rectangle rect = packetController.getViewBounds();
-          tableFrame.setLocation(rect.width / 4, rect.height / 2);
-          tableFrame.addKeyListener(this);
-          engine.addListener(tableFrame);
-          tableFrame.showUI();
-        }
-
-        if (tableFrame != null)
-          tableFrame.redraw(packet);
         packet.release();
       } catch (GeneralException ge) {
         LOGGER.severe(ge.getMessage());

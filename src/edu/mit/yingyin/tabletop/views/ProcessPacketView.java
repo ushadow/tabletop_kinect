@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,6 +39,7 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Background;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
@@ -124,6 +126,7 @@ public class ProcessPacketView {
   private static final String ANALYSIS_FRAME = "Analysis";
   private static final String DEPTH_FRAME = "Depth";
   private static final String RGB_FRAME = "RGB";
+  private static final String TABLE3D_FRAME = "Table3D";
 
   private static final boolean DEFAULT_SHOW_DIAGNOSTIC_IMAGE = false;
 
@@ -133,7 +136,7 @@ public class ProcessPacketView {
   /**
    * Frames.
    */
-  private HashMap<String, JFrame> frames = new HashMap<String, JFrame>();
+  private HashMap<String, JFrame> frames = new LinkedHashMap<String, JFrame>();
   
   private IplImage analysisImage;
   private IplImage depthImage;
@@ -149,6 +152,7 @@ public class ProcessPacketView {
     this.height = height;
     frames.put(ANALYSIS_FRAME, new CanvasFrame(ANALYSIS_FRAME));
     frames.put(DEPTH_FRAME, new CanvasFrame(DEPTH_FRAME));
+    frames.put(TABLE3D_FRAME, new Table3DFrame());
     for (JFrame frame : frames.values())
       frame.setPreferredSize(new Dimension(width, height));
 
@@ -158,7 +162,14 @@ public class ProcessPacketView {
     tile();
   }
 
-  public void update(ProcessPacket packet, List<Point> fingertipLabels)
+  /**
+   * Show the visualization of the packet.
+   * 
+   * @param packet
+   * @param fingertipLabels
+   * @throws GeneralException
+   */
+  public void show(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
     
     showAnalysisImage(packet);
@@ -172,7 +183,7 @@ public class ProcessPacketView {
     if (toggleMap.get(Toggles.SHOW_RGB_IMAGE))
       showRgbImage(packet);
 
-    showHeatMap(packet);
+    showTable3DFrame(packet);
   }
 
   public Rectangle getBounds() {
@@ -195,9 +206,9 @@ public class ProcessPacketView {
     int x = 0, y = 0;
     int counter = 0;
     for (JFrame f : frames.values()) {
-      if (!f.isVisible())
-        continue;
       f.setLocation(x, y);
+      f.pack();
+      f.setVisible(true);
       counter ++;
       Dimension d = f.getPreferredSize();
       x += d.width;
@@ -269,6 +280,16 @@ public class ProcessPacketView {
     toggleMap.put(Toggles.SHOW_BOUNDING_BOX, true);
     toggleMap.put(Toggles.SHOW_LABELS, false);
   }
+  
+  private void showTable3DFrame(ProcessPacket packet) {
+    Table3DFrame f = (Table3DFrame) frames.get(TABLE3D_FRAME);
+    if (!f.talbeInitialized() && InteractionSurface.instanceInitialized()) {
+      f.initTable(InteractionSurface.instance());
+    }
+    
+    if (f.talbeInitialized())
+      f.redraw(packet);
+  }
 
   /**
    * Shows the analysis image that displays intermediate processing steps by the
@@ -322,29 +343,29 @@ public class ProcessPacketView {
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
     Background bg = Background.instance();
-    if (bg == null || !bg.isInitialized())
-      return;
-    
-    if (histogram == null) {
-      histogram = new float[bg.maxDepth() + 1];
-    }
-
-    ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
-    ByteBuffer ib = depthImage.getByteBuffer();
-    int widthStep = depthImage.widthStep();
-    
-    for (int h = 0; h < packet.height; h++)
-      for (int w = 0; w < packet.width; w++) {
-        int depth = packet.depthRawData[h * packet.width + w];
-        if (depth > bg.maxDepth())
-          depth = bg.maxDepth();
-        ib.put(h * widthStep + w, (byte) (histogram[depth] * 255));
+    if (bg != null && bg.isInitialized()) {
+      if (histogram == null) {
+        histogram = new float[bg.maxDepth() + 1];
       }
-    // Draws labeled points.
-    if (labels != null) {
-      for (Point p : labels)
-        cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
+  
+      ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
+      ByteBuffer ib = depthImage.getByteBuffer();
+      int widthStep = depthImage.widthStep();
+      
+      for (int h = 0; h < packet.height; h++)
+        for (int w = 0; w < packet.width; w++) {
+          int depth = packet.depthRawData[h * packet.width + w];
+          if (depth > bg.maxDepth())
+            depth = bg.maxDepth();
+          ib.put(h * widthStep + w, (byte) (histogram[depth] * 255));
+        }
+      // Draws labeled points.
+      if (labels != null) {
+        for (Point p : labels)
+          cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
+      }
     }
+    
     CanvasFrame frame = (CanvasFrame) frames.get(DEPTH_FRAME);
     frame.showImage(depthImage);
     frame.setTitle("Processed FrameID = " + packet.depthFrameID);
@@ -390,25 +411,5 @@ public class ProcessPacketView {
       f.showUI();
     }
     f.updateImage(packet.rgbImage());
-  }
-
-  private void showHeatMap(ProcessPacket packet) {
-    double[][] data = new double[width][height];
-    int[] depthRaw = packet.depthRawData;
-    int min = Integer.MAX_VALUE;
-    for (int h = 0; h < height; h++)
-      for (int w = 0; w < width; w++) {
-        int val = depthRaw[h * width + w];
-        if (val != 0) {
-          min = val < min ? val : min;
-          data[w][h] = val;
-        }
-      }
-
-    for (int h = 0; h < height; h++)
-      for (int w = 0; w < width; w++) {
-        if (depthRaw[h * width + w] == 0)
-          data[w][h] = min;
-      }
   }
 }

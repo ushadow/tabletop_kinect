@@ -99,7 +99,7 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
     this.packet = packet;
     List<Point> labels = allLabels.isSome() ? 
         allLabels.value().get(packet.depthFrameID) : null;
-    packetView.update(packet, labels);
+    packetView.show(packet, labels);
     fpsCounter.computeFPS();
   }
   

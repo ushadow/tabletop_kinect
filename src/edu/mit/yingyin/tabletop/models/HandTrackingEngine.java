@@ -93,7 +93,7 @@ public class HandTrackingEngine {
 
       analyzer.analyzeData(packet);
       
-      if (interactionSurfaceInitialize())
+      if (interactionSurfaceInitialized())
         tracker.update(packet.forelimbs, packet.depthFrameID);
     } catch (Exception e) {
       logger.severe(e.getMessage());
@@ -107,7 +107,7 @@ public class HandTrackingEngine {
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
   }
   
-  public boolean interactionSurfaceInitialize() {
+  public boolean interactionSurfaceInitialized() {
     return InteractionSurface.instanceInitialized();
   }
   

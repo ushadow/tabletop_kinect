@@ -102,17 +102,8 @@ public class DiecticGestureTest extends KeyAdapter {
           try {
             packet = queue.take();
             packetController.show(packet);
-          if (engine.interactionSurfaceInitialize() && tableFrame == null) {
-            tableFrame = new Table3DFrame(engine.interactionSurface());
-            Rectangle rect = packetController.getViewBounds();
-            tableFrame.setLocation(rect.width / 4, rect.height / 2);
-            engine.addListener(tableFrame);
-            tableFrame.showUI();
-          }
   
-          if (tableFrame != null)
-            tableFrame.redraw(packet);
-          packet.release();
+            packet.release();
           } catch (InterruptedException e) {
             e.printStackTrace();
           } catch (GeneralException ge) {
