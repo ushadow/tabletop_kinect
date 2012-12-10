@@ -117,6 +117,9 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     worldTransformGroup.addChild(forelimbGroup);
   }
   
+  /**
+   * Handles finger pointing hand event.
+   */
   public void fingerPointed(DiecticEvent de) {
     if (intersectionGroup != null) {
       intersectionGroup.detach();
@@ -126,13 +129,15 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     intersectionGroup.setCapability(BranchGroup.ALLOW_DETACH);
     for (Point3D p : de.pointingLocationsW()) {
       intersectionGroup.addChild(createSphere(10, 
-          new Vector3f(p.getX(), p.getY(), p.getZ())));
+          new Vector3f(p.getX(), p.getY(), p.getZ()), 
+          new Color3f(Color.BLACK)));
     }
     worldTransformGroup.addChild(intersectionGroup);
   }
   
-  private TransformGroup createSphere(float radius, Vector3f translation) {
-    Sphere sphere = createSphere(radius);
+  private TransformGroup createSphere(float radius, Vector3f translation, 
+      Color3f color) {
+    Sphere sphere = createSphere(radius, color);
     TransformGroup tg = new TransformGroup();
     Transform3D t = new Transform3D();
     t.setTranslation(new Vector3f(translation));
@@ -141,9 +146,9 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     return tg;
   }
   
-  private Sphere createSphere(float radius) {
+  private Sphere createSphere(float radius, Color3f color) {
     Appearance ap = new Appearance();
-    ap.setMaterial(new Material(RED, RED, RED, RED, 1));
+    ap.setMaterial(new Material(color, color, color, color, 1));
     return new Sphere(radius, ap);
   }
   
@@ -155,8 +160,8 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     Point3f armJointLoc = fl.armJointW();
     Point3f fingerLoc = fl.getFingertipsW().get(0);
     
-    group.addChild(createSphere(30, new Vector3f(armJointLoc)));
-    group.addChild(createSphere(10, new Vector3f(fingerLoc)));
+    group.addChild(createSphere(30, new Vector3f(armJointLoc), RED));
+    group.addChild(createSphere(10, new Vector3f(fingerLoc), RED));
     group.addChild(createLine(armJointLoc, fingerLoc, new Color3f(Color.CYAN)));
     return group;
   }
