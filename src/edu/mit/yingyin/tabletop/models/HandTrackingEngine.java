@@ -65,7 +65,7 @@ public class HandTrackingEngine {
     analyzer.release();
   }
 
-  public void addListener(IHandEventListener l) {
+  public void addHandEventListener(IHandEventListener l) {
     tracker.addListener(l);
   }
   

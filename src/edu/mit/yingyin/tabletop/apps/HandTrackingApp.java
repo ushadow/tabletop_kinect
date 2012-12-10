@@ -1,7 +1,6 @@
 package edu.mit.yingyin.tabletop.apps;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.FileInputStream;
@@ -26,7 +25,6 @@ import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
-import edu.mit.yingyin.tabletop.views.Table3DFrame;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 import edu.mit.yingyin.util.ObjectIO;
@@ -174,7 +172,7 @@ public class HandTrackingApp extends KeyAdapter {
       System.exit(-1);
     }
     handEventListener = new HandEventListener();
-    engine.addListener(handEventListener);
+    engine.addHandEventListener(handEventListener);
 
     if (displayOn) {
       try {
@@ -185,7 +183,7 @@ public class HandTrackingApp extends KeyAdapter {
 
         packetController = new ProcessPacketController(engine.depthWidth(),
             engine.depthHeight(), labels);
-
+        engine.addHandEventListener(packetController.handEventListener());
         packetController.addKeyListener(this);
 
       } catch (IOException e) {
@@ -264,7 +262,7 @@ public class HandTrackingApp extends KeyAdapter {
         displayOn == false) && 
         !engine.isDone());
   }
-  
+
   private boolean isPaused() {
     return packetController != null && paused;
   }

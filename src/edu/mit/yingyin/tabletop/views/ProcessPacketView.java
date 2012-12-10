@@ -39,6 +39,7 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Background;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
@@ -160,6 +161,10 @@ public class ProcessPacketView {
     depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     
     tile();
+  }
+  
+  public IHandEventListener handEventListener() {
+    return (Table3DFrame) frames.get(TABLE3D_FRAME);
   }
 
   /**

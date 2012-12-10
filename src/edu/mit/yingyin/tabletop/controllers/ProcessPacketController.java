@@ -14,6 +14,9 @@ import org.OpenNI.GeneralException;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView.Toggles;
@@ -27,8 +30,8 @@ import edu.mit.yingyin.util.Option.Some;
  * @author yingyin
  *
  */
-public class ProcessPacketController extends KeyAdapter implements MouseListener 
-{
+public class ProcessPacketController extends KeyAdapter 
+    implements MouseListener {
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
   private ProcessPacketView packetView;
@@ -165,5 +168,9 @@ public class ProcessPacketController extends KeyAdapter implements MouseListener
   public void mouseReleased(MouseEvent arg0) {
     // TODO Auto-generated method stub
     
+  }
+
+  public IHandEventListener handEventListener() {
+    return packetView.handEventListener();
   }
 }    

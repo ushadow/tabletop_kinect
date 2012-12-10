@@ -87,7 +87,7 @@ public class CheckerboardTestApp {
       engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE);
       packetController = new ProcessPacketController(engine.depthWidth(), 
           engine.depthHeight(), null);
-      engine.addListener(heController);
+      engine.addHandEventListener(heController);
       packetController.addKeyListener(new KeyController());
     } catch (GeneralException ge) {
       logger.severe(ge.getMessage());
