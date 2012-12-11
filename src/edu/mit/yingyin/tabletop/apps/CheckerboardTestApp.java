@@ -14,8 +14,9 @@ import javax.swing.SwingUtilities;
 
 import org.OpenNI.GeneralException;
 
-import edu.mit.yingyin.tabletop.controllers.HandEventsController;
+import edu.mit.yingyin.tabletop.controllers.DisplayImageFrame;
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.util.FileUtil;
@@ -51,9 +52,6 @@ public class CheckerboardTestApp {
   private static final String IMAGE_FILE_NAME = FileUtil.join(MAIN_DIR,
       CALIB_DIR, "checkerboard.png");
   
-  private static final int TABLETOP_WIDTH = 1920 * 2;
-  private static final int TABLETOP_HEIGHT = 1080 * 2;
-  
   public static void main(String[] args) {
     final CheckerboardTestApp controller = 
         new CheckerboardTestApp();
@@ -76,14 +74,15 @@ public class CheckerboardTestApp {
   }
   
   private HandTrackingEngine engine;
-  private HandEventsController heController;
+  private DisplayImageFrame heController;
   private ProcessPacketController packetController;
   
   public CheckerboardTestApp() {
     try {
       BufferedImage image = ImageIO.read(new File(IMAGE_FILE_NAME));
-      heController = new HandEventsController(image, 
-          new Dimension(TABLETOP_WIDTH, TABLETOP_HEIGHT));
+      heController = new DisplayImageFrame(image, 
+          new Dimension(EnvConstant.TABLETOP_WIDTH, 
+                        EnvConstant.TABLETOP_HEIGHT));
       engine = new HandTrackingEngine(OPENNI_CONFIG_FILE, CALIB_FILE);
       packetController = new ProcessPacketController(engine.depthWidth(), 
           engine.depthHeight(), null);

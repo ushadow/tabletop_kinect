@@ -1,8 +1,9 @@
 package edu.mit.yingyin.tabletop.apps;
 
-import java.awt.Rectangle;
+import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -14,14 +15,23 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
+import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
+import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
+import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.views.DisplayTargetFrame;
-import edu.mit.yingyin.tabletop.views.Table3DFrame;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 
-public class DiecticGestureTest extends KeyAdapter {
+/**
+ * An application for testing diectic gesture.
+ * @author yingyin
+ *
+ */
+public class DiecticGestureTest extends KeyAdapter implements 
+    IHandEventListener {
   private static final Logger LOGGER = Logger.getLogger(
       DiecticGestureTest.class.getName());
   private static final String CONFIG_DIR = "config";
@@ -49,7 +59,8 @@ public class DiecticGestureTest extends KeyAdapter {
 
   private HandTrackingEngine engine;
   private ProcessPacketController packetController;
-  private Table3DFrame tableFrame;
+  private DisplayTargetFrame targetFrame = new DisplayTargetFrame(
+      new Dimension(EnvConstant.TABLETOP_WIDTH, EnvConstant.TABLETOP_HEIGHT));
   
   public DiecticGestureTest(String mainDir) {
     String openniConfigFile = FileUtil.join(mainDir, 
@@ -67,11 +78,11 @@ public class DiecticGestureTest extends KeyAdapter {
     packetController = new ProcessPacketController(engine.depthWidth(),
         engine.depthHeight(), null);
 
+    engine.addHandEventListener(this);
     packetController.addKeyListener(this);
     
-    DisplayTargetFrame frame = new DisplayTargetFrame();
-    frame.addKeyListener(this);
-    frame.showUI();
+    targetFrame.addKeyListener(this);
+    targetFrame.showUI();
     
     final BlockingQueue<ProcessPacket> queue = 
         new LinkedBlockingQueue<ProcessPacket>();
@@ -128,5 +139,16 @@ public class DiecticGestureTest extends KeyAdapter {
   
   private boolean isRunning() {
     return !engine.isDone();
+  }
+
+  @Override
+  public void fingerPressed(List<ManipulativeEvent> feList) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void fingerPointed(DiecticEvent de) {
+    targetFrame.update(de.pointingLocationsI());
   }
 }

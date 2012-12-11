@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+
+import org.OpenNI.Point3D;
 
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.util.SystemUtil;
@@ -26,6 +29,7 @@ import edu.mit.yingyin.util.SystemUtil;
 public class DisplayTargetFrame extends JFrame {
   private class TargetImageComponent extends ImageComponent {
     private static final long serialVersionUID = 7001378911756844295L;
+    private static final int OVAL_WIDTH = 100;
     
     public TargetImageComponent(BufferedImage img) {
       super(img);
@@ -37,7 +41,17 @@ public class DisplayTargetFrame extends JFrame {
       g2d.setColor(Color.red);
       if (currentPointIndex >= 0 && currentPointIndex < displayPoints.size()) {
         Point p = displayPoints.get(currentPointIndex);
-        g2d.fillOval(p.x, p.y, 100, 100);
+        g2d.fillOval(p.x - OVAL_WIDTH, p.y - OVAL_WIDTH, OVAL_WIDTH, 
+                     OVAL_WIDTH);
+      }
+      if (pintsToDraw != null) {
+        g2d.setColor(Color.blue);
+        for (Point3D point : pintsToDraw) {
+          Point scaled = scale(point);
+          SwingUtilities.convertPointFromScreen(scaled, this);
+          g2d.fillOval(scaled.x - OVAL_WIDTH, scaled.y - OVAL_WIDTH, OVAL_WIDTH, 
+                       OVAL_WIDTH);
+        }
       }
     }
   }
@@ -51,12 +65,15 @@ public class DisplayTargetFrame extends JFrame {
   
   private final ImageComponent ic;
   private final List<Point> displayPoints;
-  private final Dimension frameSize;
+  private final Dimension frameSize, tableScreenSize;
   private int currentPointIndex = -1;
   private final Timer timer;
+  private Point3D[] pintsToDraw;
   
-  public DisplayTargetFrame() {
+  public DisplayTargetFrame(Dimension tableScreenRes) {
     super("Display Target");
+    this.tableScreenSize = tableScreenRes;
+
     setUndecorated(true);
     setResizable(false);
     frameSize = SystemUtil.getVirtualScreenBounds().getSize();
@@ -84,6 +101,11 @@ public class DisplayTargetFrame extends JFrame {
     timer.start();
   }
   
+  public void update(Point3D[] points) {
+    pintsToDraw = points;
+    ic.repaint();
+  }
+  
   private List<Point> createDisplayPoints(Dimension bound) {
     List<Point> points = new ArrayList<Point>();
     int dx = bound.width / (NCOL + 1);
@@ -95,4 +117,8 @@ public class DisplayTargetFrame extends JFrame {
     return points;
   }
   
+  private Point scale(Point3D p) {
+    return new Point((int) (p.getX() * frameSize.width / tableScreenSize.width), 
+        (int) (p.getY() * frameSize.height / tableScreenSize.height));
+  }
 }

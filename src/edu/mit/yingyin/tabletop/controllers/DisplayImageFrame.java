@@ -28,7 +28,7 @@ import edu.mit.yingyin.util.SystemUtil;
  * @author yingyin
  *
  */
-public class HandEventsController extends KeyAdapter 
+public class DisplayImageFrame extends KeyAdapter 
     implements IHandEventListener {
   
   private class TestImageComponent extends ImageComponent {
@@ -81,7 +81,7 @@ public class HandEventsController extends KeyAdapter
    * @param image the image to be displayed.
    * @throws IOException
    */
-  public HandEventsController(BufferedImage image, Dimension screenResolution) 
+  public DisplayImageFrame(BufferedImage image, Dimension screenResolution) 
       throws IOException {
     tabletopRes = screenResolution;
     TestImageComponent ic = new TestImageComponent(scaleImage(image));
