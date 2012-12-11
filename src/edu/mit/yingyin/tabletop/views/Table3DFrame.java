@@ -43,9 +43,6 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import edu.mit.yingyin.tabletop.models.Forelimb;
-import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
-import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
-import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.util.Geometry;
@@ -55,7 +52,7 @@ import edu.mit.yingyin.util.Geometry;
  * @author yingyin
  *
  */
-public class Table3DFrame extends JFrame implements IHandEventListener {
+public class Table3DFrame extends JFrame {
 
   private static final Logger LOGGER = Logger.getLogger(
       Table3DFrame.class.getName());
@@ -118,16 +115,16 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
   }
   
   /**
-   * Handles finger pointing hand event.
+   * Redraws intersection points.
    */
-  public void fingerPointed(DiecticEvent de) {
+  public void redrawIntersections(Point3D[] intersections) {
     if (intersectionGroup != null) {
       intersectionGroup.detach();
       worldTransformGroup.removeChild(intersectionGroup);
     }
     intersectionGroup = new BranchGroup();
     intersectionGroup.setCapability(BranchGroup.ALLOW_DETACH);
-    for (Point3D p : de.pointingLocationsW()) {
+    for (Point3D p : intersections) {
       intersectionGroup.addChild(createSphere(10, 
           new Vector3f(p.getX(), p.getY(), p.getZ()), 
           new Color3f(Color.BLACK)));
@@ -314,11 +311,5 @@ public class Table3DFrame extends JFrame implements IHandEventListener {
     view.setBackClipDistance(1200);
     view.setFrontClipDistance(1);
     view.setFieldOfView(2 * Math.atan2(600, 1200));
-  }
-
-  @Override
-  public void fingerPressed(List<ManipulativeEvent> feList) {
-    // TODO Auto-generated method stub
-    
   }
 }

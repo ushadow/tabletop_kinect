@@ -183,7 +183,7 @@ public class HandTrackingApp extends KeyAdapter {
 
         packetController = new ProcessPacketController(engine.depthWidth(),
             engine.depthHeight(), labels);
-        engine.addHandEventListener(packetController.handEventListener());
+        engine.addHandEventListener(packetController);
         packetController.addKeyListener(this);
 
       } catch (IOException e) {

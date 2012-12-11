@@ -31,7 +31,7 @@ import edu.mit.yingyin.util.Option.Some;
  *
  */
 public class ProcessPacketController extends KeyAdapter 
-    implements MouseListener {
+    implements MouseListener, IHandEventListener {
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
   private ProcessPacketView packetView;
@@ -170,7 +170,13 @@ public class ProcessPacketController extends KeyAdapter
     
   }
 
-  public IHandEventListener handEventListener() {
-    return packetView.handEventListener();
+  @Override
+  public void fingerPressed(List<ManipulativeEvent> feList) {
+    
+  }
+
+  @Override
+  public void fingerPointed(DiecticEvent de) {
+    packetView.redrawIntersections(de.pointingLocationsW());
   }
 }    

@@ -26,6 +26,7 @@ import javax.swing.JFrame;
 import javax.vecmath.Point3f;
 
 import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
 
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.cpp.opencv_core.CvPoint;
@@ -39,7 +40,6 @@ import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Background;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
-import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
@@ -163,8 +163,9 @@ public class ProcessPacketView {
     tile();
   }
   
-  public IHandEventListener handEventListener() {
-    return (Table3DFrame) frames.get(TABLE3D_FRAME);
+  public void redrawIntersections(Point3D[] intersections) {
+    ((Table3DFrame) frames.get(TABLE3D_FRAME)).redrawIntersections(
+        intersections);
   }
 
   /**
@@ -367,7 +368,8 @@ public class ProcessPacketView {
       // Draws labeled points.
       if (labels != null) {
         for (Point p : labels)
-          cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 0);
+          cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 
+                   0);
       }
     }
     
