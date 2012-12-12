@@ -53,6 +53,7 @@ public class HandTracker {
   
   public static class DiecticEvent {
     private Point3D[] pointingLocationsI, pointingLocationsW;
+    private Point2f[] pointingLocationsD;
     
     /**
      * 
@@ -61,9 +62,11 @@ public class HandTracker {
      *    pointingLocationsW should be the same.
      */
     public DiecticEvent(Point3D[] imagePoints, 
-                        Point3D[] worldPoints) {
+                        Point3D[] worldPoints,
+                        Point2f[] displayPoints) {
       pointingLocationsI = imagePoints;
       pointingLocationsW = worldPoints;
+      pointingLocationsD = displayPoints;
     }
     
     public Point3D[] pointingLocationsI() {
@@ -72,6 +75,14 @@ public class HandTracker {
     
     public Point3D[] pointingLocationsW() {
       return copyArray(pointingLocationsW);
+    }
+    
+    /**
+     * Caller should not change the returned value.
+     * @return
+     */
+    public Point2f[] pointingLocationsD() {
+      return pointingLocationsD;
     }
     
     private Point3D[] copyArray(Point3D[] points) {
@@ -117,11 +128,19 @@ public class HandTracker {
     }
     try {
       List<Point3D> intersections = dgh.update(forelimbs);
-      Point3D[] intersectionsW = new Point3D[intersections.size()];
+      int size = intersections.size();
+      Point3D[] intersectionsW = new Point3D[size];
       intersections.toArray(intersectionsW);
       Point3D[] intersectionsI = openni.convertRealWorldToProjective(
           intersectionsW);
-      DiecticEvent de = new DiecticEvent(intersectionsI, intersectionsW);
+      Point2f[] intersectionsD = new Point2f[size];
+      for (int i = 0; i < size; i++) {
+        Point3D imageP = intersectionsI[i];
+        intersectionsD[i] = calibExample.imageToDisplayCoords(imageP.getX(), 
+            imageP.getY());
+      }
+      DiecticEvent de = new DiecticEvent(intersectionsI, intersectionsW, 
+          intersectionsD);
       for (IHandEventListener l : listeners)
         l.fingerPointed(de);
     } catch (StatusException e) {
@@ -148,7 +167,7 @@ public class HandTracker {
     for (Forelimb forelimb : forelimbs) 
       for (Point3f tip : forelimb.getFingertipsI())
         fingerEventList.add(createFingerEvent(tip, frameID, 
-                                            FingerEventType.PRESSED));
+                                              FingerEventType.PRESSED));
     return fingerEventList;
   }
 
