@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
@@ -20,7 +21,8 @@ import edu.mit.yingyin.util.FileUtil;
  *
  */
 public class CalibLabelModel {
-
+  private static final Logger LOGGER = Logger.getLogger(
+      CalibLabelModel.class.getName());
   private static final int NUM_ROW = 6;
   private static final int NUM_COL = 8;
 
@@ -110,7 +112,7 @@ public class CalibLabelModel {
       ps = new PrintStream(new FileOutputStream(fileName));
       for (Point p : imagePoints) 
         ps.println(p.x + " " + p.y);
-      System.out.println("Written to file.");
+      LOGGER.info("Written to file.");
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } finally {

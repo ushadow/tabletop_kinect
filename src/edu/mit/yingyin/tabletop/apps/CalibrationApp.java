@@ -17,11 +17,15 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.vecmath.Point2f;
 
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+
 import edu.mit.yingyin.calib.CalibLabelController;
 import edu.mit.yingyin.calib.CalibLabelModel;
 import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.calib.CalibModel.CalibMethodName;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 
 /**
@@ -33,15 +37,28 @@ import edu.mit.yingyin.util.FileUtil;
  *
  */
 public class CalibrationApp extends KeyAdapter {
-  private static final Logger logger = Logger.getLogger(
+  private static final Logger LOGGER = Logger.getLogger(
       CalibrationApp.class.getName());
 
   private static final int WIDTH = 640, HEIGHT = 480;
   
-  private static final String DEFAULT_CALIB_DIR = "data/calibration/";
+  private static final String DEFAULT_CALIB_DIR = FileUtil.join("data", 
+                                                                "calibration");
+  private static final String CONFIG_DIR = "config";
+  private static final String APP_PROPS = FileUtil.join(CONFIG_DIR, 
+      "calibration.properties"); 
   
   public static void main(String args[]) {
-    new CalibrationApp(args);
+    @SuppressWarnings("static-access")
+    Option mainDirOpt = OptionBuilder.withArgName("main directory").withLongOpt(
+        "dir").hasArg().withDescription(
+        "The main directory for input and output. "
+            + "The configuration file should be in <dir>/config/folder."
+            + "The default dir is the current directory.").create("d");
+    CommandLineOptions.addOption(mainDirOpt);
+    CommandLineOptions.parse(args);
+    String mainDir = CommandLineOptions.getOptionValue("d", ".");
+    new CalibrationApp(mainDir);
   }
 
   public void keyPressed(KeyEvent ke) {
@@ -79,20 +96,16 @@ public class CalibrationApp extends KeyAdapter {
   private boolean isCurrentLabelImageTest = false;
   private boolean isCurrentLabelImageScrnCoord = true;
 
-  public CalibrationApp(String args[]) {
+  public CalibrationApp(String mainDir) {
     Properties config = new Properties();
     FileInputStream in = null;
-    if (args.length < 1) {
-      System.out.println("Usage: CalibrationAppController <config_file_name>");
-      System.exit(-1);
-    }
 
     try {
-      in = new FileInputStream(args[0]);
+      in = new FileInputStream(FileUtil.join(mainDir, APP_PROPS));
       config.load(in);
       in.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println(fnfe.getMessage());
+      LOGGER.severe(fnfe.getMessage());
       System.exit(-1);
     } catch (IOException e) {
       e.printStackTrace();
@@ -100,31 +113,39 @@ public class CalibrationApp extends KeyAdapter {
     }
 
     String calibDir = config.getProperty("calibration-dir", DEFAULT_CALIB_DIR);
+    calibDir = FileUtil.join(mainDir, calibDir);
     
     String camImgPath = config.getProperty("cam-depth-image", null);
-    camImgPath = camImgPath == null ? null : calibDir + camImgPath;
+    camImgPath = camImgPath == null ? null : 
+                                      FileUtil.join(calibDir, camImgPath);
     
-    camTestImgPath = config.getProperty("cam-depth-test-image", null);
-    camTestImgPath = camTestImgPath == null ? null : calibDir + camTestImgPath;
+    camTestImgPath = config.getProperty("cam-depth-image-t", null);
+    camTestImgPath = camTestImgPath == null ? 
+        null : FileUtil.join(calibDir, camTestImgPath);
     
     String scrnImagePath = config.getProperty("screen-image", null);
-    scrnImagePath = scrnImagePath == null ? null : calibDir + scrnImagePath; 
+    scrnImagePath = scrnImagePath == null ? 
+        null : FileUtil.join(calibDir, scrnImagePath); 
     
     String screenPtsPath = config.getProperty("screen-points", null);
-    screenPtsPath = screenPtsPath == null ? null : calibDir + screenPtsPath;
+    screenPtsPath = screenPtsPath == null ? 
+        null : FileUtil.join(calibDir, screenPtsPath);
     
     String camPtsPath = config.getProperty("cam-points", null);
-    camPtsPath = camPtsPath == null ? null : calibDir + camPtsPath;
+    camPtsPath = camPtsPath == null ? 
+        null : FileUtil.join(calibDir, camPtsPath);
     
     String camPtsTestPath = config.getProperty("cam-points-t", null);
-    camPtsTestPath = camPtsTestPath == null ? null : calibDir + camPtsTestPath;
+    camPtsTestPath = camPtsTestPath == null ? 
+        null : FileUtil.join(calibDir, camPtsTestPath);
     
     String screenPtsTestPath = config.getProperty("screen-points-t", null);
-    screenPtsTestPath = screenPtsTestPath == null ? null : 
-      calibDir + screenPtsTestPath;
+    screenPtsTestPath = screenPtsTestPath == null ? 
+        null : FileUtil.join(calibDir, screenPtsTestPath);
     
     savePath = config.getProperty("save-path", null);
-    savePath = savePath == null ? null : calibDir + savePath;
+    savePath = savePath == null ? 
+        null : FileUtil.join(calibDir, savePath);
     
     calibMethodStr = config.getProperty("calib-method", "UNDISTORT");
     
@@ -143,7 +164,7 @@ public class CalibrationApp extends KeyAdapter {
     try {
       calibMethod = CalibMethodName.valueOf(calibMethodStr);
     } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
+      LOGGER.severe(e.getMessage());
       System.exit(-1);
     }
     
@@ -181,10 +202,11 @@ public class CalibrationApp extends KeyAdapter {
         ImageIO.write(image, "PNG", 
             new File(FileUtil.setExtension(imagePath, "png")));
       } else if (imagePath.endsWith("png")) {
+        LOGGER.info(imagePath);
         image = ImageIO.read(new File(imagePath));
       }
     } catch (IOException e) {
-      System.err.println(e.getMessage());
+      LOGGER.severe(e.getMessage());
       System.exit(-1);
     }
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
@@ -202,7 +224,7 @@ public class CalibrationApp extends KeyAdapter {
       while (scanner.hasNext()) 
         points.add(new Point2f(scanner.nextInt(), scanner.nextInt()));
     } catch (FileNotFoundException e) {
-      System.err.println("CalibrationApp:" + e.getMessage());
+      LOGGER.severe("CalibrationApp:" + e.getMessage());
       System.exit(-1);
     } finally {
       scanner.close();
@@ -221,13 +243,13 @@ public class CalibrationApp extends KeyAdapter {
     
     if (isScrnCoord) {
       screenPoints = points;
-      logger.info("Updated screen points");
+      LOGGER.info("Updated screen points");
     } else if (isTest) {
       cameraPointsTest = points;
-      logger.info("Updated camera image test points");
+      LOGGER.info("Updated camera image test points");
     } else {
       cameraPoints = points;
-      logger.info("Updated camera image points");
+      LOGGER.info("Updated camera image points");
     }
   }
   
@@ -236,21 +258,21 @@ public class CalibrationApp extends KeyAdapter {
    */
   private void calibrate() {
     if (screenPoints == null || screenPoints.isEmpty()) {
-      logger.warning("No screen points.");
+      LOGGER.warning("No screen points.");
       return;
     }
     if (cameraPoints == null || cameraPoints.isEmpty()) {
-      logger.warning("No camera points.");
+      LOGGER.warning("No camera points.");
       return;
     }
    
     if (screenPoints.size() != cameraPoints.size()) {
-      logger.warning("Dispaly image points and camera image points sizes " +
+      LOGGER.warning("Dispaly image points and camera image points sizes " +
       		"are not the same. No calibraiton is done.");
       return;
     }
     
-    logger.info("Calibration method: " + calibMethodStr);
+    LOGGER.info("Calibration method: " + calibMethodStr);
     CalibModel example = 
       new CalibModel(screenPoints, cameraPoints, calibMethod);
     System.out.println(example.toString());
@@ -263,7 +285,7 @@ public class CalibrationApp extends KeyAdapter {
       example.printImageToDisplayCoordsErrors(screenPointsTest, 
           cameraPointsTest);
     } else {
-      logger.warning("No test data.");
+      LOGGER.warning("No test data.");
     }
     
     if (savePath != null)

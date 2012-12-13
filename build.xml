@@ -56,8 +56,8 @@
         </java>
     </target>
  
-    <target name="CalibrationAppController">
-      <java classname="edu.mit.yingyin.tabletop.apps.CalibrationAppController" failonerror="true" fork="yes">
+    <target name="CalibrationApp">
+      <java classname="edu.mit.yingyin.tabletop.apps.CalibrationApp" failonerror="true" fork="yes">
 	      <classpath refid="tabletop_kinect.classpath"/>
         <arg value="config/calibration.properties"/>
       </java>
