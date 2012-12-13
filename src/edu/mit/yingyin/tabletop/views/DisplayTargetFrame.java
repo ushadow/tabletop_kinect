@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.vecmath.Point2f;
 
 import org.OpenNI.Point3D;
 
@@ -46,7 +47,7 @@ public class DisplayTargetFrame extends JFrame {
       }
       if (pintsToDraw != null) {
         g2d.setColor(Color.blue);
-        for (Point3D point : pintsToDraw) {
+        for (Point2f point : pintsToDraw) {
           Point scaled = scale(point);
           SwingUtilities.convertPointFromScreen(scaled, this);
           g2d.fillOval(scaled.x - OVAL_WIDTH, scaled.y - OVAL_WIDTH, OVAL_WIDTH, 
@@ -68,7 +69,7 @@ public class DisplayTargetFrame extends JFrame {
   private final Dimension frameSize, tableScreenSize;
   private int currentPointIndex = -1;
   private final Timer timer;
-  private Point3D[] pintsToDraw;
+  private Point2f[] pintsToDraw;
   
   public DisplayTargetFrame(Dimension tableScreenRes) {
     super("Display Target");
@@ -101,7 +102,7 @@ public class DisplayTargetFrame extends JFrame {
     timer.start();
   }
   
-  public void update(Point3D[] points) {
+  public void update(Point2f[] points) {
     pintsToDraw = points;
     ic.repaint();
   }
@@ -117,7 +118,7 @@ public class DisplayTargetFrame extends JFrame {
     return points;
   }
   
-  private Point scale(Point3D p) {
+  private Point scale(Point2f p) {
     return new Point((int) (p.getX() * frameSize.width / tableScreenSize.width), 
         (int) (p.getY() * frameSize.height / tableScreenSize.height));
   }

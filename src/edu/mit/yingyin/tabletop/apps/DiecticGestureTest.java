@@ -149,6 +149,6 @@ public class DiecticGestureTest extends KeyAdapter implements
 
   @Override
   public void fingerPointed(DiecticEvent de) {
-    targetFrame.update(de.pointingLocationsI());
+    targetFrame.update(de.pointingLocationsD());
   }
 }
