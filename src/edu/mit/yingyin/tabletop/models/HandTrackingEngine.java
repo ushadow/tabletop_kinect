@@ -1,13 +1,11 @@
 package edu.mit.yingyin.tabletop.models;
 
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
 import edu.mit.yingyin.calib.CalibModel;
-import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 

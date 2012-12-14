@@ -18,5 +18,5 @@ import edu.mit.yingyin.tabletop.models.TableTest;
                CalibrationExampleTest.class, JavaCVTest.class,
                HandTrackingEngineTest.class, 
                TableTest.class})
-public class AllTests {
-}
+
+public class TabletopTests {}

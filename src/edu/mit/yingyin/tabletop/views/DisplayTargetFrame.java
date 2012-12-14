@@ -17,8 +17,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.vecmath.Point2f;
 
-import org.OpenNI.Point3D;
-
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.util.SystemUtil;
 
