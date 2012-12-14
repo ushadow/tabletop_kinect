@@ -544,9 +544,27 @@ public class ImageConvertUtils {
     for (int i = 0; i < totalPixels; i++) {
       short a = array[i];
       int v = a & 0x0000ffff;
-      if (v < 0 || v > histogram.length)
+      if (v < 0)
         v = 0;
+      if (v >= histogram.length)
+        v = histogram.length - 1;
       imageArray[i] = (short)(histogram[v] * 65535);
+    }
+  }
+  
+  public static void histogramToBufferedImageUShort(int[] array, 
+      float[] histogram, BufferedImage bi) {
+    short[] imageArray = ((DataBufferUShort) bi.getRaster().getDataBuffer()).
+        getData();
+    int totalPixels = bi.getWidth() * bi.getHeight();
+    int max = 2 << 16 - 1;
+    for (int i = 0; i < totalPixels; i++) {
+      int v = array[i];
+      if (v < 0)
+        v = 0;
+      if (v >= histogram.length)
+        v = histogram.length - 1;
+      imageArray[i] = (short)(histogram[v] * max);
     }
   }
   

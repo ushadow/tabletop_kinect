@@ -24,6 +24,7 @@ import edu.mit.yingyin.calib.CalibLabelController;
 import edu.mit.yingyin.calib.CalibLabelModel;
 import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.calib.CalibModel.CalibMethodName;
+import edu.mit.yingyin.calib.OpenniViewThread;
 import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
@@ -37,6 +38,10 @@ import edu.mit.yingyin.util.FileUtil;
  *
  */
 public class CalibrationApp extends KeyAdapter {
+  private static enum LabelState {
+    Screen, Image, ScreenTest, ImageTest;
+  };
+  
   private static final Logger LOGGER = Logger.getLogger(
       CalibrationApp.class.getName());
 
@@ -47,6 +52,8 @@ public class CalibrationApp extends KeyAdapter {
   private static final String CONFIG_DIR = "config";
   private static final String APP_PROPS = FileUtil.join(CONFIG_DIR, 
       "calibration.properties"); 
+  private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
+      CONFIG_DIR, "config.xml");
   
   public static void main(String args[]) {
     @SuppressWarnings("static-access")
@@ -61,40 +68,19 @@ public class CalibrationApp extends KeyAdapter {
     new CalibrationApp(mainDir);
   }
 
-  public void keyPressed(KeyEvent ke) {
-    switch (ke.getKeyCode()) {
-      case KeyEvent.VK_A:
-        calibrate();
-        break;
-      case KeyEvent.VK_N:
-        // Show the next image to label.
-        if (calibLabelController != null)
-          calibLabelController.dispose();
-        updatePoints(isCurrentLabelImageScrnCoord , isCurrentLabelImageTest);
-        if (!isCurrentLabelImageScrnCoord && !isCurrentLabelImageTest) {
-          isCurrentLabelImageTest = true;
-          labelImage(camTestImgPath, isCurrentLabelImageScrnCoord);
-        }
-        break;
-      case KeyEvent.VK_Q:
-      case KeyEvent.VK_ESCAPE:
-        System.exit(0);
-        break;
-    default: break;
-    }
-  }
-
   private List<Point2f> screenPoints;
-  private List<Point2f> cameraPoints;
+  private List<Point2f> imagePoints;
   private List<Point2f> screenPointsTest;
-  private List<Point2f> cameraPointsTest;
+  private List<Point2f> imagePointsTest;
   private CalibLabelModel calibLabelModel;
   private CalibLabelController calibLabelController;
   private CalibMethodName calibMethod = CalibMethodName.UNDISTORT;
   private String calibMethodStr;
   private String savePath, camTestImgPath;
-  private boolean isCurrentLabelImageTest = false;
+  private final OpenniViewThread openniViewThread;
   private boolean isCurrentLabelImageScrnCoord = true;
+  private LabelState currentLabelState = LabelState.Screen;
+  private final String fullCalibDir;
 
   public CalibrationApp(String mainDir) {
     Properties config = new Properties();
@@ -108,44 +94,50 @@ public class CalibrationApp extends KeyAdapter {
       LOGGER.severe(fnfe.getMessage());
       System.exit(-1);
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.severe(e.getMessage());
       System.exit(-1);
     }
+    
+    String openniConfigFile = FileUtil.join(mainDir,
+        config.getProperty("openni-config", DEFAULT_OPENNI_CONFIG_FILE));
+    openniViewThread = new OpenniViewThread(openniConfigFile);
+    openniViewThread.addKeyListener(this);
+    openniViewThread.start();
 
     String calibDir = config.getProperty("calibration-dir", DEFAULT_CALIB_DIR);
-    calibDir = FileUtil.join(mainDir, calibDir);
+    fullCalibDir = FileUtil.join(mainDir, calibDir);
     
     String camImgPath = config.getProperty("cam-depth-image", null);
     camImgPath = camImgPath == null ? null : 
-                                      FileUtil.join(calibDir, camImgPath);
+                                      FileUtil.join(fullCalibDir, camImgPath);
     
     camTestImgPath = config.getProperty("cam-depth-image-t", null);
     camTestImgPath = camTestImgPath == null ? 
-        null : FileUtil.join(calibDir, camTestImgPath);
+        null : FileUtil.join(fullCalibDir, camTestImgPath);
     
     String scrnImagePath = config.getProperty("screen-image", null);
     scrnImagePath = scrnImagePath == null ? 
-        null : FileUtil.join(calibDir, scrnImagePath); 
+        null : FileUtil.join(fullCalibDir, scrnImagePath); 
     
     String screenPtsPath = config.getProperty("screen-points", null);
     screenPtsPath = screenPtsPath == null ? 
-        null : FileUtil.join(calibDir, screenPtsPath);
+        null : FileUtil.join(fullCalibDir, screenPtsPath);
     
     String camPtsPath = config.getProperty("cam-points", null);
     camPtsPath = camPtsPath == null ? 
-        null : FileUtil.join(calibDir, camPtsPath);
+        null : FileUtil.join(fullCalibDir, camPtsPath);
     
     String camPtsTestPath = config.getProperty("cam-points-t", null);
     camPtsTestPath = camPtsTestPath == null ? 
-        null : FileUtil.join(calibDir, camPtsTestPath);
+        null : FileUtil.join(fullCalibDir, camPtsTestPath);
     
     String screenPtsTestPath = config.getProperty("screen-points-t", null);
     screenPtsTestPath = screenPtsTestPath == null ? 
-        null : FileUtil.join(calibDir, screenPtsTestPath);
+        null : FileUtil.join(fullCalibDir, screenPtsTestPath);
     
     savePath = config.getProperty("save-path", null);
     savePath = savePath == null ? 
-        null : FileUtil.join(calibDir, savePath);
+        null : FileUtil.join(fullCalibDir, savePath);
     
     calibMethodStr = config.getProperty("calib-method", "UNDISTORT");
     
@@ -153,13 +145,13 @@ public class CalibrationApp extends KeyAdapter {
       screenPoints = readPointsFromFile(screenPtsPath);
     
     if (camPtsPath != null)
-      cameraPoints = readPointsFromFile(camPtsPath);
+      imagePoints = readPointsFromFile(camPtsPath);
     
     if (screenPtsTestPath != null)
       screenPointsTest = readPointsFromFile(screenPtsTestPath);
     
     if (camPtsTestPath != null)
-      cameraPointsTest = readPointsFromFile(camPtsTestPath);
+      imagePointsTest = readPointsFromFile(camPtsTestPath);
     
     try {
       calibMethod = CalibMethodName.valueOf(calibMethodStr);
@@ -174,19 +166,55 @@ public class CalibrationApp extends KeyAdapter {
       if (camImgPath != null) {
         firstImage = camImgPath;
         isCurrentLabelImageScrnCoord = false;
-        isCurrentLabelImageTest = false;
       } else if (camTestImgPath != null) {
         firstImage = camTestImgPath;
         isCurrentLabelImageScrnCoord = false;
-        isCurrentLabelImageTest = true;
       } else if (scrnImagePath != null) {
         firstImage = scrnImagePath;
         isCurrentLabelImageScrnCoord = true;
-        isCurrentLabelImageTest = false;
       }
       labelImage(firstImage, isCurrentLabelImageScrnCoord);
     } else {
       calibrate();
+    }
+  }
+
+  public void keyPressed(KeyEvent ke) {
+    switch (ke.getKeyCode()) {
+      case KeyEvent.VK_1:
+        currentLabelState = LabelState.Screen;
+        updatePoints(currentLabelState);
+        break;
+      case KeyEvent.VK_2:
+        currentLabelState = LabelState.Image;
+        updatePoints(currentLabelState);
+        break;
+      case KeyEvent.VK_3:
+        currentLabelState = LabelState.ScreenTest;
+        updatePoints(currentLabelState);
+        break;
+      case KeyEvent.VK_4:
+        currentLabelState = LabelState.ImageTest;
+        updatePoints(currentLabelState);
+        break;
+      case KeyEvent.VK_A:
+        calibrate();
+        break;
+      case KeyEvent.VK_P:
+        BufferedImage bi = openniViewThread.capture();
+        labelImage(bi, "cam.pts", false);
+        break;
+      case KeyEvent.VK_Q:
+      case KeyEvent.VK_ESCAPE:
+        openniViewThread.stopRunning();
+        try {
+          openniViewThread.join();
+        } catch (InterruptedException e) {
+          LOGGER.severe(e.getMessage());
+        }
+        System.exit(0);
+        break;
+      default: break;
     }
   }
   
@@ -202,7 +230,6 @@ public class CalibrationApp extends KeyAdapter {
         ImageIO.write(image, "PNG", 
             new File(FileUtil.setExtension(imagePath, "png")));
       } else if (imagePath.endsWith("png")) {
-        LOGGER.info(imagePath);
         image = ImageIO.read(new File(imagePath));
       }
     } catch (IOException e) {
@@ -210,7 +237,12 @@ public class CalibrationApp extends KeyAdapter {
       System.exit(-1);
     }
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
-    calibLabelModel = new CalibLabelModel(image, ptsFileName, isScrnCoord);
+    labelImage(image, ptsFileName, isScrnCoord);
+  }
+  
+  private void labelImage(BufferedImage bi, String ptsFileName, 
+      boolean isScrnCoord) {
+    calibLabelModel = new CalibLabelModel(bi, ptsFileName, isScrnCoord);
     calibLabelController = new CalibLabelController(calibLabelModel);
     calibLabelController.addKeyListener(this);
     calibLabelController.showUI();
@@ -232,7 +264,7 @@ public class CalibrationApp extends KeyAdapter {
     return points;
   }
     
-  private void updatePoints(boolean isScrnCoord, boolean isTest) {
+  private void updatePoints(LabelState labelState) {
     if (calibLabelModel == null) 
       return;
     
@@ -241,15 +273,28 @@ public class CalibrationApp extends KeyAdapter {
     for (Point p : calibLabelModel.getImagePoints())
       points.add(new Point2f(p.x, p.y));
     
-    if (isScrnCoord) {
-      screenPoints = points;
-      LOGGER.info("Updated screen points");
-    } else if (isTest) {
-      cameraPointsTest = points;
-      LOGGER.info("Updated camera image test points");
-    } else {
-      cameraPoints = points;
-      LOGGER.info("Updated camera image points");
+    calibLabelModel.saveImagePoints(FileUtil.join(fullCalibDir, 
+        labelState.toString() + ".pts"));
+    
+    switch (labelState) {
+      case Screen:
+        screenPoints = points;
+        LOGGER.info("Updated screen points");
+        break;
+      case ScreenTest:
+        screenPointsTest = points;
+        LOGGER.info("Updated screen test points");
+        break;
+      case Image:
+        imagePoints = points;
+        LOGGER.info("Updated image points");
+        break;
+      case ImageTest:
+        imagePointsTest = points;
+        LOGGER.info("Updated image test points");
+        break;
+      default:
+        break;
     }
   }
   
@@ -261,12 +306,12 @@ public class CalibrationApp extends KeyAdapter {
       LOGGER.warning("No screen points.");
       return;
     }
-    if (cameraPoints == null || cameraPoints.isEmpty()) {
+    if (imagePoints == null || imagePoints.isEmpty()) {
       LOGGER.warning("No camera points.");
       return;
     }
    
-    if (screenPoints.size() != cameraPoints.size()) {
+    if (screenPoints.size() != imagePoints.size()) {
       LOGGER.warning("Dispaly image points and camera image points sizes " +
       		"are not the same. No calibraiton is done.");
       return;
@@ -274,16 +319,16 @@ public class CalibrationApp extends KeyAdapter {
     
     LOGGER.info("Calibration method: " + calibMethodStr);
     CalibModel example = 
-      new CalibModel(screenPoints, cameraPoints, calibMethod);
-    System.out.println(example.toString());
-    System.out.println("Average reprojection errors in pixels:"); 
-    example.printImageToDisplayCoordsErrors(screenPoints, cameraPoints);
+      new CalibModel(screenPoints, imagePoints, calibMethod);
+    LOGGER.info(example.toString());
+    LOGGER.info("Average reprojection errors in pixels:"); 
+    example.printImageToDisplayCoordsErrors(screenPoints, imagePoints);
     
     if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
-        cameraPointsTest != null && !cameraPointsTest.isEmpty()) {
-      System.out.println("Average test squared error:"); 
+        imagePointsTest != null && !imagePointsTest.isEmpty()) {
+      LOGGER.info("Average test squared error:"); 
       example.printImageToDisplayCoordsErrors(screenPointsTest, 
-          cameraPointsTest);
+          imagePointsTest);
     } else {
       LOGGER.warning("No test data.");
     }

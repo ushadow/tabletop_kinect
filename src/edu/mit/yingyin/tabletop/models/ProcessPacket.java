@@ -21,6 +21,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
+import edu.mit.yingyin.image.ImageConvertUtils;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 
 
@@ -65,7 +66,7 @@ public class ProcessPacket {
   public int width, height;
   
   private BufferedImage rgbImage;
-  private HandTrackingEngine engine;
+  private OpenNIDevice openni;
   
   /**
    * Creates a new <code>ProcessPacket</code> and allocates memory.
@@ -74,7 +75,7 @@ public class ProcessPacket {
    * @param engine the <code>HandTrackingEngine</code> that updates this <code>
    *    ProcessPacket</code>.
    */
-  public ProcessPacket(int width, int height, HandTrackingEngine engine) {
+  public ProcessPacket(int width, int height, OpenNIDevice openni) {
     
     depthRawData = new int[width * height];
     // Creates an unsigned 8-bit integer image.
@@ -87,7 +88,7 @@ public class ProcessPacket {
     tempMem = cvCreateMemStorage(0);
     this.width = width;
     this.height = height;
-    this.engine = engine;
+    this.openni = openni;
   }
   
   /**
@@ -147,7 +148,8 @@ public class ProcessPacket {
   public  BufferedImage rgbImage() throws GeneralException {
     if (rgbImage == null)
       rgbImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-    engine.getRgbImage(rgbImage);
+    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), 
+                                               rgbImage);
     return rgbImage;
   }
 }

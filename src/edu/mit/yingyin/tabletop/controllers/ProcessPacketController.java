@@ -1,14 +1,16 @@
 package edu.mit.yingyin.tabletop.controllers;
 
-import java.awt.Point;
+import	 java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
@@ -32,6 +34,8 @@ import edu.mit.yingyin.util.Option.Some;
  */
 public class ProcessPacketController extends KeyAdapter 
     implements MouseListener, IHandEventListener {
+  private static final Logger LOGGER = Logger.getLogger(
+      ProcessPacketController.class.getName());
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
   private ProcessPacketView packetView;
@@ -115,6 +119,7 @@ public class ProcessPacketController extends KeyAdapter
    */
   public void release() {
     packetView.release();
+    LOGGER.info(ProcessPacketController.class.getName() + " released.");
   }
   
   public boolean isVisible() {
@@ -136,6 +141,10 @@ public class ProcessPacketController extends KeyAdapter
    */
   public void drawCircle(int x, int y) {
     packetView.drawCircle(x, y);
+  }
+  
+  public BufferedImage depthImage() {
+    return packetView.depthImage();
   }
   
   @Override

@@ -31,7 +31,7 @@ public class HandTrackingEngine {
   private static Logger logger = Logger.getLogger(
       HandTrackingEngine.class.getName());
   
-  private OpenNIDevice openni;
+  private final OpenNIDevice openni;
   private int depthWidth, depthHeight;
   private int prevDepthFrameID = -1, currentDepthFrameID = -1;
   private HandTracker tracker;
@@ -81,11 +81,16 @@ public class HandTrackingEngine {
     return currentDepthFrameID < prevDepthFrameID;
   }
   
+  /**
+   * Steps one frame.
+   * @return a new {@code ProcessPacket}. The caller should release the memory 
+   *    of the returned object when finished using the object.
+   */
   public ProcessPacket step() {
     ProcessPacket packet = null;
     try {
       openni.waitDepthUpdateAll();
-      packet = new ProcessPacket(depthWidth, depthHeight, this);
+      packet = new ProcessPacket(depthWidth, depthHeight, openni);
       openni.getDepthArray(packet.depthRawData);
       prevDepthFrameID = packet.depthFrameID;
       packet.depthFrameID = openni.getDepthFrameID();
@@ -101,10 +106,6 @@ public class HandTrackingEngine {
       System.exit(-1);
     }
     return packet;
-  }
-  
-  public void getRgbImage(BufferedImage bi) throws GeneralException {
-    ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), bi);
   }
   
   public boolean interactionSurfaceInitialized() {

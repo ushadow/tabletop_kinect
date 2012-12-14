@@ -131,7 +131,7 @@ public class CalibLabelController implements KeyListener {
         model.clearPoints();
         frame.repaint();
         break;
-      case KeyEvent.VK_P:
+      case KeyEvent.VK_R:
         model.createPoints();
         frame.repaint();
         break;

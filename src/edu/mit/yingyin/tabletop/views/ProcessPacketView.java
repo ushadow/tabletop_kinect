@@ -145,6 +145,7 @@ public class ProcessPacketView {
   private ForelimbView fingertipView;
   private float[] histogram;
   private int width, height;
+  private ProcessPacket currentPacket;
 
   public ProcessPacketView(int width, int height) {
     initToggles();
@@ -177,6 +178,7 @@ public class ProcessPacketView {
    */
   public void show(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
+    currentPacket = packet;
     
     showAnalysisImage(packet);
 
@@ -232,8 +234,6 @@ public class ProcessPacketView {
   public void release() {
     analysisImage.release();
     depthImage.release();
-    for (JFrame frame : frames.values())
-      frame.dispose();
     LOGGER.info("ProcessPacketView released.");
   }
 
@@ -263,6 +263,16 @@ public class ProcessPacketView {
     toggleMap.put(name, status);
   }
 
+  public BufferedImage depthImage() {
+    BufferedImage bi = new BufferedImage(width, height, 
+        BufferedImage.TYPE_USHORT_GRAY);
+    if (histogram != null) {
+      ImageConvertUtils.histogramToBufferedImageUShort(
+          currentPacket.depthRawData, histogram, bi);
+    }
+    return bi;
+  }
+  
   /**
    * Draws a circle at (x, y).
    * 
