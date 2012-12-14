@@ -72,8 +72,7 @@ public class CalibrationApp extends KeyAdapter {
   private List<Point2f> imagePoints;
   private List<Point2f> screenPointsTest;
   private List<Point2f> imagePointsTest;
-  private CalibLabelModel calibLabelModel;
-  private CalibLabelController calibLabelController;
+  private CalibLabelModel screenLabelModel, imageLabelModel;
   private CalibMethodName calibMethod = CalibMethodName.UNDISTORT;
   private String calibMethodStr;
   private String savePath, camTestImgPath;
@@ -183,26 +182,26 @@ public class CalibrationApp extends KeyAdapter {
     switch (ke.getKeyCode()) {
       case KeyEvent.VK_1:
         currentLabelState = LabelState.Screen;
-        updatePoints(currentLabelState);
+        updatePoints(currentLabelState, screenLabelModel);
         break;
       case KeyEvent.VK_2:
         currentLabelState = LabelState.Image;
-        updatePoints(currentLabelState);
+        updatePoints(currentLabelState, imageLabelModel);
         break;
       case KeyEvent.VK_3:
         currentLabelState = LabelState.ScreenTest;
-        updatePoints(currentLabelState);
+        updatePoints(currentLabelState, screenLabelModel);
         break;
       case KeyEvent.VK_4:
         currentLabelState = LabelState.ImageTest;
-        updatePoints(currentLabelState);
+        updatePoints(currentLabelState, imageLabelModel);
         break;
       case KeyEvent.VK_A:
         calibrate();
         break;
       case KeyEvent.VK_P:
         BufferedImage bi = openniViewThread.capture();
-        labelImage(bi, "cam.pts", false);
+        imageLabelModel = createLabelModel(bi, "cam.pts", false);
         break;
       case KeyEvent.VK_Q:
       case KeyEvent.VK_ESCAPE:
@@ -237,15 +236,23 @@ public class CalibrationApp extends KeyAdapter {
       System.exit(-1);
     }
     ptsFileName = FileUtil.setExtension(imagePath, "pts");
-    labelImage(image, ptsFileName, isScrnCoord);
+    
+    CalibLabelModel model = createLabelModel(image, ptsFileName, isScrnCoord);
+    if (isScrnCoord)
+      screenLabelModel = model;
+    else
+      imageLabelModel = model;
   }
   
-  private void labelImage(BufferedImage bi, String ptsFileName, 
-      boolean isScrnCoord) {
-    calibLabelModel = new CalibLabelModel(bi, ptsFileName, isScrnCoord);
-    calibLabelController = new CalibLabelController(calibLabelModel);
+  private CalibLabelModel createLabelModel(BufferedImage bi, String ptsFileName, 
+                                           boolean isScrnCoord) {
+    CalibLabelModel calibLabelModel = new CalibLabelModel(bi, ptsFileName, 
+                                                          isScrnCoord);
+    CalibLabelController calibLabelController = 
+        new CalibLabelController(calibLabelModel);
     calibLabelController.addKeyListener(this);
     calibLabelController.showUI();
+    return calibLabelModel;
   }
   
   private List<Point2f> readPointsFromFile(String file) {
@@ -264,7 +271,8 @@ public class CalibrationApp extends KeyAdapter {
     return points;
   }
     
-  private void updatePoints(LabelState labelState) {
+  private void updatePoints(LabelState labelState, 
+                            CalibLabelModel calibLabelModel) {
     if (calibLabelModel == null) 
       return;
     
@@ -322,12 +330,12 @@ public class CalibrationApp extends KeyAdapter {
       new CalibModel(screenPoints, imagePoints, calibMethod);
     LOGGER.info(example.toString());
     LOGGER.info("Average reprojection errors in pixels:"); 
-    example.printImageToDisplayCoordsErrors(screenPoints, imagePoints);
+    example.logImageToDisplayCoordsErrors(screenPoints, imagePoints);
     
     if (screenPointsTest != null && !screenPointsTest.isEmpty() &&
         imagePointsTest != null && !imagePointsTest.isEmpty()) {
       LOGGER.info("Average test squared error:"); 
-      example.printImageToDisplayCoordsErrors(screenPointsTest, 
+      example.logImageToDisplayCoordsErrors(screenPointsTest, 
           imagePointsTest);
     } else {
       LOGGER.warning("No test data.");

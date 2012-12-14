@@ -255,7 +255,7 @@ public class CalibModel {
     }
   }
   
-  private static final Logger logger = 
+  private static final Logger LOGGER = 
     Logger.getLogger(CalibModel.class.getName());
   
   /**
@@ -320,7 +320,7 @@ public class CalibModel {
     try {
       Scanner scanner = new Scanner(new File(fileName));
       methodName = CalibMethodName.valueOf(scanner.next());
-      logger.info(String.format("Calibration method = %s",
+      LOGGER.info(String.format("Calibration method = %s",
           methodName.toString()));
       if (methodName == CalibMethodName.EXTRINSIC) {
         method = new ExtrinsicMethod(scanner);
@@ -357,7 +357,7 @@ public class CalibModel {
    * @param imageCoords list of corresponding image coordinates of the same size
    *     as displayCoords.
    */
-  public void printImageToDisplayCoordsErrors(List<Point2f> displayCoords,
+  public void logImageToDisplayCoordsErrors(List<Point2f> displayCoords,
       List<Point2f> imageCoords) {
     float error = 0;
     float xError = 0;
@@ -370,11 +370,11 @@ public class CalibModel {
       xError += (converted.x - display.x) * (converted.x - display.x);
       yError += (converted.y - display.y) * (converted.y - display.y);
     }
-    System.out.println("X-axis average error = " + 
+    LOGGER.info("X-axis average error = " + 
         Math.sqrt(xError / numPoints));
-    System.out.println("Y-axis average error = " + 
+    LOGGER.info("Y-axis average error = " + 
         Math.sqrt(yError / numPoints));
-    System.out.println("Average error = " + Math.sqrt(error / numPoints));
+    LOGGER.info("Average error = " + Math.sqrt(error / numPoints));
   }
   
   public void release() {
