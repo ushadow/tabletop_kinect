@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -55,9 +54,6 @@ public class DisplayTargetFrame extends JFrame {
     }
   }
 
-  private static final Logger LOGGER = Logger.getLogger(
-      DisplayTargetFrame.class.getName());
-  
   private static final long serialVersionUID = -8704714832139857227L;
   private static final int DISPLAY_INTERVAL = 2500; // milliseconds
   private static final int NROW = 2, NCOL = 5;

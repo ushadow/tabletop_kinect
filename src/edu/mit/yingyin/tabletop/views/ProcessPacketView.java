@@ -15,7 +15,6 @@ import java.awt.Rectangle;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -37,9 +36,10 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.Background;
+import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.tabletop.models.HistogramImageComponent;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
@@ -140,7 +140,7 @@ public class ProcessPacketView {
   private HashMap<String, JFrame> frames = new LinkedHashMap<String, JFrame>();
   
   private IplImage analysisImage;
-  private IplImage depthImage;
+  private HistogramImageComponent depthImageComp;
   private BufferedImage bufferedImage;
   private ForelimbView fingertipView;
   private float[] histogram;
@@ -152,15 +152,15 @@ public class ProcessPacketView {
 
     this.width = width;
     this.height = height;
-    frames.put(ANALYSIS_FRAME, new CanvasFrame(ANALYSIS_FRAME));
-    frames.put(DEPTH_FRAME, new CanvasFrame(DEPTH_FRAME));
-    frames.put(TABLE3D_FRAME, new Table3DFrame());
-    for (JFrame frame : frames.values())
-      frame.setPreferredSize(new Dimension(width, height));
-
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
-    depthImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+
+    depthImageComp = new HistogramImageComponent(width, height, 
+                                                 EnvConstant.MAX_DEPTH);
     
+    frames.put(ANALYSIS_FRAME, new CanvasFrame(ANALYSIS_FRAME));
+    frames.put(DEPTH_FRAME, new ImageFrame(DEPTH_FRAME, depthImageComp));
+    frames.put(TABLE3D_FRAME, new Table3DFrame(width, height));
+
     tile();
   }
   
@@ -233,7 +233,6 @@ public class ProcessPacketView {
 
   public void release() {
     analysisImage.release();
-    depthImage.release();
     LOGGER.info("ProcessPacketView released.");
   }
 
@@ -280,9 +279,7 @@ public class ProcessPacketView {
    * @param y
    */
   public void drawCircle(int x, int y) {
-    // cvCircle(img, center, radius, color, thickness, lineType, shift)
-    cvCircle(depthImage, new CvPoint(x, y), 4, CvScalar.WHITE, -1, 8, 0);
-    ((CanvasFrame)frames.get(DEPTH_FRAME)).showImage(depthImage);
+    depthImageComp.addLabel(new Point(x, y), Color.RED);
   }
 
   private void initToggles() {
@@ -358,33 +355,13 @@ public class ProcessPacketView {
    * @param packet
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
-    Background bg = Background.instance();
-    if (bg != null && bg.isInitialized()) {
-      if (histogram == null) {
-        histogram = new float[bg.maxDepth() + 1];
-      }
-  
-      ImageConvertUtils.arrayToHistogram(packet.depthRawData, histogram);
-      ByteBuffer ib = depthImage.getByteBuffer();
-      int widthStep = depthImage.widthStep();
-      
-      for (int h = 0; h < packet.height; h++)
-        for (int w = 0; w < packet.width; w++) {
-          int depth = packet.depthRawData[h * packet.width + w];
-          if (depth > bg.maxDepth())
-            depth = bg.maxDepth();
-          ib.put(h * widthStep + w, (byte) (histogram[depth] * 255));
-        }
-      // Draws labeled points.
-      if (labels != null) {
-        for (Point p : labels)
-          cvCircle(depthImage, new CvPoint(p.x, p.y), 3, CvScalar.BLACK, 1, 8, 
-                   0);
-      }
+    depthImageComp.setImage(packet.depthRawData);
+    // Draws labeled points.
+    if (labels != null) {
+      for (Point p : labels)
+        depthImageComp.addLabel(p, Color.GREEN);
     }
-    
-    CanvasFrame frame = (CanvasFrame) frames.get(DEPTH_FRAME);
-    frame.showImage(depthImage);
+    JFrame frame = frames.get(DEPTH_FRAME);
     frame.setTitle("Processed FrameID = " + packet.depthFrameID);
   }
 

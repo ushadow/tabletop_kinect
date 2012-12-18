@@ -333,7 +333,7 @@ public class Background {
    */
   private void depthToImage(int[] depthRawData, IplImage image) {
     // No scaling.
-    CvUtil.intToFloatIplImage(depthRawData,image, 1);
+    CvUtil.intToIplImage32F(depthRawData,image, 1);
   }
 
   /**

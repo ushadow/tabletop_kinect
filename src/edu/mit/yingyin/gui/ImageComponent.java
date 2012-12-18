@@ -15,7 +15,10 @@ import javax.swing.JComponent;
 public class ImageComponent extends JComponent {
 	private static final long serialVersionUID = 1L;
 	
-	protected BufferedImage myimg = null;
+	/**
+	 * Image to be displayed.
+	 */
+	protected BufferedImage img = null;
 		
 	public ImageComponent(Dimension d) {
 	  setLayout(null);
@@ -33,7 +36,7 @@ public class ImageComponent extends JComponent {
 	}
 	    
   public void setImage(BufferedImage img) {
-    this.myimg = img;
+    this.img = img;
     repaint();
   }
   
@@ -42,8 +45,8 @@ public class ImageComponent extends JComponent {
    */
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
-    if (myimg != null) {
-  	  ((Graphics2D)g).drawImage(myimg, null, 0, 0);
+    if (img != null) {
+  	  ((Graphics2D)g).drawImage(img, null, 0, 0);
   	  g.dispose();
     }
   }

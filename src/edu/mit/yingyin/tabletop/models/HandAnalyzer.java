@@ -14,6 +14,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.CV_CLOCKWISE;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_MOP_OPEN;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_POLY_APPROX_DP;
 import static com.googlecode.javacv.cpp.opencv_imgproc.CV_RETR_EXTERNAL;
+import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvApproxPoly;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvBoundingRect;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvContourPerimeter;
@@ -23,6 +24,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvFindNextContour;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMorphologyEx;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvStartFindContours;
+import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -114,6 +116,9 @@ public class HandAnalyzer {
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
       return;
 
+    CvUtil.intToIplImage32F(packet.depthRawData, packet.depthImageBlur32F, 
+        1);
+    cvSmooth(packet.depthImageBlur32F, packet.depthImageBlur32F, CV_GAUSSIAN, 3);
     if (packet.depthFrameID < BG_INIT_FRAMES) {
       background.accumulateBackground(packet.depthRawData);
       return;
@@ -124,7 +129,7 @@ public class HandAnalyzer {
       logger.info(background.stats());
     }
 
-    CvUtil.intToFloatIplImage(packet.depthRawData, packet.depthImage32F,
+    CvUtil.intToIplImage32F(packet.depthRawData, packet.depthImage32F, 
         (float) 1 / background.maxDepth());
     cvSobel(packet.depthImage32F, packet.derivative, 2, 2, 3);
 

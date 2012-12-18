@@ -552,6 +552,12 @@ public class ImageConvertUtils {
     }
   }
   
+  /**
+   * 
+   * @param array
+   * @param histogram
+   * @param bi a {@code: BufferedImage} with with USHORT_GRAY.
+   */
   public static void histogramToBufferedImageUShort(int[] array, 
       float[] histogram, BufferedImage bi) {
     short[] imageArray = ((DataBufferUShort) bi.getRaster().getDataBuffer()).

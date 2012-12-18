@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.media.j3d.AmbientLight;
@@ -71,9 +70,9 @@ public class Table3DFrame extends JFrame {
   private TransformGroup worldTransformGroup = new TransformGroup();
   private Point3d viewrLoc = new Point3d(-700, 0, -300);
   
-  public Table3DFrame() {
+  public Table3DFrame(int width, int height) {
     setLayout(new BorderLayout());
-    
+    setPreferredSize(new Dimension(width, height));
     GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
     canvas = new Canvas3D(config);
     universe = new SimpleUniverse(canvas);

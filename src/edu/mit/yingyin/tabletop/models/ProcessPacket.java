@@ -56,7 +56,8 @@ public class ProcessPacket {
    * Integer array of raw depth values in mm from Kinect.
    */
   public int[] depthRawData;
-  public IplImage depthImage8U, depthImage32F, derivative, morphedImage;
+  public IplImage depthImage8U, depthImage32F, derivative, morphedImage, 
+         depthImageBlur32F;
   public IplImage foregroundMask;
   public CvMemStorage tempMem;
   public List<ForelimbFeatures> forelimbFeatures = 
@@ -82,6 +83,7 @@ public class ProcessPacket {
     depthImage8U = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     depthImage32F = IplImage.create(width, height, IPL_DEPTH_32F, 1);
     derivative = IplImage.create(width, height, IPL_DEPTH_32F, 1);
+    depthImageBlur32F = IplImage.create(width, height, IPL_DEPTH_32F, 1); 
     morphedImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     foregroundMask = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     // Allocates a default size of 64kB of memory.
@@ -101,6 +103,7 @@ public class ProcessPacket {
     derivative.release();
     morphedImage.release();
     foregroundMask.release();
+    depthImageBlur32F.release();
     cvReleaseMemStorage(tempMem);
   }
   

@@ -73,7 +73,7 @@ public class ImageFrame extends JFrame {
 	
 	private void initialize() {
 	  sb = new StatusBar();
+	  getContentPane().add(ic);
     getContentPane().add(sb, java.awt.BorderLayout.SOUTH);
-    getContentPane().add(ic);
 	}
 }

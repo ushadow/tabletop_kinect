@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
@@ -37,8 +36,6 @@ import edu.mit.yingyin.util.Matrix;
  * 
  */
 public class ForelimbModelEstimator {
-  private static final Logger logger = Logger.getLogger(
-      ForelimbModelEstimator.class.getName());
   // Around 45 deg.
   private static final float FINGERTIP_ANGLE = (float) 0.8;
 

@@ -13,8 +13,7 @@ import java.awt.Point;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
+import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
 
@@ -33,6 +32,7 @@ import com.googlecode.javacv.cpp.opencv_imgproc.CvConvexityDefect;
  *
  */
 public class CvUtil {
+  private static final Logger LOGGER = Logger.getLogger(CvUtil.class.getName());
   // Geometry methods.
   
   public static int distance2(CvPoint p1, CvPoint p2) {
@@ -118,43 +118,27 @@ public class CvUtil {
    * 
    * @param intArray
    * @param image
+   * @param scale Scale to convert the value from source to destination.
    */
-  public static void intToIntIplImage(int[] intArray, IplImage image, 
-      float scale) {
+  public static void intToIplImage8U(int[] intArray, IplImage image, 
+      int min, int max) {
     ByteBuffer buffer = image.getByteBuffer();
     // For IplImage, image width is not necessarily equal to the width step in 
     // of the buffer.
     int imageWidth = image.width();
     int imageHeight = image.height();
     int widthStep = image.widthStep(); // In number of bytes.
-    switch (image.depth()) {
-      case 8:
-        for (int h = 0; h < imageHeight; h++)
-          for (int w = 0; w < imageWidth; w++) {
-            buffer.put(h * widthStep + w, 
-                (byte)(intArray[h * imageWidth + w] * scale));
-          }
-        break;
-      case 16:
-        ShortBuffer sb = buffer.asShortBuffer();
-        widthStep /= 2;
-        for (int h = 0; h < imageHeight; h++)
-          for (int w = 0; w < imageWidth; w++) {
-            sb.put(h * widthStep + w, 
-                (short) (intArray[h * imageWidth + w] * scale));
-          }
-        break;
-      case 32:
-        IntBuffer ib = buffer.asIntBuffer();
-        widthStep /= 4;
-        for (int h = 0; h < imageHeight; h++)
-          for (int w = 0; w < imageWidth; w++) {
-            ib.put(h * widthStep + w, 
-                (int) (intArray[h * imageWidth + w] * scale));
-          }
-        break;
-      default:
-        throw new IllegalArgumentException();
+    if (image.depth() == 8) {
+      int multiplier = (1 << 8) - 1;
+      for (int h = 0; h < imageHeight; h++)
+        for (int w = 0; w < imageWidth; w++) {
+          int value = clip(intArray[h * imageWidth + w], min, max);
+          value = (value - min) * multiplier / (max - min);
+          buffer.put(h * widthStep + w, 
+                     (byte)((value - min) * multiplier / (max - min)));
+        }
+    } else {
+      throw new IllegalArgumentException();
     }
   }
   
@@ -167,7 +151,7 @@ public class CvUtil {
    * @param image an IplImage of type float (32-bit).
    * @param scale scaling factor to be multiplied to the raw value.
    */
-  public static void intToFloatIplImage(int[] raw, IplImage image, float scale) 
+  public static void intToIplImage32F(int[] raw, IplImage image, float scale) 
   {
     FloatBuffer fb = image.getFloatBuffer();
     int height = image.height();
@@ -195,5 +179,11 @@ public class CvUtil {
         pw.print(fb.get(h * widthStep * 8 / depth + w) + " ");
       pw.println();
     }
+  }
+  
+  private static int clip(int v, int min, int max) {
+    v = v < min ? min : v;
+    v = v > max ? max : v;
+    return v;
   }
 }

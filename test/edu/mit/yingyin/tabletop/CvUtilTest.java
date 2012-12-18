@@ -1,12 +1,13 @@
 package edu.mit.yingyin.tabletop;
 
-import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16U;
 import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_32F;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 import static org.junit.Assert.assertEquals;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import org.junit.Test;
 
@@ -15,6 +16,8 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.util.CvUtil;
 
 public class CvUtilTest {
+  private static final Logger LOGGER = Logger.getLogger(
+      CvUtilTest.class.getName());
 
   @Test
   public void testDepthToIplImage() {
@@ -23,14 +26,16 @@ public class CvUtilTest {
     int[] intArray = new int[width * height];
     for (int i = 0; i < intArray.length; i++)
       intArray[i] = i;
-    IplImage image = IplImage.create(width, height, IPL_DEPTH_16U, 1);
-    CvUtil.intToIntIplImage(intArray, image, 1);
-    ShortBuffer sb = image.getShortBuffer();
-    int widthStep = image.widthStep() / 2;
+    IplImage image = IplImage.create(width, height, IPL_DEPTH_8U, 1);
+    CvUtil.intToIplImage8U(intArray, image, 0, 255);
+    ByteBuffer bb = image.getByteBuffer();
+    int widthStep = image.widthStep();
     for (int h = 0; h < height; h++)
-      for (int w = 0; w < width; w++)
-        assertEquals(intArray[h * width + w], 
-                     sb.get(h * widthStep + w) & 0xffff);
+      for (int w = 0; w < width; w++) {
+        byte value = bb.get(h * widthStep + w);
+        LOGGER.info("byte value = " + value);
+        assertEquals(intArray[h * width + w], value);
+      }
   }
   
   @Test
@@ -40,7 +45,7 @@ public class CvUtilTest {
     int[] raw = new int[width * height];
     Arrays.fill(raw, 5);
     IplImage image = IplImage.create(width, height, IPL_DEPTH_32F, 1);
-    CvUtil.intToFloatIplImage(raw, image, scale);
+    CvUtil.intToIplImage32F(raw, image, scale);
     FloatBuffer imageBuffer = image.getFloatBuffer();
     int widthStep = image.widthStep() / 4;
     for (int h = 0; h < height; h++)
