@@ -36,9 +36,9 @@ def eval_error(gt, detected)
       point_error = Math.sqrt((gx - dx) * (gx - dx) + (gy - dy) * (gy - dy))
       if point_error < min_error
         min_error, min_index = point_error, i
-        min_xoffset = dx - gx
-        min_yoffset = dy - gy
-      end 
+        min_xoffset = (dx - gx).abs
+        min_yoffset = (dy - gy).abs
+      end
     end
     detected.delete_at min_index
     total_error += min_error
@@ -49,7 +49,7 @@ def eval_error(gt, detected)
 end
 
 # Evaluate the accuracy of fingertip detection results.
-# 
+#
 # @param [Array] each element is an array of numbers as groundtruth true labels 
 #     of fingertips sorted according to frame IDs.
 # @param [Array] detected detected fingertips sorted according to frame IDs. 
@@ -63,7 +63,7 @@ def eval_fingertips(groundtruth, detected)
     gf, df = groundtruth[gi][0], detected[di][0] 
     g_fingertips = to_point_array groundtruth[gi][1..-1], 2
     d_fingertips = to_point_array detected[di][1..-1], 3
-    if gf == df 
+    if gf == df
       frame_error, frame_xoffset, frame_yoffset = 
           eval_error g_fingertips, d_fingertips
       error += frame_error
@@ -90,19 +90,19 @@ def eval_fingertips(groundtruth, detected)
       di += 1
     end
   end
-  
+
   groundtruth[gi..-1].each do  |l| 
     num_points = to_point_array(l, 2).length 
     false_neg += num_points
     total_groundtruth += num_points 
-  end 
-  
+  end
+
   detected[di..-1].each do |l| 
     num_points = to_point_array(l, 3).length
     false_pos += num_points
     total_detected += num_points  
   end
-  
+
   error /= true_pos
   xoffset /= true_pos
   yoffset /= true_pos

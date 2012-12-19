@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
@@ -15,8 +14,6 @@ import javax.swing.JFrame;
  * 
  */
 public class ImageFrame extends JFrame {
-  private static final Logger LOGGER = Logger.getLogger(
-      ImageFrame.class.getName());
 	private static final long serialVersionUID = 1L;
 	private static final int STATUS_BAR_HEIGHT = 20;
 	protected final ImageComponent ic;
@@ -73,6 +70,10 @@ public class ImageFrame extends JFrame {
 	public void addMouseListenerToImageComponent(MouseListener ml) {
 	  if (ic != null)
 	    ic.addMouseListener(ml);
+	}
+	
+	public int getImageValue(int x, int y) {
+	  return ic.getImageValue(x, y);
 	}
 	
 	private void initialize() {

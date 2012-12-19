@@ -37,7 +37,7 @@ public class Background {
 
   private static Logger LOGGER = Logger.getLogger(Background.class.getName());
 
-  private static final float MIN_DIFF = (float) 0.8; // mm
+  private static final float MIN_DIFF = (float) 1; // mm
    
   private static final int BITS_PER_BYTE = 8; 
   

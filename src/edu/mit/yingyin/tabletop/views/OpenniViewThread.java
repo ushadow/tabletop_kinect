@@ -1,4 +1,4 @@
-package edu.mit.yingyin.calib;
+package edu.mit.yingyin.tabletop.views;
 
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;

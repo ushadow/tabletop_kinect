@@ -41,6 +41,23 @@ public class ImageComponent extends JComponent {
   }
   
   /**
+   * 
+   * @param x
+   * @param y
+   * @return an integer pixel in the default RGB color model and default sRGB 
+   *    colorspace.
+   */
+  public int getImageValue(int x, int y) {
+    if (img == null || x < 0 || x >= img.getWidth() || y < 0 || 
+        y >= img.getHeight())
+      return 0;
+    
+    return img.getRGB(x, y);
+  }
+  
+  public BufferedImage image() { return img; }
+  
+  /**
    * Called by paint().
    */
   protected void paintComponent(Graphics g) {

@@ -15,7 +15,9 @@ import java.awt.Rectangle;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +38,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.tabletop.controllers.ViewImageValueController;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.Forelimb;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
@@ -128,45 +131,51 @@ public class ProcessPacketView {
   private static final String DEPTH_FRAME = "Depth";
   private static final String RGB_FRAME = "RGB";
   private static final String TABLE3D_FRAME = "Table3D";
+  private static final String DEBUG_FRAME = "Debug";
 
   private static final boolean DEFAULT_SHOW_DIAGNOSTIC_IMAGE = false;
 
-  private HashMap<Toggles, Boolean> toggleMap =
+  private final HashMap<Toggles, Boolean> toggleMap =
       new HashMap<ProcessPacketView.Toggles, Boolean>();
 
   /**
    * Frames.
    */
-  private HashMap<String, JFrame> frames = new LinkedHashMap<String, JFrame>();
+  private final HashMap<String, JFrame> frames = 
+      new LinkedHashMap<String, JFrame>();
   
-  private IplImage analysisImage;
-  private HistogramImageComponent depthImageComp, blurredImageComp;
+  private final IplImage analysisImage;
+  private final HistogramImageComponent depthImageComp, debugImageComp;
+  private final ViewImageValueController depthImageController, 
+                                         debugImageController;
+  private final int width, height;
+  private final int[] debugImage;
   private BufferedImage bufferedImage;
   private ForelimbView fingertipView;
-  private float[] histogram;
-  private int width, height;
-  private ProcessPacket currentPacket;
-
+  
   public ProcessPacketView(int width, int height) {
     initToggles();
 
     this.width = width;
     this.height = height;
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
-
+    debugImage = new int[width * height];
+    
     depthImageComp = new HistogramImageComponent(width, height, 
                                                  EnvConstant.MAX_DEPTH);
-    blurredImageComp = new HistogramImageComponent(width, height, 
-                                                   EnvConstant.MAX_DEPTH);
+    debugImageComp = new HistogramImageComponent(width, height, 
+                                                 EnvConstant.MAX_DEPTH);
     CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME);
     cf.setPreferredSize(new Dimension(width, height));
     
-    ImageFrame imageFrame = new ImageFrame(DEPTH_FRAME, depthImageComp);
-    ImageFrame blurredFrame = new ImageFrame("Blurred", blurredImageComp);
+    depthImageController = new ViewImageValueController(DEPTH_FRAME, 
+                                                        depthImageComp);
+    debugImageController = new ViewImageValueController(DEBUG_FRAME, 
+                                                        debugImageComp);
     frames.put(ANALYSIS_FRAME, cf);
-    frames.put(DEPTH_FRAME, imageFrame);
+    frames.put(DEPTH_FRAME, depthImageController.frame());
     frames.put(TABLE3D_FRAME, new Table3DFrame(width, height));
-    frames.put("Blurred", blurredFrame);
+    frames.put(DEBUG_FRAME, debugImageController.frame());
     tile();
   }
   
@@ -184,8 +193,6 @@ public class ProcessPacketView {
    */
   public void show(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
-    currentPacket = packet;
-    
     showAnalysisImage(packet);
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_IMAGE))
@@ -198,8 +205,7 @@ public class ProcessPacketView {
       showRgbImage(packet);
 
     showTable3DFrame(packet);
-    blurredImageComp.setImage(packet.depthImageBlur32F.getFloatBuffer(), 
-        packet.depthImageBlur32F.widthStep() / 4);
+    showDebugImage(packet);
   }
 
   public Rectangle getBounds() {
@@ -270,15 +276,7 @@ public class ProcessPacketView {
     toggleMap.put(name, status);
   }
 
-  public BufferedImage depthImage() {
-    BufferedImage bi = new BufferedImage(width, height, 
-        BufferedImage.TYPE_USHORT_GRAY);
-    if (histogram != null) {
-      ImageConvertUtils.histogramToBufferedImageUShort(
-          currentPacket.depthRawData, histogram, bi);
-    }
-    return bi;
-  }
+  public BufferedImage depthImage() { return depthImageComp.image(); }
   
   /**
    * Draws a circle at (x, y).
@@ -364,6 +362,7 @@ public class ProcessPacketView {
    */
   private void showDepthImage(ProcessPacket packet, List<Point> labels) {
     depthImageComp.setImage(packet.depthRawData);
+    depthImageController.update();
     // Draws labeled points.
     if (labels != null) {
       for (Point p : labels)
@@ -413,5 +412,20 @@ public class ProcessPacketView {
       f.showUI();
     }
     f.updateImage(packet.rgbImage());
+  }
+  
+  private void showDebugImage(ProcessPacket packet) {
+    Arrays.fill(debugImage, 0);
+    ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
+    int maskWidthStep = packet.foregroundMask.widthStep();
+    for (int h = 0; h < height; h++)
+      for (int w = 0; w < width; w++) {
+        int pos = h * width + w;
+        if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
+          debugImage[pos] = packet.depthRawData[pos];
+        }
+      }
+    debugImageComp.setImage(debugImage);
+    debugImageController.update();
   }
 }

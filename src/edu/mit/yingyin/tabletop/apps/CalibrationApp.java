@@ -28,8 +28,8 @@ import edu.mit.yingyin.calib.CalibLabelController;
 import edu.mit.yingyin.calib.CalibLabelModel;
 import edu.mit.yingyin.calib.CalibModel;
 import edu.mit.yingyin.calib.CalibModel.CalibMethodName;
-import edu.mit.yingyin.calib.OpenniViewThread;
 import edu.mit.yingyin.image.ImageConvertUtils;
+import edu.mit.yingyin.tabletop.views.OpenniViewThread;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 

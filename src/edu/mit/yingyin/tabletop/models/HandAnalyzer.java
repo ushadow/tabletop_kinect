@@ -50,7 +50,7 @@ import edu.mit.yingyin.util.CvUtil;
  * 
  */
 public class HandAnalyzer {
-  private static Logger logger = Logger.getLogger(HandAnalyzer.class.getName());
+  private static Logger LOGGER = Logger.getLogger(HandAnalyzer.class.getName());
 
   /**
    * Number of initial frames to ignore.
@@ -62,8 +62,8 @@ public class HandAnalyzer {
    */
   private static final int BG_INIT_FRAMES = BG_INGNORE_FRAMES + 40;
 
-  private static final float BG_DIFF_LSCALE = 6;
-  private static final float BG_DIFF_HSCALE = 15;
+  private static final float BG_DIFF_LSCALE = 5;
+  private static final float BG_DIFF_HSCALE = 6;
 
   /**
    * The number of iterations of morphological transformation.
@@ -120,13 +120,13 @@ public class HandAnalyzer {
         1);
     cvSmooth(packet.depthImageBlur32F, packet.depthImageBlur32F, CV_GAUSSIAN, 5);
     if (packet.depthFrameID < BG_INIT_FRAMES) {
-      background.accumulateBackground(packet.depthImageBlur32F);
+      background.accumulateBackground(packet.depthRawData);
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float) BG_DIFF_LSCALE,
           (float) BG_DIFF_HSCALE);
       InteractionSurface.initInstance(background, openni);
-      logger.info(background.stats());
+      LOGGER.info(background.stats());
     }
 
     CvUtil.intToIplImage32F(packet.depthRawData, packet.depthImage32F, 
@@ -146,14 +146,14 @@ public class HandAnalyzer {
   public void release() {
     tempImage.release();
     background.release();
-    logger.info("HandAnalyzer released.");
+    LOGGER.info("HandAnalyzer released.");
   }
 
   protected void subtractBackground(ProcessPacket packet) {
     int[] depthData = packet.depthRawData;
     IplImage depthImage = packet.depthImage8U;
 
-    background.backgroundDiff(packet.depthImageBlur32F, packet.foregroundMask);
+    background.backgroundDiff(packet.depthRawData, packet.foregroundMask);
     ByteBuffer depthBuffer = depthImage.getByteBuffer();
     ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
     int maskWidthStep = packet.foregroundMask.widthStep();
