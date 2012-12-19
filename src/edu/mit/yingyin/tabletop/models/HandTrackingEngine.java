@@ -90,7 +90,7 @@ public class HandTrackingEngine {
       openni.waitDepthUpdateAll();
       packet = new ProcessPacket(depthWidth, depthHeight, openni);
       openni.getDepthArray(packet.depthRawData);
-      prevDepthFrameID = packet.depthFrameID;
+      prevDepthFrameID = currentDepthFrameID;
       packet.depthFrameID = openni.getDepthFrameID();
       currentDepthFrameID = packet.depthFrameID;
 

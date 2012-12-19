@@ -118,9 +118,9 @@ public class HandAnalyzer {
 
     CvUtil.intToIplImage32F(packet.depthRawData, packet.depthImageBlur32F, 
         1);
-    cvSmooth(packet.depthImageBlur32F, packet.depthImageBlur32F, CV_GAUSSIAN, 3);
+    cvSmooth(packet.depthImageBlur32F, packet.depthImageBlur32F, CV_GAUSSIAN, 5);
     if (packet.depthFrameID < BG_INIT_FRAMES) {
-      background.accumulateBackground(packet.depthRawData);
+      background.accumulateBackground(packet.depthImageBlur32F);
       return;
     } else if (packet.depthFrameID == BG_INIT_FRAMES) {
       background.createModelsFromStats((float) BG_DIFF_LSCALE,
@@ -153,7 +153,7 @@ public class HandAnalyzer {
     int[] depthData = packet.depthRawData;
     IplImage depthImage = packet.depthImage8U;
 
-    background.backgroundDiff(packet.depthRawData, packet.foregroundMask);
+    background.backgroundDiff(packet.depthImageBlur32F, packet.foregroundMask);
     ByteBuffer depthBuffer = depthImage.getByteBuffer();
     ByteBuffer maskBuffer = packet.foregroundMask.getByteBuffer();
     int maskWidthStep = packet.foregroundMask.widthStep();

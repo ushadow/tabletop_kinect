@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 
 import edu.mit.yingyin.util.DirectBufferUtil;
+import edu.mit.yingyin.util.MathUtil;
 
 public class ImageConvertUtils {
   private static final Logger logger = Logger.getLogger(
@@ -473,6 +474,22 @@ public class ImageConvertUtils {
     return bi;
   }
   
+  public static void floatBufferToHistogram(FloatBuffer ib, int width, 
+      int height, int widthStep, float[] histogram) {
+    Arrays.fill(histogram, 0);
+    ib.rewind();
+    int totalPoints = 0;
+    for (int y = 0; y < height; y++)
+      for (int x = 0; x < width; x++) {
+        int v = (int) ib.get(y * widthStep + x);
+        if (v > 0 && v < histogram.length) {
+          histogram[v]++;
+          totalPoints++;
+      }
+    }
+    accumulateHistogram(histogram, totalPoints);
+  }
+  
   /**
    * Converts an array of integer values into a cumulative histogram.
    * @param array an integer array.
@@ -490,13 +507,7 @@ public class ImageConvertUtils {
       }
     }
     
-    for (int i = 1; i < histogram.length; i++) 
-      histogram[i] += histogram[i - 1];
-  
-    if (totalPoints > 0) {
-      for (int i = 1; i < histogram.length; i++)
-        histogram[i] = (totalPoints - histogram[i]) / (float)totalPoints;
-    }
+    accumulateHistogram(histogram, totalPoints);
   }
   
   /**
@@ -516,10 +527,13 @@ public class ImageConvertUtils {
         totalPoints++;
       }
     }
-    
+    accumulateHistogram(histogram, totalPoints);
+  }
+  
+  private static void accumulateHistogram(float[] histogram, int totalPoints) {
     for (int i = 1; i < histogram.length; i++) 
       histogram[i] += histogram[i - 1];
-  
+    
     if (totalPoints > 0) {
       for (int i = 1; i < histogram.length; i++)
         histogram[i] = (totalPoints - histogram[i]) / (float)totalPoints;
@@ -566,11 +580,29 @@ public class ImageConvertUtils {
     int max = 2 << 16 - 1;
     for (int i = 0; i < totalPixels; i++) {
       int v = array[i];
-      if (v < 0)
-        v = 0;
-      if (v >= histogram.length)
-        v = histogram.length - 1;
+      v = MathUtil.clip(v, 0, histogram.length - 1);
       imageArray[i] = (short)(histogram[v] * max);
+    }
+  }
+  
+  /**
+   * 
+   * @param ib
+   * @param widthStep number of integers per row.
+   * @param histogram
+   * @param bi
+   */
+  public static void histogramToBufferedImageUShort(FloatBuffer ib, 
+      int widthStep, float[] histogram, BufferedImage bi) {
+    short[] imageArray = ((DataBufferUShort) bi.getRaster().getDataBuffer()).
+        getData();
+    int max = 2 << 16 - 1;
+    int biWidth = bi.getWidth();
+    for (int y = 0; y < bi.getHeight(); y++) 
+      for (int x = 0; x < biWidth; x++) {
+        int v = (int) ib.get(y * widthStep + x); 
+        v = MathUtil.clip(v, 0, histogram.length - 1);
+        imageArray[y * biWidth + x] = (short)(histogram[v] * max);
     }
   }
   

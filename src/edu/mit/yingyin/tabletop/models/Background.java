@@ -15,6 +15,7 @@ import static com.googlecode.javacv.cpp.opencv_core.cvSub;
 import static com.googlecode.javacv.cpp.opencv_core.cvSubRS;
 import static com.googlecode.javacv.cpp.opencv_core.cvZero;
 import static com.googlecode.javacv.cpp.opencv_core.cvMinMaxLoc;
+import static com.googlecode.javacv.cpp.opencv_core.cvCopy;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvAcc;
 
 import java.nio.ByteBuffer;
@@ -131,6 +132,15 @@ public class Background {
    */
   public void accumulateBackground(int[] depthRawData) {
     depthToImage(depthRawData, scratchI);
+    accumulateBackground();
+  }
+  
+  public void accumulateBackground(IplImage image) {
+    cvCopy(image, scratchI);
+    accumulateBackground();
+  }
+  
+  private void accumulateBackground() {
     cvMinMaxLoc(scratchI, min, max);
     maxDepth = Math.max(maxDepth, max[0]);
     cvAcc(scratchI, avgFI, null);
@@ -189,6 +199,15 @@ public class Background {
   public void backgroundDiff(int[] depthRawData, IplImage mask) {
     // To float.
     depthToImage(depthRawData, scratchI);
+    backgroundDiff(mask);
+  }
+  
+  public void backgroundDiff(IplImage depth, IplImage mask) {
+    cvCopy(depth, scratchI);
+    backgroundDiff(mask);
+  }
+  
+  private void backgroundDiff(IplImage mask) {
     // lowFI is inclusive lower bound, and hiFI is exclusive higher bound.
     cvInRange(scratchI, lowFI, hiFI, mask);
     // Inverts the results.

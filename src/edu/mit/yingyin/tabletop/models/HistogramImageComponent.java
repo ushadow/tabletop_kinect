@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.nio.FloatBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import edu.mit.yingyin.gui.ImageComponent;
@@ -49,6 +50,19 @@ public class HistogramImageComponent extends ImageComponent {
     }
     ImageConvertUtils.arrayToHistogram(image, histogram);
     ImageConvertUtils.histogramToBufferedImageUShort(image, histogram, img);
+    labels.clear();
+    repaint();
+  }
+  
+  public void setImage(FloatBuffer image, int widthStep) {
+    if (image.capacity() < height * width) {
+      throw new IllegalArgumentException("The size of input image is samller " +
+          "than the size of the image to be displayed.");
+    }
+    ImageConvertUtils.floatBufferToHistogram(image, width, height, widthStep, 
+                                             histogram);
+    ImageConvertUtils.histogramToBufferedImageUShort(image, widthStep, 
+                                                     histogram, img);
     labels.clear();
     repaint();
   }

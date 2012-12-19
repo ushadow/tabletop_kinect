@@ -132,7 +132,7 @@ public class CvUtil {
       int multiplier = (1 << 8) - 1;
       for (int h = 0; h < imageHeight; h++)
         for (int w = 0; w < imageWidth; w++) {
-          int value = clip(intArray[h * imageWidth + w], min, max);
+          int value = MathUtil.clip(intArray[h * imageWidth + w], min, max);
           value = (value - min) * multiplier / (max - min);
           buffer.put(h * widthStep + w, 
                      (byte)((value - min) * multiplier / (max - min)));
@@ -179,11 +179,5 @@ public class CvUtil {
         pw.print(fb.get(h * widthStep * 8 / depth + w) + " ");
       pw.println();
     }
-  }
-  
-  private static int clip(int v, int min, int max) {
-    v = v < min ? min : v;
-    v = v > max ? max : v;
-    return v;
   }
 }

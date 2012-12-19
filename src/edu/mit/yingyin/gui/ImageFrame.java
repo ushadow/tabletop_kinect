@@ -1,8 +1,10 @@
 package edu.mit.yingyin.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
@@ -13,15 +15,17 @@ import javax.swing.JFrame;
  * 
  */
 public class ImageFrame extends JFrame {
-
+  private static final Logger LOGGER = Logger.getLogger(
+      ImageFrame.class.getName());
 	private static final long serialVersionUID = 1L;
-	protected ImageComponent ic = null;
+	private static final int STATUS_BAR_HEIGHT = 20;
+	protected final ImageComponent ic;
 	protected StatusBar sb = null;
 	
 	/**
 	 * Creates a frame for displaying images.
 	 * @param title title of the main frame.
-	 * @param d dimention of the image.
+	 * @param d dimension of the image.
 	 */
 	public ImageFrame(String title, Dimension d) {
 		super(title);
@@ -72,8 +76,12 @@ public class ImageFrame extends JFrame {
 	}
 	
 	private void initialize() {
-	  sb = new StatusBar();
-	  getContentPane().add(ic);
+	  Dimension size = ic.getPreferredSize();
+	  int width  = size.width;
+	  int height = size.height;
+	  sb = new StatusBar(ic.getWidth(), STATUS_BAR_HEIGHT);
+	  setPreferredSize(new Dimension(width, height + STATUS_BAR_HEIGHT));
+	  getContentPane().add(ic, BorderLayout.CENTER);
     getContentPane().add(sb, java.awt.BorderLayout.SOUTH);
 	}
 }

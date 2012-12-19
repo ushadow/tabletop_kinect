@@ -140,7 +140,7 @@ public class ProcessPacketView {
   private HashMap<String, JFrame> frames = new LinkedHashMap<String, JFrame>();
   
   private IplImage analysisImage;
-  private HistogramImageComponent depthImageComp;
+  private HistogramImageComponent depthImageComp, blurredImageComp;
   private BufferedImage bufferedImage;
   private ForelimbView fingertipView;
   private float[] histogram;
@@ -156,11 +156,17 @@ public class ProcessPacketView {
 
     depthImageComp = new HistogramImageComponent(width, height, 
                                                  EnvConstant.MAX_DEPTH);
+    blurredImageComp = new HistogramImageComponent(width, height, 
+                                                   EnvConstant.MAX_DEPTH);
+    CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME);
+    cf.setPreferredSize(new Dimension(width, height));
     
-    frames.put(ANALYSIS_FRAME, new CanvasFrame(ANALYSIS_FRAME));
-    frames.put(DEPTH_FRAME, new ImageFrame(DEPTH_FRAME, depthImageComp));
+    ImageFrame imageFrame = new ImageFrame(DEPTH_FRAME, depthImageComp);
+    ImageFrame blurredFrame = new ImageFrame("Blurred", blurredImageComp);
+    frames.put(ANALYSIS_FRAME, cf);
+    frames.put(DEPTH_FRAME, imageFrame);
     frames.put(TABLE3D_FRAME, new Table3DFrame(width, height));
-
+    frames.put("Blurred", blurredFrame);
     tile();
   }
   
@@ -192,6 +198,8 @@ public class ProcessPacketView {
       showRgbImage(packet);
 
     showTable3DFrame(packet);
+    blurredImageComp.setImage(packet.depthImageBlur32F.getFloatBuffer(), 
+        packet.depthImageBlur32F.widthStep() / 4);
   }
 
   public Rectangle getBounds() {
