@@ -33,6 +33,7 @@ This code is part of the research project for gestural input on a tabletop displ
   * javacv-linux-x86_64.jar (Make sure it has the same bitness as OpenCV. Rename it to javacv-os.jar.)
   * javacv.jar
 * [Java3D API 1.5.1] (http://www.oracle.com/technetwork/java/javasebusiness/downloads/java-archive-downloads-java-client-419417.html#java3d-1.5.1-oth-JPR)
+  ([Installation instruction] (http://download.java.net/media/java3d/builds/release/1.5.1/README-download.html))
   * j3dcore.jar
   * j3dutils.jar
   * vecmath.jar
