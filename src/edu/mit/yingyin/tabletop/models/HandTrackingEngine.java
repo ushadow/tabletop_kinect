@@ -33,7 +33,7 @@ public class HandTrackingEngine {
   private int depthWidth, depthHeight;
   private int prevDepthFrameID = -1, currentDepthFrameID = -1;
   private HandTracker tracker;
-  private HandAnalyzer analyzer;
+  private ForelimbFeatureDetector analyzer;
 
   /**
    * Creates a new <code>HandTrackingEngine</code>.
@@ -49,7 +49,7 @@ public class HandTrackingEngine {
     
     depthWidth = openni.getDepthWidth();
     depthHeight = openni.getDepthHeight();
-    analyzer = new HandAnalyzer(depthWidth, depthHeight, openni);
+    analyzer = new ForelimbFeatureDetector(depthWidth, depthHeight, openni);
 
     tracker = new HandTracker(new CalibModel(calibrationFile), openni);
   }
@@ -94,7 +94,7 @@ public class HandTrackingEngine {
       packet.depthFrameID = openni.getDepthFrameID();
       currentDepthFrameID = packet.depthFrameID;
 
-      analyzer.analyzeData(packet);
+      analyzer.detect(packet);
       
       if (interactionSurfaceInitialized())
         tracker.update(packet.forelimbs, packet.depthFrameID);

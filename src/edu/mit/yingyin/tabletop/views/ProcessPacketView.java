@@ -324,13 +324,15 @@ public class ProcessPacketView {
       if (toggleMap.get(Toggles.SHOW_BOUNDING_BOX)) {
         CvRect rect = ff.boundingBox;
         cvRectangle(analysisImage, new CvPoint(rect.x(), rect.y()),
-            new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()),
-            CvScalar.WHITE, 1, 8, 0);
+                    new CvPoint(rect.x() + rect.width() - 1, 
+                                rect.y() + rect.height() - 1),
+                    CvScalar.WHITE, 1, 8, 0);
         rect = ff.armJointRegion;
         if (rect != null) {
           cvRectangle(analysisImage, new CvPoint(rect.x(), rect.y()),
-              new CvPoint(rect.x() + rect.width(), rect.y() + rect.height()),
-              CvScalar.WHITE, 1, 8, 0);
+                      new CvPoint(rect.x() + rect.width() - 1, 
+                          rect.y() + rect.height() - 1),
+                      CvScalar.WHITE, 1, 8, 0);
         }
       }
 
@@ -343,7 +345,7 @@ public class ProcessPacketView {
         CvUtil.drawHull(ff.hull, ff.approxPoly, analysisImage);
       }
 
-      // Shows unfiltered fingertips.
+      // Shows unfiltered finger tips.
       if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
         for (ValConfiPair<Point3f> vcp : ff.fingertips) {
           Point3f p = vcp.value;

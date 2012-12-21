@@ -49,8 +49,9 @@ import edu.mit.yingyin.util.CvUtil;
  * @author yingyin
  * 
  */
-public class HandAnalyzer {
-  private static Logger LOGGER = Logger.getLogger(HandAnalyzer.class.getName());
+public class ForelimbFeatureDetector {
+  private static Logger LOGGER = Logger.getLogger(
+      ForelimbFeatureDetector.class.getName());
 
   /**
    * Number of initial frames to ignore.
@@ -84,11 +85,12 @@ public class HandAnalyzer {
   private static final int HAND_HEIGHT_SCALE = 11;
   private static final int ARM_JOINT_HEIGHT_SCALE = 20;
 
-  private Background background;
-  private IplImage tempImage;
-  private ForelimbModelEstimator forelimbModelEstimator;
-  private OpenNIDevice openni;
-
+  private final Background background;
+  private final IplImage tempImage;
+  private final ForelimbModelEstimator forelimbModelEstimator;
+  private final OpenNIDevice openni;
+  private final HandPoseFeatureDetector hpfd;
+  
   /**
    * Initializes the data structures.
    * 
@@ -96,12 +98,12 @@ public class HandAnalyzer {
    * @param height
    * @param egnine reference to the <code>HandTrackingEngine</code>.
    */
-  public HandAnalyzer(int width, int height,
-      OpenNIDevice openni) {
+  public ForelimbFeatureDetector(int width, int height, OpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = Background.initInstance(width, height);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
     this.openni = openni;
+    hpfd = new HandPoseFeatureDetector(width, height, openni);
   }
 
   /**
@@ -110,7 +112,7 @@ public class HandAnalyzer {
    * @param packet contains all the relevant data for analysis.
    * @throws StatusException
    */
-  public void analyzeData(ProcessPacket packet) throws StatusException {
+  public void detect(ProcessPacket packet) throws StatusException {
     packet.clear();
 
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
@@ -138,6 +140,7 @@ public class HandAnalyzer {
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
     forelimbModelEstimator.updateModel(packet);
+    hpfd.detect(packet);
   }
 
   /**
@@ -162,7 +165,7 @@ public class HandAnalyzer {
     for (int h = 0; h < packet.height; h++)
       for (int w = 0; w < packet.width; w++) {
         int pos = h * depthWidthStep + w;
-        if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
+        if (Background.isForeground(maskBuffer.get(h * maskWidthStep + w))) {
           byte d = (byte) (depthData[h * width + w] * 255 / 
                            background.maxDepth());
           depthBuffer.put(pos, d);
@@ -254,7 +257,7 @@ public class HandAnalyzer {
           yarm = y1;
         }
         ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
-
+        LOGGER.fine(ff.handRegion.toString());
         if (rect.height() - handHeight >= armJointHeight) {
           ff.armJointRegion =
               cvRect(rect.x(), yarm, rect.width(), armJointHeight);

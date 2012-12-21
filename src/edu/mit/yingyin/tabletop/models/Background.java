@@ -62,6 +62,10 @@ public class Background {
     return instance;
   }
   
+  public static boolean isForeground(byte v) {
+    return (v & 0xff) == 255;
+  }
+  
   /**
    * Float, 1-channel images. All the depth values are scaled between 0 and 1
    * according to <code>maxDepth

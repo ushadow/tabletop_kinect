@@ -8,7 +8,7 @@ import org.OpenNI.GeneralException;
 import org.OpenNI.StatusException;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
-import edu.mit.yingyin.tabletop.models.HandAnalyzer;
+import edu.mit.yingyin.tabletop.models.ForelimbFeatureDetector;
 import edu.mit.yingyin.tabletop.models.OpenNIDevice;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 
@@ -17,7 +17,7 @@ public class OpenniViewThread extends Thread {
       OpenniViewThread.class.getName());
   private OpenNIDevice openni;
   private ProcessPacketController packetController;
-  private HandAnalyzer analyzer;
+  private ForelimbFeatureDetector analyzer;
   private boolean running = true;
   private int depthWidth, depthHeight;
   
@@ -26,7 +26,7 @@ public class OpenniViewThread extends Thread {
       openni = new OpenNIDevice(openniConfigFile);
       depthWidth = openni.getDepthWidth();
       depthHeight = openni.getDepthHeight();
-      analyzer = new HandAnalyzer(depthWidth, depthHeight, openni);
+      analyzer = new ForelimbFeatureDetector(depthWidth, depthHeight, openni);
       packetController = new ProcessPacketController(depthWidth, depthHeight, 
           null);
     } catch (GeneralException e) {
@@ -41,7 +41,7 @@ public class OpenniViewThread extends Thread {
       ProcessPacket packet = new ProcessPacket(depthWidth, depthHeight, openni);
       openni.getDepthArray(packet.depthRawData);
       packet.depthFrameID = openni.getDepthFrameID();
-      analyzer.analyzeData(packet);
+      analyzer.detect(packet);
       synchronized (packetController) {
         packetController.show(packet);
       }
