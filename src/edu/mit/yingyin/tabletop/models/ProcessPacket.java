@@ -43,12 +43,15 @@ public class ProcessPacket {
     public CvRect handRegion, armJointRegion;
     public List<ValConfiPair<Point3f>> fingertips = 
         new ArrayList<ValConfiPair<Point3f>>();
+    public CvMat handPose;
     
     public void release() {
       if (approxPoly != null)
         approxPoly.release();
       if (hull != null)
         cvReleaseMat(hull);
+      if (handPose != null)
+        handPose.release();
     }
   }
   

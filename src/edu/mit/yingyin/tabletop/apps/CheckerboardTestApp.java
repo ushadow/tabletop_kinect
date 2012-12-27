@@ -100,7 +100,6 @@ public class CheckerboardTestApp {
   public void showUI() {
     heController.showUI();
     packetController.showDepthImage(false);
-    packetController.showDiagnosticImage(false);
   }
   
   public void start() {

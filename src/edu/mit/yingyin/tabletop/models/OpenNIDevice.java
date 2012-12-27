@@ -200,7 +200,14 @@ public class OpenNIDevice {
     if (player != null)
       player.seekToFrame(depthGen, PlayerSeekOrigin.CURRENT, diff);
   }
-  
+ 
+  /**
+   * Converts projective coordinates to real world coordinates. The z values are
+   * flipped so the result coordinates obey the right-hand rule.
+   * @param points
+   * @return
+   * @throws StatusException
+   */
   public Point3D[] convertProjectiveToRealWorld(Point3D[] points) 
       throws StatusException {
     Point3D[] converted = depthGen.convertProjectiveToRealWorld(points);

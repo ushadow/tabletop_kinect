@@ -59,10 +59,6 @@ public class ProcessPacketController extends KeyAdapter
     packetView.addMouseListener(this);
   }
   
-  public void showDiagnosticImage(boolean show) {
-    packetView.setToggle(Toggles.SHOW_DIAGNOSTIC_IMAGE, show);
-  }
-  
   public void showDepthImage(boolean show) {
     packetView.setToggle(Toggles.SHOW_DEPTH_IMAGE,show);
   }

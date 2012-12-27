@@ -1,10 +1,10 @@
 package edu.mit.yingyin.calib;
 
+import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
+import static com.googlecode.javacv.cpp.opencv_core.CV_32FC2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindExtrinsicCameraParams2;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvFindHomography;
 import static com.googlecode.javacv.cpp.opencv_calib3d.cvRodrigues2;
-import static com.googlecode.javacv.cpp.opencv_core.CV_32FC1;
-import static com.googlecode.javacv.cpp.opencv_core.CV_32FC2;
 import static com.googlecode.javacv.cpp.opencv_core.cvGEMM;
 import static com.googlecode.javacv.cpp.opencv_core.cvTranspose;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvUndistortPoints;
