@@ -82,7 +82,7 @@ public class ForelimbFeatureDetector {
    * hand. Assumes minimum height of the hand is 8cm when only part of the hand
    * is in the view.
    */
-  private static final int HAND_HEIGHT_SCALE = 11;
+  private static final int HAND_HEIGHT_SCALE = 6;
   private static final int ARM_JOINT_HEIGHT_SCALE = 20;
 
   private final Background background;
@@ -257,7 +257,6 @@ public class ForelimbFeatureDetector {
           yarm = y1;
         }
         ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
-        LOGGER.fine(ff.handRegion.toString());
         if (rect.height() - handHeight >= armJointHeight) {
           ff.armJointRegion =
               cvRect(rect.x(), yarm, rect.width(), armJointHeight);

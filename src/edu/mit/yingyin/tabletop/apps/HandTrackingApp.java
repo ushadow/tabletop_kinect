@@ -193,20 +193,9 @@ public class HandTrackingApp extends KeyAdapter {
     }
 
     while (isRunning()) {
-      try {
-        if (isPaused())
-          continue;
-        ProcessPacket packet = engine.step();
-
-        if (packetController != null)
-          packetController.show(packet);
-
-        packet.release();
-      } catch (GeneralException ge) {
-        LOGGER.severe(ge.getMessage());
-        engine.release();
-        System.exit(-1);
-      }
+      if (isPaused())
+        continue;
+      step();
     }
 
     print();
@@ -215,13 +204,45 @@ public class HandTrackingApp extends KeyAdapter {
     System.exit(0);
   }
 
+  public void keyPressed(KeyEvent ke) {
+    switch (ke.getKeyCode()) {
+      case KeyEvent.VK_N:
+        paused = true;
+        step();
+        break;
+      case KeyEvent.VK_P:
+        paused = !paused;
+        break;
+      case KeyEvent.VK_ESCAPE:
+      case KeyEvent.VK_Q:
+        packetController.hide();
+        break;
+      default:
+        break;
+    }
+  }
+  
+  private void step() {
+    try {
+      ProcessPacket packet = engine.step();
+
+      if (packetController != null)
+        packetController.show(packet);
+      packet.release();
+    } catch (GeneralException ge) {
+      LOGGER.severe(ge.getMessage());
+      engine.release();
+      System.exit(-1);
+    }
+  }
+    
   /**
    * Prints finger events for evaluation.
    */
-  public void print() {
+  private void print() {
     if (!saveFingertip)
       return;
-
+    
     PrintWriter pw = null;
     try {
       Date date = new Date();
@@ -237,24 +258,7 @@ public class HandTrackingApp extends KeyAdapter {
         pw.close();
     }
   }
-
-  public void keyPressed(KeyEvent ke) {
-    switch (ke.getKeyCode()) {
-      case KeyEvent.VK_N:
-        paused = true;
-        engine.step();
-        break;
-      case KeyEvent.VK_P:
-        paused = !paused;
-        break;
-      case KeyEvent.VK_ESCAPE:
-      case KeyEvent.VK_Q:
-        packetController.hide();
-        break;
-      default:
-        break;
-    }
-  }
+  
 
   private boolean isRunning() {
     return ((packetController != null && 

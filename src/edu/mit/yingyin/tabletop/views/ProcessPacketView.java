@@ -11,7 +11,6 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.CvScalar;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
-import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.controllers.ViewImageValueController;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
@@ -43,26 +41,31 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 
 public class ProcessPacketView {
-  private interface DebugView {
+  public interface DebugView {
     public JFrame frame();
     public void showDebugImage(ProcessPacket pacekt);
   }
   
-  private class BackgroundDebugView implements DebugView {
+  public class BackgroundDebugView implements DebugView {
     public static final String NAME = "Background debug";
     
-    private final HistogramImageComponent bgImageComp;
-    private final ViewImageValueController bgImageController;
+    private final HistogramImageComponent imageComp;
+    private final ViewImageValueController imageController;
     
     public BackgroundDebugView(int width, int height) {
-      bgImageComp = new HistogramImageComponent(width, height, 
-                                                EnvConstant.MAX_DEPTH);
-      bgImageController = new ViewImageValueController(NAME, bgImageComp);
+      imageComp = new HistogramImageComponent(width, height, 
+                                              EnvConstant.MAX_DEPTH);
+      imageController = new ViewImageValueController(NAME, imageComp);
     }
     
     @Override
-    public JFrame frame() { return bgImageController.frame(); }
+    public JFrame frame() { return imageController.frame(); }
     
+    /**
+     * Shows the histogram based depth image.
+     * 
+     * @param packet
+     */
     @Override
     public void showDebugImage(ProcessPacket packet) {
       Arrays.fill(debugImage, 0);
@@ -75,44 +78,57 @@ public class ProcessPacketView {
             debugImage[pos] = packet.depthRawData[pos];
           }
         }
-      bgImageComp.setImage(debugImage);
-      bgImageController.update();
+      imageComp.setImage(debugImage);
+      imageController.update();
+    }  
+  }
+  
+  public class DepthDebugView implements DebugView {
+    public static final String NAME = "Depth debug";
+    
+    private final HistogramImageComponent imageComp;
+    private final ViewImageValueController imageController;
+    
+    public DepthDebugView (int width, int height) {
+      imageComp = new HistogramImageComponent(width, height, 
+                                                EnvConstant.MAX_DEPTH);
+      imageController = new ViewImageValueController(NAME, imageComp);
+    }
+    
+    @Override
+    public JFrame frame() { return imageController.frame(); }
+    
+    @Override
+    public void showDebugImage(ProcessPacket packet) {
+      imageComp.setImage(packet.depthRawData);
+      imageController.update();
+      // Draws labeled points.
+      if (fingertipLabels != null) {
+        for (Point p : fingertipLabels)
+          imageComp.addLabel(p, Color.GREEN);
+      }
+      JFrame frame = frames.get(DEPTH_FRAME);
+      frame.setTitle("Processed FrameID = " + packet.depthFrameID);
+    }
+    
+    public BufferedImage image() { return imageComp.image(); }
+  
+    public void drawCircle(int x, int y) {
+      imageComp.addLabel(new Point(x, y), Color.RED);
     }
   }
   
-  private class HandPoseDebugView implements DebugView {
-    private static final int WIDTH = 40, HEIGHT = 40;
-    
-    public HandPoseDebugView() {
-      
-    }
-    
-    @Override
-    public JFrame frame() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public void showDebugImage(ProcessPacket pacekt) {
-      // TODO Auto-generated method stub
-      
-    }
-    
-  }
-
   /**
    * Toggles for viewing different diagnostic frames.
    */
   public enum Toggles {
-    SHOW_RGB_IMAGE, SHOW_DEPTH_IMAGE, SHOW_CONVEXITY_DEFECTS, SHOW_HULL, 
-    SHOW_MORPHED, SHOW_FINGERTIP, SHOW_BOUNDING_BOX, SHOW_LABELS
+    SHOW_RGB_IMAGE, SHOW_DEPTH_VIEW, SHOW_CONVEXITY_DEFECTS, SHOW_HULL, 
+    SHOW_MORPHED, SHOW_FINGERTIP, SHOW_BOUNDING_BOX, SHOW_LABELS, SHOW_3D
   }
 
   private static final Logger LOGGER =
       Logger.getLogger(ProcessPacketView.class.getName());
 
-  private static final String DIAGNOSTIC_FRAME = "Diagnostic";
   private static final String ANALYSIS_FRAME = "Analysis";
   private static final String DEPTH_FRAME = "Depth";
   private static final String TABLE3D_FRAME = "Table3D";
@@ -128,11 +144,12 @@ public class ProcessPacketView {
       new LinkedHashMap<String, JFrame>();
   
   private final IplImage analysisImage;
-  private final HistogramImageComponent depthImageComp;
-  private final ViewImageValueController depthImageController;
   private final DebugView debugView;
+  private DepthDebugView depthView;
+  private Table3DFrame table3DView;
   private final int width, height;
   private final int[] debugImage;
+  private List<Point> fingertipLabels;
   
   public ProcessPacketView(int width, int height) {
     initToggles();
@@ -142,25 +159,29 @@ public class ProcessPacketView {
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     debugImage = new int[width * height];
     
-    depthImageComp = new HistogramImageComponent(width, height, 
-                                                 EnvConstant.MAX_DEPTH);
     CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME);
     cf.setPreferredSize(new Dimension(width, height));
+
+    if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW)) {
+      depthView = new DepthDebugView(width, height);
+      frames.put(DEPTH_FRAME, depthView.frame());
+    }
     
-    depthImageController = new ViewImageValueController(DEPTH_FRAME, 
-                                                        depthImageComp);
-    debugView = new BackgroundDebugView(width, height);
+    if (toggleMap.get(Toggles.SHOW_3D)) {
+      table3DView = new Table3DFrame(width, height);
+      frames.put(TABLE3D_FRAME, table3DView);
+    }
+
+    debugView = new HandPoseDebugView();
     
     frames.put(ANALYSIS_FRAME, cf);
-    frames.put(DEPTH_FRAME, depthImageController.frame());
-    frames.put(TABLE3D_FRAME, new Table3DFrame(width, height));
     frames.put(DEBUG_FRAME, debugView.frame());
     tile();
   }
   
   public void redrawIntersections(Point3D[] intersections) {
-    ((Table3DFrame) frames.get(TABLE3D_FRAME)).redrawIntersections(
-        intersections);
+    if (table3DView != null)
+      table3DView.redrawIntersections(intersections);
   }
 
   /**
@@ -172,12 +193,15 @@ public class ProcessPacketView {
    */
   public void show(ProcessPacket packet, List<Point> fingertipLabels)
       throws GeneralException {
+    this.fingertipLabels = fingertipLabels;
     showAnalysisImage(packet);
 
-    if (toggleMap.get(Toggles.SHOW_DEPTH_IMAGE))
-      showDepthImage(packet, fingertipLabels);
+    if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW))
+      depthView.showDebugImage(packet);
     
-    showTable3DFrame(packet);
+    if (toggleMap.get(Toggles.SHOW_3D))
+      showTable3DFrame(packet);
+    
     debugView.showDebugImage(packet);
   }
 
@@ -189,12 +213,6 @@ public class ProcessPacketView {
   public void addKeyListener(KeyListener kl) {
     for (JFrame frame : frames.values())
       frame.addKeyListener(kl);
-  }
-
-  public void addMouseListener(MouseListener ml) {
-    ImageFrame f = (ImageFrame) frames.get(DIAGNOSTIC_FRAME);
-    if (f != null)
-      f.addMouseListenerToImageComponent(ml);
   }
 
   public void tile() {
@@ -235,12 +253,6 @@ public class ProcessPacketView {
     return isVisible;
   }
 
-  public void setStatus(String status) {
-    ImageFrame f = (ImageFrame) frames.get(DIAGNOSTIC_FRAME);
-    if (f != null)
-      f.setStatus(status);
-  }
-
   public void toggle(Toggles name) {
     toggleMap.put(name, !toggleMap.get(name));
   }
@@ -249,7 +261,7 @@ public class ProcessPacketView {
     toggleMap.put(name, status);
   }
 
-  public BufferedImage depthImage() { return depthImageComp.image(); }
+  public BufferedImage depthImage() { return depthView.image(); }
   
   /**
    * Draws a circle at (x, y).
@@ -258,12 +270,14 @@ public class ProcessPacketView {
    * @param y
    */
   public void drawCircle(int x, int y) {
-    depthImageComp.addLabel(new Point(x, y), Color.RED);
+    if (depthView != null)
+      depthView.drawCircle(x, y);
   }
 
   private void initToggles() {
     toggleMap.put(Toggles.SHOW_RGB_IMAGE, false);
-    toggleMap.put(Toggles.SHOW_DEPTH_IMAGE, true);
+    toggleMap.put(Toggles.SHOW_DEPTH_VIEW, false);
+    toggleMap.put(Toggles.SHOW_3D, false);
     toggleMap.put(Toggles.SHOW_CONVEXITY_DEFECTS, false);
     toggleMap.put(Toggles.SHOW_HULL, false);
     toggleMap.put(Toggles.SHOW_MORPHED, true);
@@ -273,13 +287,15 @@ public class ProcessPacketView {
   }
   
   private void showTable3DFrame(ProcessPacket packet) {
-    Table3DFrame f = (Table3DFrame) frames.get(TABLE3D_FRAME);
-    if (!f.talbeInitialized() && InteractionSurface.instanceInitialized()) {
-      f.initTable(InteractionSurface.instance());
+    if (table3DView != null) {
+      if (!table3DView.talbeInitialized() && 
+          InteractionSurface.instanceInitialized()) {
+        table3DView.initTable(InteractionSurface.instance());
+      }
+      
+      if (table3DView.talbeInitialized())
+        table3DView.redraw(packet);
     }
-    
-    if (f.talbeInitialized())
-      f.redraw(packet);
   }
 
   /**
@@ -299,7 +315,7 @@ public class ProcessPacketView {
                     new CvPoint(rect.x() + rect.width() - 1, 
                                 rect.y() + rect.height() - 1),
                     CvScalar.WHITE, 1, 8, 0);
-        rect = ff.armJointRegion;
+        rect = ff.handRegion;
         if (rect != null) {
           cvRectangle(analysisImage, new CvPoint(rect.x(), rect.y()),
                       new CvPoint(rect.x() + rect.width() - 1, 
@@ -327,22 +343,5 @@ public class ProcessPacketView {
       }
     }
     ((CanvasFrame)frames.get(ANALYSIS_FRAME)).showImage(analysisImage);
-  }
-
-  /**
-   * Shows the histogram based depth image.
-   * 
-   * @param packet
-   */
-  private void showDepthImage(ProcessPacket packet, List<Point> labels) {
-    depthImageComp.setImage(packet.depthRawData);
-    depthImageController.update();
-    // Draws labeled points.
-    if (labels != null) {
-      for (Point p : labels)
-        depthImageComp.addLabel(p, Color.GREEN);
-    }
-    JFrame frame = frames.get(DEPTH_FRAME);
-    frame.setTitle("Processed FrameID = " + packet.depthFrameID);
   }
 }
