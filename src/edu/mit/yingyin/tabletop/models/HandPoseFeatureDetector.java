@@ -52,6 +52,11 @@ public class HandPoseFeatureDetector {
     this.openni = openni;
   }
   
+  /**
+   * Detects hand pose features based on data in the {@code ProcessPacket}.
+   * @param packet
+   * @throws StatusException
+   */
   public void detect(ProcessPacket packet) throws StatusException {
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handRegion != null) {
@@ -71,7 +76,15 @@ public class HandPoseFeatureDetector {
     rotMat.release();
   }
   
-  private Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
+  /**
+   * Preprocesses the data points in the hand region.
+   * @param rawDepthData
+   * @param handRegion
+   * @param mask foreground after cleaning up. The mask should have 8 bit depth.
+   * @return
+   * @throws StatusException
+   */
+  public Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
                                IplImage mask) 
       throws StatusException {
     ByteBuffer foregroundMask = mask.getByteBuffer();
@@ -89,7 +102,7 @@ public class HandPoseFeatureDetector {
     return openni.convertProjectiveToRealWorld(projective);
   }
   
-  private CvMat alignPCA(Point3D[] worldPoints) {
+  public CvMat alignPCA(Point3D[] worldPoints) {
     int n = worldPoints.length;
     // Row matrix.
     CvMat worldPointsMat = CvMat.create(n, dim, CV_32FC1);
