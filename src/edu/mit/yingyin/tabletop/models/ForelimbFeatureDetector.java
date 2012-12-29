@@ -73,18 +73,24 @@ public class ForelimbFeatureDetector {
   private static final int CONTOUR_APPROX_LEVEL = 2;
   /**
    * The ratio between the perimeter of the table and the perimeter of the hand.
-   * Assumes hand's dimension is w = 15cm, h = 15cm, and the table's dimension
-   * is w = 122cm, h = 92cm.
+   * Assumes a fully extended hand's dimension is w = 15cm, h = 15cm, and the 
+   * table's dimension is w = 122cm, h = 92cm.
    */
   private static final int HAND_PERIM_SCALE = 7;
   /**
-   * The ratio between the height of the table and the minimum height of the
-   * hand. Assumes minimum height of the hand is 8cm when only part of the hand
-   * is in the view.
+   * The ratio between the height of the table and the maximum (fully extended)
+   * height of the hand. 
    */
-  private static final int HAND_HEIGHT_SCALE = 6;
+  private static final int HAND_MAX_HEIGHT_SCALE = 6;
+  /**
+   * The ratio between the height of the table and the minimum height of the
+   * hand. The minimum hand height is assumed to be 8cm. 
+   */
+  private static final int HAND_MIN_HEIGHT_SCALE = 11;
   private static final int ARM_JOINT_HEIGHT_SCALE = 20;
 
+  private static final int FORELIMB_BOTTOM_TO_IMAGE_BOTTOM_DIST_THRESH = 10;
+  
   private final Background background;
   private final IplImage tempImage;
   private final ForelimbModelEstimator forelimbModelEstimator;
@@ -238,30 +244,35 @@ public class ForelimbFeatureDetector {
    * Finds rectangle hand regions from forelimb regions.
    * 
    * @param packet contains all the processing information.
-   * 
-   *          TODO(yingyin): find hand region based on arm orientation.
    */
   private void findHandRegions(ProcessPacket packet) {
-    int handHeight = packet.height / HAND_HEIGHT_SCALE;
+    int maxHandHeight = packet.height / HAND_MAX_HEIGHT_SCALE;
+    int minHandHeight = packet.height / HAND_MIN_HEIGHT_SCALE;
     int armJointHeight = packet.height / ARM_JOINT_HEIGHT_SCALE;
 
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       CvRect rect = ff.boundingBox;
-      if (rect.height() >= handHeight) {
-        int ymid = packet.height / 2;
+      if (rect.height() < maxHandHeight)
+        maxHandHeight = rect.height();
+      if (rect.height() >= minHandHeight) {
         int y1 = rect.y();
         int y2 = y1 + rect.height();
         int yhand = y1, yarm = y2 - armJointHeight;
-        if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) {
-          yhand = y2 - handHeight;
+        if (!isForelimbAtBottom(y2, packet.height)) {
+          yhand = y2 - maxHandHeight;
           yarm = y1;
         }
-        ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
-        if (rect.height() - handHeight >= armJointHeight) {
+        ff.handRegion = cvRect(rect.x(), yhand, rect.width(), maxHandHeight);
+        if (rect.height() - maxHandHeight >= armJointHeight) {
           ff.armJointRegion =
               cvRect(rect.x(), yarm, rect.width(), armJointHeight);
         }
       }
     }
+  }
+  
+  private boolean isForelimbAtBottom(int forelimbBottom, int imageBottom) {
+    return Math.abs(forelimbBottom - imageBottom) < 
+           FORELIMB_BOTTOM_TO_IMAGE_BOTTOM_DIST_THRESH;
   }
 }

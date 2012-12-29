@@ -84,7 +84,7 @@ public class HandPoseFeatureDetector {
    * @return
    * @throws StatusException
    */
-  public Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
+  Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
                                IplImage mask) 
       throws StatusException {
     ByteBuffer foregroundMask = mask.getByteBuffer();
@@ -102,7 +102,7 @@ public class HandPoseFeatureDetector {
     return openni.convertProjectiveToRealWorld(projective);
   }
   
-  public CvMat alignPCA(Point3D[] worldPoints) {
+  CvMat alignPCA(Point3D[] worldPoints) {
     int n = worldPoints.length;
     // Row matrix.
     CvMat worldPointsMat = CvMat.create(n, dim, CV_32FC1);
@@ -121,9 +121,6 @@ public class HandPoseFeatureDetector {
       fb.put((float) (fb.get(i * dim + 1) - mean.get(1)));
       fb.put((float) (fb.get(i * dim + 2) - mean.get(2)));
     }
-    LOGGER.fine("mean: " + mean.toString());
-    LOGGER.fine("eigen values:" + eigenvals.toString());
-    LOGGER.fine(eigenvecs.toString());
     checkPolarity(eigenvecs);
     // Rotation matrix is inverse of the PCA space coordinate axes.
     cvT(eigenvecs, rotMat);
@@ -140,10 +137,11 @@ public class HandPoseFeatureDetector {
   }
   
   private void checkPolarity(CvMat mat) {
+    // Makes sure depth is the last axis.
     int zIndex = 0;
     double max = Float.NEGATIVE_INFINITY;
     for (int i = 0; i < 3; i++) {
-      double z = mat.get(i, 2);
+      double z = Math.abs(mat.get(i, 2));
       if ( z > max) {
         max = z;
         zIndex = i;
@@ -157,6 +155,18 @@ public class HandPoseFeatureDetector {
         mat.put(i + 1, j, p[j]);
       }
     }
-    LOGGER.fine("After depth check:" + mat.toString());
+    
+    if (mat.get(2, 2) < 0) {
+      mat.put(2, 0, -mat.get(2, 0));
+      mat.put(2, 1, -mat.get(2, 1));
+      mat.put(2, 2, -mat.get(2, 2));
+    }
+  
+    double x = mat.get(0, 1) * mat.get(1, 2) - mat.get(0, 2) * mat.get(1, 1);
+    if (x * mat.get(2, 0) < 0) {
+      mat.put(0, 0, -mat.get(0, 0));
+      mat.put(0, 1, -mat.get(0, 1));
+      mat.put(0, 2, -mat.get(0, 2));
+    }
   }
 }

@@ -77,7 +77,5 @@ public class HandPoseDebugView implements DebugView {
         minMax[j][1] = Math.max(p[j], minMax[j][1]);
       }
     }
-    for (int i = 0; i < 3; i++)
-      LOGGER.info("boundary: " + Arrays.toString(minMax[i]));
   }
 }  
