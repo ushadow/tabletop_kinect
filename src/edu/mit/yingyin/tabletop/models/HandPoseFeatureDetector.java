@@ -144,5 +144,6 @@ public class HandPoseFeatureDetector {
         mat.put(i + 1, j, p[j]);
       }
     }
+    LOGGER.fine("After depth check:" + mat.toString());
   }
 }

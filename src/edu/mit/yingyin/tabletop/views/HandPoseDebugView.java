@@ -48,7 +48,10 @@ public class HandPoseDebugView implements DebugView {
           for (int j = 0; j < 3; j++) {
             p[j] = p[j] - minMax[j][0];
           }
-          imageArray[((int) p[1]) * bounds[0] + (int) p[0]] = (byte) p[2];
+          int v = (int) p[2];
+          if (v != 0)
+            v += 100;
+          imageArray[((int) p[1] * bounds[0]) + (int) p[0]] = (byte) v;
         }
       }
     }
