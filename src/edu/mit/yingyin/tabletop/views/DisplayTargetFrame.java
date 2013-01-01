@@ -27,7 +27,7 @@ import edu.mit.yingyin.util.SystemUtil;
 public class DisplayTargetFrame extends JFrame {
   private class TargetImageComponent extends ImageComponent {
     private static final long serialVersionUID = 7001378911756844295L;
-    private static final int OVAL_WIDTH = 100;
+    private static final int OVAL_RADIUS = 50;
     
     public TargetImageComponent(BufferedImage img) {
       super(img);
@@ -39,16 +39,16 @@ public class DisplayTargetFrame extends JFrame {
       g2d.setColor(Color.red);
       if (currentPointIndex >= 0 && currentPointIndex < displayPoints.size()) {
         Point p = displayPoints.get(currentPointIndex);
-        g2d.fillOval(p.x - OVAL_WIDTH, p.y - OVAL_WIDTH, OVAL_WIDTH, 
-                     OVAL_WIDTH);
+        g2d.fillOval(p.x - OVAL_RADIUS, p.y - OVAL_RADIUS, OVAL_RADIUS * 2, 
+                     OVAL_RADIUS * 2);
       }
       if (pintsToDraw != null) {
         g2d.setColor(Color.blue);
         for (Point2f point : pintsToDraw) {
           Point scaled = scale(point);
           SwingUtilities.convertPointFromScreen(scaled, this);
-          g2d.fillOval(scaled.x - OVAL_WIDTH, scaled.y - OVAL_WIDTH, OVAL_WIDTH, 
-                       OVAL_WIDTH);
+          g2d.fillOval(scaled.x - OVAL_RADIUS, scaled.y - OVAL_RADIUS, 
+              OVAL_RADIUS * 2, OVAL_RADIUS * 2);
         }
       }
     }

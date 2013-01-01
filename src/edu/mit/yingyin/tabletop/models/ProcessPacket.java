@@ -44,6 +44,7 @@ public class ProcessPacket {
     public List<ValConfiPair<Point3f>> fingertips = 
         new ArrayList<ValConfiPair<Point3f>>();
     public CvMat handPose;
+    public HandPoseDescriptor hpd;
     
     public void release() {
       if (approxPoly != null)

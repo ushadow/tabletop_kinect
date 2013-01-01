@@ -65,6 +65,7 @@ public class HandPoseFeatureDetector {
         if (worldPoints.length < dim)
           continue;
         ff.handPose = alignPCA(worldPoints);
+        ff.hpd = new HandPoseDescriptor(ff.handPose);
       }
     }
   }
@@ -116,6 +117,7 @@ public class HandPoseFeatureDetector {
     }
     cvCalcPCA(worldPointsMat, mean, eigenvals, eigenvecs, CV_PCA_DATA_AS_ROW);
     fb.rewind();
+    // Centers the points.
     for (int i = 0; i < n; i++) {
       fb.put((float) (fb.get(i * dim) - mean.get(0)));
       fb.put((float) (fb.get(i * dim + 1) - mean.get(1)));

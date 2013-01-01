@@ -56,10 +56,10 @@ public class DisplayImageFrame extends KeyAdapter
         Point2f p = scale(fe.posDisplay);
         Point pointInImageCoord = new Point((int) p.x, (int) p.y);
         SwingUtilities.convertPointFromScreen(pointInImageCoord, this);
-        g2d.drawOval(pointInImageCoord.x - OVAL_WIDTH, 
-            pointInImageCoord.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
-        g2d.fillOval(pointInImageCoord.x - OVAL_WIDTH, 
-            pointInImageCoord.y - OVAL_WIDTH, OVAL_WIDTH, OVAL_WIDTH);
+        g2d.drawOval(pointInImageCoord.x - OVAL_WIDTH / 2, 
+            pointInImageCoord.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
+        g2d.fillOval(pointInImageCoord.x - OVAL_WIDTH / 2, 
+            pointInImageCoord.y - OVAL_WIDTH / 2, OVAL_WIDTH, OVAL_WIDTH);
       }
     }
     
