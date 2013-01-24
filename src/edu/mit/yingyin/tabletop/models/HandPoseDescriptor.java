@@ -34,7 +34,13 @@ public class HandPoseDescriptor {
   }
   
   public String toString() {
-    return Arrays.toString(histogram);
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < histogram.length - 1; i++) {
+      sb.append(histogram[i]);
+      sb.append(",");
+    }
+    sb.append(histogram[histogram.length - 1]);
+    return sb.toString();
   }
   
   /**
