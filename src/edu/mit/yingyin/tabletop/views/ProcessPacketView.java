@@ -122,7 +122,7 @@ public class ProcessPacketView {
    * Toggles for viewing different diagnostic frames.
    */
   public enum Toggles {
-    SHOW_RGB_IMAGE, SHOW_DEPTH_VIEW, SHOW_CONVEXITY_DEFECTS, SHOW_HULL, 
+    SHOW_DEPTH_VIEW, SHOW_CONVEXITY_DEFECTS, SHOW_HULL, 
     SHOW_MORPHED, SHOW_FINGERTIP, SHOW_BOUNDING_BOX, SHOW_LABELS, SHOW_3D
   }
 
@@ -150,6 +150,7 @@ public class ProcessPacketView {
   private final int width, height;
   private final int[] debugImage;
   private List<Point> fingertipLabels;
+  private int classLabel;
   
   public ProcessPacketView(int width, int height) {
     initToggles();
@@ -188,12 +189,13 @@ public class ProcessPacketView {
    * Show the visualization of the packet.
    * 
    * @param packet
-   * @param fingertipLabels
+   * @param fingertipLabels can be null.
    * @throws GeneralException
    */
-  public void show(ProcessPacket packet, List<Point> fingertipLabels)
-      throws GeneralException {
+  public void show(ProcessPacket packet, List<Point> fingertipLabels, 
+      int classLabel) throws GeneralException {
     this.fingertipLabels = fingertipLabels;
+    this.classLabel = classLabel;
     showAnalysisImage(packet);
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW))
@@ -275,7 +277,6 @@ public class ProcessPacketView {
   }
 
   private void initToggles() {
-    toggleMap.put(Toggles.SHOW_RGB_IMAGE, false);
     toggleMap.put(Toggles.SHOW_DEPTH_VIEW, false);
     toggleMap.put(Toggles.SHOW_3D, false);
     toggleMap.put(Toggles.SHOW_CONVEXITY_DEFECTS, false);

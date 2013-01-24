@@ -30,10 +30,13 @@ import edu.mit.yingyin.util.Option.Some;
  */
 public class ProcessPacketController extends KeyAdapter 
     implements IHandEventListener {
+  public static enum Options {LABEL, CLASSIFICATION};
+  
   private static final Logger LOGGER = Logger.getLogger(
       ProcessPacketController.class.getName());
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
+  private Option<HashMap<Integer, Integer>> classifications;
   private ProcessPacketView packetView;
   
   /**
@@ -42,12 +45,23 @@ public class ProcessPacketController extends KeyAdapter
    * @param height height of the stream data frame.
    * @param lables ground truth label. Can be null.
    */
+  @SuppressWarnings("unchecked")
   public ProcessPacketController(int width, int height, 
-      HashMap<Integer, List<Point>> labels) {
-    if (labels == null)
+      HashMap<Options, Object> options) {
+    Object o = options.get(Options.LABEL);
+    if (o == null) {
       allLabels = new None<HashMap<Integer, List<Point>>>();
+    } else {
+      allLabels = new Some<HashMap<Integer, List<Point>>>(
+          (HashMap<Integer, List<Point>>) o);
+    }
+    o = options.get(Options.CLASSIFICATION);
+    if (o == null)
+      classifications = new None<HashMap<Integer, Integer>>();
     else
-      allLabels = new Some<HashMap<Integer, List<Point>>>(labels);
+      classifications = new Some<HashMap<Integer, Integer>>(
+          (HashMap<Integer, Integer>) o);
+      
     packetView = new ProcessPacketView(width, height);
     fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
     packetView.addKeyListener(this);
@@ -78,10 +92,6 @@ public class ProcessPacketController extends KeyAdapter
     case KeyEvent.VK_L:
       packetView.toggle(Toggles.SHOW_LABELS);
       break;
-    case KeyEvent.VK_R:
-      // Showing RGB image.
-      packetView.setToggle(Toggles.SHOW_RGB_IMAGE, true);
-      break;
     default: 
       break;
     }
@@ -95,7 +105,9 @@ public class ProcessPacketController extends KeyAdapter
   public void show(ProcessPacket packet) throws GeneralException {
     List<Point> labels = allLabels.isSome() ? 
         allLabels.value().get(packet.depthFrameID) : null;
-    packetView.show(packet, labels);
+    int classLabel = classifications.isSome() ? 
+        classifications.value().get(packet.depthFrameID) : -1;
+    packetView.show(packet, labels, classLabel);
     fpsCounter.computeFPS();
   }
   

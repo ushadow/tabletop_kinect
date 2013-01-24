@@ -3,6 +3,7 @@ package edu.mit.yingyin.tabletop.apps;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
@@ -20,11 +22,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
+import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine.IHandEventListener;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
+import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CommandLineOptions;
 import edu.mit.yingyin.util.FileUtil;
 import edu.mit.yingyin.util.ObjectIO;
@@ -86,19 +90,15 @@ public class HandTrackingApp extends KeyAdapter {
   private static Logger LOGGER = Logger.getLogger(
       HandTrackingApp.class.getName());
 
-  private static final String CONFIG_DIR = "config";
-  private static final String DATA_DIR = "data";
-  private static final String FINGERTIP_DIR = FileUtil.join(DATA_DIR, 
-      "fingertip");
   /**
    * Application properties.
    */
-  private static final String APP_PROPS = FileUtil.join(CONFIG_DIR, 
+  private static final String APP_PROPS = FileUtil.join(EnvConstant.CONFIG_DIR, 
       "fingertip_tracking.properties");
   private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
-      CONFIG_DIR, "config.xml");
-  private static final String DEFAULT_CALIB_FILE = FileUtil.join(DATA_DIR, 
-      "calibration", "calibration.txt");
+      EnvConstant.CONFIG_DIR, "config.xml");
+  private static final String DEFAULT_CALIB_FILE = FileUtil.join(
+      EnvConstant.DATA_DIR, "calibration", "calibration.txt");
   private static final String TIME_FORMAT = "yyyy-MM-dd_HH-mm-SS";
   private static final String OUTPUT_EXTENSION = ".log";
 
@@ -118,10 +118,11 @@ public class HandTrackingApp extends KeyAdapter {
   private HandTrackingEngine engine;
   private ProcessPacketController packetController;
   private HandEventListener handEventListener;
+  private PrintWriter descriptorPrintWriter;
+  private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
   private String mainDir;
   private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
-  private SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
 
   @SuppressWarnings("unchecked")
   public HandTrackingApp(String mainDir) {
@@ -144,6 +145,7 @@ public class HandTrackingApp extends KeyAdapter {
       System.exit(-1);
     }
 
+    // Processes configuration properties.
     String openniConfigFile = FileUtil.join(mainDir,
         config.getProperty("openni-config", DEFAULT_OPENNI_CONFIG_FILE));
 
@@ -154,15 +156,32 @@ public class HandTrackingApp extends KeyAdapter {
 
     String labelFile = config.getProperty("fingertip-label-file", null);
     if (labelFile != null)
-      labelFile = FileUtil.join(mainDir, FINGERTIP_DIR, labelFile);
+      labelFile = FileUtil.join(mainDir, EnvConstant.FINGERTIP_DIR, labelFile);
 
     String displayOnProperty = config.getProperty("display-on", "true");
+    if (displayOnProperty.equals("false"))
+      displayOn = false;
 
     String calibrationFile = FileUtil.join(mainDir,
         config.getProperty("calibration-file", DEFAULT_CALIB_FILE));
-
-    if (displayOnProperty.equals("false"))
-      displayOn = false;
+    
+    String descriptorFile = config.getProperty("descriptor-file", null);
+    if (descriptorFile != null) {
+      descriptorFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
+                                     descriptorFile);
+      try {
+        descriptorPrintWriter = new PrintWriter(new File(descriptorFile));
+        LOGGER.info("Writing descriptors to file: " + descriptorFile);
+      } catch (FileNotFoundException e) {
+        LOGGER.severe(e.getMessage());
+        System.exit(-1);
+      }
+    }
+    
+    String classificationFile = config.getProperty("classification-file", null);
+    if (classificationFile != null) 
+      classificationFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
+                                         classificationFile);
 
     try {
       engine = new HandTrackingEngine(openniConfigFile, calibrationFile);
@@ -176,13 +195,17 @@ public class HandTrackingApp extends KeyAdapter {
 
     if (displayOn) {
       try {
-        HashMap<Integer, List<Point>> labels = null;
-        if (labelFile != null)
-          labels = (HashMap<Integer, List<Point>>) ObjectIO.readObject(
-              labelFile);
-
+        HashMap<ProcessPacketController.Options, Object> options = 
+            new HashMap<ProcessPacketController.Options, Object>();
+        if (labelFile != null) 
+          options.put(ProcessPacketController.Options.LABEL, 
+              (HashMap<Integer, List<Point>>) ObjectIO.readObject(labelFile));
+        if (classificationFile != null)
+          options.put(ProcessPacketController.Options.CLASSIFICATION,
+              readClassificationFile(classificationFile));
+        
         packetController = new ProcessPacketController(engine.depthWidth(),
-            engine.depthHeight(), labels);
+            engine.depthHeight(), options);
         engine.addHandEventListener(packetController);
         packetController.addKeyListener(this);
 
@@ -199,8 +222,7 @@ public class HandTrackingApp extends KeyAdapter {
     }
 
     print();
-    engine.release();
-    packetController.release();
+    cleanUp();
     System.exit(0);
   }
 
@@ -222,12 +244,32 @@ public class HandTrackingApp extends KeyAdapter {
     }
   }
   
+  private void cleanUp() {
+    if (descriptorPrintWriter != null) {
+      descriptorPrintWriter.close();
+      LOGGER.info("Done writing descriptors.");
+    }
+    engine.release();
+    packetController.release();
+  }
+ 
+  /**
+   * Gets one more frame.
+   */
   private void step() {
     try {
       ProcessPacket packet = engine.step();
 
       if (packetController != null)
         packetController.show(packet);
+      
+      if (descriptorPrintWriter != null) {
+        for (ForelimbFeatures ff : packet.forelimbFeatures) {
+          if (ff.hpd != null)
+            descriptorPrintWriter.println(packet.depthFrameID + "," + 
+                                          ff.hpd.toString());
+        }
+      }
       packet.release();
     } catch (GeneralException ge) {
       LOGGER.severe(ge.getMessage());
@@ -246,7 +288,7 @@ public class HandTrackingApp extends KeyAdapter {
     PrintWriter pw = null;
     try {
       Date date = new Date();
-      String fingertipFile = FileUtil.join(mainDir, FINGERTIP_DIR, 
+      String fingertipFile = FileUtil.join(mainDir, EnvConstant.FINGERTIP_DIR, 
           dateFormat.format(date) + OUTPUT_EXTENSION);
       pw = new PrintWriter(fingertipFile);
       handEventListener.toOutput(pw);
@@ -269,5 +311,26 @@ public class HandTrackingApp extends KeyAdapter {
 
   private boolean isPaused() {
     return packetController != null && paused;
+  }
+  
+  private HashMap<Integer, Integer> readClassificationFile(String filename) {
+    HashMap<Integer, Integer> classfication = new HashMap<Integer, Integer>();
+    Scanner scanner = null;
+    try {
+      scanner = new Scanner(new File(filename));
+      scanner.useDelimiter(",");
+      while (scanner.hasNext()) {
+        int frameID = scanner.nextInt();
+        int classLabel = scanner.nextInt();
+        classfication.put(frameID, classLabel);
+      }
+    } catch (FileNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } finally {
+      if (scanner != null)
+        scanner.close();
+    }
+    return classfication;
   }
 }
