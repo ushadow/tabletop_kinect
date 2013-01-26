@@ -171,7 +171,7 @@ public class HandTrackingApp extends KeyAdapter {
                                      descriptorFile);
       try {
         descriptorPrintWriter = new PrintWriter(new File(descriptorFile));
-        LOGGER.info("Writing descriptors to file: " + descriptorFile);
+        LOGGER.info("descriptor file: " + descriptorFile);
       } catch (FileNotFoundException e) {
         LOGGER.severe(e.getMessage());
         System.exit(-1);
