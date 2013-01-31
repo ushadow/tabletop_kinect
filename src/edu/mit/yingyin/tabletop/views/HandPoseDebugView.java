@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
@@ -15,8 +14,6 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView.DebugView;
 
 public class HandPoseDebugView implements DebugView {
-  private static final Logger LOGGER = Logger.getLogger(
-      HandPoseDebugView.class.getName());
   private static final int WIDTH = 640, HEIGHT = 480;
   private static final String TITLE = "Hand pose debug view";
   
@@ -55,5 +52,10 @@ public class HandPoseDebugView implements DebugView {
       }
     }
     frame.updateImage(bi);
+  }
+
+  @Override
+  public void showStatusMessage(String message) {
+    frame.setStatus(message);
   }
 }  

@@ -41,9 +41,15 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 
 public class ProcessPacketView {
+  /**
+   * View for debugging purpose.
+   * @author yingyin
+   *
+   */
   public interface DebugView {
     public JFrame frame();
     public void showDebugImage(ProcessPacket pacekt);
+    public void showStatusMessage(String message);
   }
   
   public class BackgroundDebugView implements DebugView {
@@ -80,6 +86,11 @@ public class ProcessPacketView {
         }
       imageComp.setImage(debugImage);
       imageController.update();
+    }
+
+    @Override
+    public void showStatusMessage(String message) {
+      imageController.frame().setStatus(message);
     }  
   }
   
@@ -116,6 +127,11 @@ public class ProcessPacketView {
     public void drawCircle(int x, int y) {
       imageComp.addLabel(new Point(x, y), Color.RED);
     }
+
+    @Override
+    public void showStatusMessage(String message) {
+      imageController.frame().setStatus(message);
+    }
   }
   
   /**
@@ -150,7 +166,6 @@ public class ProcessPacketView {
   private final int width, height;
   private final int[] debugImage;
   private List<Point> fingertipLabels;
-  private int classLabel;
   
   public ProcessPacketView(int width, int height) {
     initToggles();
@@ -195,8 +210,10 @@ public class ProcessPacketView {
   public void show(ProcessPacket packet, List<Point> fingertipLabels, 
       int classLabel) throws GeneralException {
     this.fingertipLabels = fingertipLabels;
-    this.classLabel = classLabel;
+
     showAnalysisImage(packet);
+    debugView.showDebugImage(packet);
+    debugView.showStatusMessage("hand pose class: " + classLabel);
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW))
       depthView.showDebugImage(packet);
@@ -204,7 +221,6 @@ public class ProcessPacketView {
     if (toggleMap.get(Toggles.SHOW_3D))
       showTable3DFrame(packet);
     
-    debugView.showDebugImage(packet);
   }
 
   public Rectangle getBounds() {

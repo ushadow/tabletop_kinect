@@ -2,7 +2,7 @@ library(mclust)
 
 # Args:
 # input.file: string of input file name. The data should be comma delimited and
-# the first column is the frame ID.
+#     the first column is the frame ID.
 Cluster <- function(input.file, output.file) {
   data <- read.table(input.file, sep = ',')
   numcol <- ncol(data)
