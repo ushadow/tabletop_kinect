@@ -63,7 +63,8 @@ public class ProcessPacketController extends KeyAdapter
           (HashMap<Integer, Integer>) o);
       
     packetView = new ProcessPacketView(width, height);
-    fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
+    fpsCounter = new FPSCounter(ProcessPacketView.ANALYSIS_FRAME_TITLE, 
+                                packetView.analysisFrame());
     packetView.addKeyListener(this);
   }
   

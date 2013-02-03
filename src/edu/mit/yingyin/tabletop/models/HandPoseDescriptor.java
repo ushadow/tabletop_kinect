@@ -1,10 +1,14 @@
 package edu.mit.yingyin.tabletop.models;
 
 import java.nio.FloatBuffer;
-import java.util.Arrays;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
+/**
+ * A cylindrical descriptor.
+ * @author yingyin
+ *
+ */
 public class HandPoseDescriptor {
   private final int NUM_CIRCLES = 5;
   private final int NUM_SECTORS = 8;
