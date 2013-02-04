@@ -18,25 +18,33 @@ PlotDescriptor <- function(descriptor) {
   kNumSectors <- 8
   kNumRadDivs <- 5
   m <- matrix(descriptor, kNumSectors * kNumRadDivs, kNumDepthDivs, TRUE)
-  pie <- list()
-  edges <- c()
   palette <- heat.colors(kNumDepthDivs)
-  colors <- c()
-  for (s in 0 : (kNumSectors - 1)) {
-    extends <- c()
-    for (r in 0 : (kNumRadDivs - 1)) {
-      index <- r * kNumRadDivs + s + 1
-      if (all(m[index,] == 0)) {
-        next
+  for (r in (kNumRadDivs - 1) : 0){
+    edges <- c()
+    colors <- c()
+    extends <- list()
+    for (s in 0 : (kNumSectors - 1)) {
+      # Row index. 
+      rindex <- r * kNumRadDivs + s + 1
+      if (all(m[rindex,] == 0)) { colors <- c(colors, "#FFFFFFFF")
       } else {
-        index <- max.col(m[index,])
-        colors <- c(colors, palette[index])
-        extends <- c(extends, r) 
+        # Depth index.
+        dindex <- which.max(m[rindex,])
+        colors <- c(colors, palette[dindex])
       }
+      extends <- c(extends, list(r : (r + 1))) 
+      edges <- c(edges, -pi + pi * 2 * s / kNumSectors) 
     } 
+    edges <- c(edges, pi)
+    add = TRUE 
+    if (names(dev.cur()) == "null device") {
+      add = FALSE
+    }
     print(extends)
-    pie <- c(pie, list(extends))
+    print(colors)
+    print(edges)
+    print(add)
+    radial.pie(extends, sector.colors = colors, start = -pi, 
+               show.grid.labels = FALSE, add = add)
   }
-  print(pie)
-  radial.pie(pie, sector.colors = colors, start = -pi)
 }

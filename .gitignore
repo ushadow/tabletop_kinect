@@ -12,3 +12,5 @@ Log
 .log
 doc
 data/descriptor
+.RData
+.Rhistory
