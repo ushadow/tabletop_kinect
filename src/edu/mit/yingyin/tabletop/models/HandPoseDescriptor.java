@@ -30,6 +30,11 @@ public class HandPoseDescriptor {
     computeDescriptor(points);
   }
 
+  /**
+   * Radius of the descriptor. It is calculated according to CAMSHIFT window
+   * size.
+   * @return
+   */
   public double radius() { return radius; }
   
   public float descriptorValue(int r, int s, int d) {

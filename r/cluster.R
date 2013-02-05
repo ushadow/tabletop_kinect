@@ -45,7 +45,7 @@ PlotDescriptor <- function(descriptor) {
     } 
     edges <- c(edges, pi)
     add = TRUE 
-    if (names(dev.cur()) == "null device") {
+    if (r == kNumRadDivs - 1) {
       add = FALSE
     }
     radial.pie(extends, sector.colors = colors, start = -pi, 
