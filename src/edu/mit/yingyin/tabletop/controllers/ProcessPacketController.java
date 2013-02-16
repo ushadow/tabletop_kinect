@@ -63,7 +63,8 @@ public class ProcessPacketController extends KeyAdapter
           (HashMap<Integer, Integer>) o);
       
     packetView = new ProcessPacketView(width, height);
-    fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
+    fpsCounter = new FPSCounter(ProcessPacketView.ANALYSIS_FRAME_TITLE, 
+                                packetView.analysisFrame());
     packetView.addKeyListener(this);
   }
   
@@ -105,8 +106,13 @@ public class ProcessPacketController extends KeyAdapter
   public void show(ProcessPacket packet) throws GeneralException {
     List<Point> labels = allLabels.isSome() ? 
         allLabels.value().get(packet.depthFrameID) : null;
-    int classLabel = classifications.isSome() ? 
-        classifications.value().get(packet.depthFrameID) : -1;
+    
+    Integer classLabel = -1;
+    if (classifications.isSome()) {
+      classLabel = classifications.value().get(packet.depthFrameID);
+      if (classLabel == null)
+        classLabel = -1;
+    }
     packetView.show(packet, labels, classLabel);
     fpsCounter.computeFPS();
   }

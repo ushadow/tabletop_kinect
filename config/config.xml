@@ -14,7 +14,6 @@
     </Dumps>
   </Log>
   <ProductionNodes>
-    <!--<Recording file="./data/sample.oni" />-->
     <Node type="Depth" name="Depth1">
     </Node>
     <Node type="Image" name="Image1" stopOnError="false">

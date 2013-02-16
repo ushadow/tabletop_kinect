@@ -41,9 +41,15 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
 
 public class ProcessPacketView {
+  /**
+   * View for debugging purpose.
+   * @author yingyin
+   *
+   */
   public interface DebugView {
     public JFrame frame();
     public void showDebugImage(ProcessPacket pacekt);
+    public void showStatusMessage(String message);
   }
   
   public class BackgroundDebugView implements DebugView {
@@ -80,6 +86,11 @@ public class ProcessPacketView {
         }
       imageComp.setImage(debugImage);
       imageController.update();
+    }
+
+    @Override
+    public void showStatusMessage(String message) {
+      imageController.frame().setStatus(message);
     }  
   }
   
@@ -107,7 +118,7 @@ public class ProcessPacketView {
         for (Point p : fingertipLabels)
           imageComp.addLabel(p, Color.GREEN);
       }
-      JFrame frame = frames.get(DEPTH_FRAME);
+      JFrame frame = frames.get(DEPTH_FRAME_TITLE);
       frame.setTitle("Processed FrameID = " + packet.depthFrameID);
     }
     
@@ -115,6 +126,11 @@ public class ProcessPacketView {
   
     public void drawCircle(int x, int y) {
       imageComp.addLabel(new Point(x, y), Color.RED);
+    }
+
+    @Override
+    public void showStatusMessage(String message) {
+      imageController.frame().setStatus(message);
     }
   }
   
@@ -129,10 +145,10 @@ public class ProcessPacketView {
   private static final Logger LOGGER =
       Logger.getLogger(ProcessPacketView.class.getName());
 
-  private static final String ANALYSIS_FRAME = "Analysis";
-  private static final String DEPTH_FRAME = "Depth";
-  private static final String TABLE3D_FRAME = "Table3D";
-  private static final String DEBUG_FRAME = "Debug";
+  public static final String ANALYSIS_FRAME_TITLE = "Analysis";
+  public static final String DEPTH_FRAME_TITLE = "Depth";
+  public static final String TABLE3D_FRAME_TITLE = "Table3D";
+  public static final String DEBUG_FRAME_TITLE = "Debug";
 
   private final HashMap<Toggles, Boolean> toggleMap =
       new HashMap<ProcessPacketView.Toggles, Boolean>();
@@ -150,7 +166,6 @@ public class ProcessPacketView {
   private final int width, height;
   private final int[] debugImage;
   private List<Point> fingertipLabels;
-  private int classLabel;
   
   public ProcessPacketView(int width, int height) {
     initToggles();
@@ -160,23 +175,23 @@ public class ProcessPacketView {
     analysisImage = IplImage.create(width, height, IPL_DEPTH_8U, 3);
     debugImage = new int[width * height];
     
-    CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME);
+    CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME_TITLE);
     cf.setPreferredSize(new Dimension(width, height));
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW)) {
       depthView = new DepthDebugView(width, height);
-      frames.put(DEPTH_FRAME, depthView.frame());
+      frames.put(DEPTH_FRAME_TITLE, depthView.frame());
     }
     
     if (toggleMap.get(Toggles.SHOW_3D)) {
       table3DView = new Table3DFrame(width, height);
-      frames.put(TABLE3D_FRAME, table3DView);
+      frames.put(TABLE3D_FRAME_TITLE, table3DView);
     }
 
     debugView = new HandPoseDebugView();
     
-    frames.put(ANALYSIS_FRAME, cf);
-    frames.put(DEBUG_FRAME, debugView.frame());
+    frames.put(ANALYSIS_FRAME_TITLE, cf);
+    frames.put(DEBUG_FRAME_TITLE, debugView.frame());
     tile();
   }
   
@@ -195,8 +210,10 @@ public class ProcessPacketView {
   public void show(ProcessPacket packet, List<Point> fingertipLabels, 
       int classLabel) throws GeneralException {
     this.fingertipLabels = fingertipLabels;
-    this.classLabel = classLabel;
+
     showAnalysisImage(packet);
+    debugView.showDebugImage(packet);
+    debugView.showStatusMessage("hand pose class: " + classLabel);
 
     if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW))
       depthView.showDebugImage(packet);
@@ -204,11 +221,10 @@ public class ProcessPacketView {
     if (toggleMap.get(Toggles.SHOW_3D))
       showTable3DFrame(packet);
     
-    debugView.showDebugImage(packet);
   }
 
   public Rectangle getBounds() {
-    Rectangle rect = frames.get(ANALYSIS_FRAME).getBounds();
+    Rectangle rect = frames.get(ANALYSIS_FRAME_TITLE).getBounds();
     return new Rectangle(0, 0, rect.width * 2, rect.height * 2);
   }
 
@@ -235,7 +251,7 @@ public class ProcessPacketView {
   }
   
   public JFrame analysisFrame() {
-    return frames.get(ANALYSIS_FRAME);
+    return frames.get(ANALYSIS_FRAME_TITLE);
   }
 
   public void release() {
@@ -343,6 +359,6 @@ public class ProcessPacketView {
         }
       }
     }
-    ((CanvasFrame)frames.get(ANALYSIS_FRAME)).showImage(analysisImage);
+    ((CanvasFrame)frames.get(ANALYSIS_FRAME_TITLE)).showImage(analysisImage);
   }
 }

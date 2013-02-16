@@ -1,14 +1,15 @@
 package edu.mit.yingyin.tabletop.models;
 
 import java.nio.FloatBuffer;
-import java.util.Arrays;
-import java.util.logging.Logger;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
+/**
+ * A cylindrical descriptor.
+ * @author yingyin
+ *
+ */
 public class HandPoseDescriptor {
-  private static final Logger LOGGER = Logger.getLogger(
-      HandPoseDescriptor.class.getName());
   private final int NUM_CIRCLES = 5;
   private final int NUM_SECTORS = 8;
   private final int NUM_DEPTH_SECTIONS = 5;
@@ -29,6 +30,11 @@ public class HandPoseDescriptor {
     computeDescriptor(points);
   }
 
+  /**
+   * Radius of the descriptor. It is calculated according to CAMSHIFT window
+   * size.
+   * @return
+   */
   public double radius() { return radius; }
   
   public float descriptorValue(int r, int s, int d) {

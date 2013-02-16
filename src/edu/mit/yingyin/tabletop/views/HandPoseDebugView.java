@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
@@ -15,8 +14,6 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.tabletop.views.ProcessPacketView.DebugView;
 
 public class HandPoseDebugView implements DebugView {
-  private static final Logger LOGGER = Logger.getLogger(
-      HandPoseDebugView.class.getName());
   private static final int WIDTH = 640, HEIGHT = 480;
   private static final String TITLE = "Hand pose debug view";
   
@@ -32,11 +29,11 @@ public class HandPoseDebugView implements DebugView {
   public JFrame frame() { return frame; }
 
   @Override
-  public void showDebugImage(ProcessPacket pacekt) {
+  public void showDebugImage(ProcessPacket packet) {
     byte[] imageArray = ((DataBufferByte)bi.getRaster().getDataBuffer()).
                         getData();
     Arrays.fill(imageArray, (byte) 0);
-    for (ForelimbFeatures ff : pacekt.forelimbFeatures) {
+    for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handPose != null) {
         int radius = (int) ff.hpd.radius();
         FloatBuffer fb = ff.handPose.getFloatBuffer();
@@ -47,7 +44,7 @@ public class HandPoseDebugView implements DebugView {
           for (int j = 0; j < 2; j++) {
             p[j] = p[j] + radius;
           }
-          if (p[0] >=0 && p[1] >= 0)
+          if (p[0] >= 0 && p[1] >= 0)
             imageArray[((int) p[1] * WIDTH) + (int) p[0]] = (byte) 255;
         }
         Graphics2D g = (Graphics2D) bi.getGraphics();
@@ -55,5 +52,12 @@ public class HandPoseDebugView implements DebugView {
       }
     }
     frame.updateImage(bi);
+    frame.setTitle(String.format("%s, frame id = %d", TITLE, 
+                                 packet.depthFrameID));
+  }
+
+  @Override
+  public void showStatusMessage(String message) {
+    frame.setStatus(message);
   }
 }  

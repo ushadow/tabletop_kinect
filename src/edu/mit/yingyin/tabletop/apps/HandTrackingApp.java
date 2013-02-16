@@ -87,12 +87,16 @@ public class HandTrackingApp extends KeyAdapter {
     public void fingerPointed(DiecticEvent de) {}
   }
 
-  private static Logger LOGGER = Logger.getLogger(
-      HandTrackingApp.class.getName());
-
   /**
    * Application properties.
    */
+  private static final String CLASSIFICATION_FILE_PROP = "classification-file";
+  private static final String DESCRIPTOR_FILE_PROP = "descriptor-file";
+
+  private static final Logger LOGGER = Logger.getLogger(
+      HandTrackingApp.class.getName());
+
+  
   private static final String APP_PROPS = FileUtil.join(EnvConstant.CONFIG_DIR, 
       "fingertip_tracking.properties");
   private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
@@ -165,20 +169,21 @@ public class HandTrackingApp extends KeyAdapter {
     String calibrationFile = FileUtil.join(mainDir,
         config.getProperty("calibration-file", DEFAULT_CALIB_FILE));
     
-    String descriptorFile = config.getProperty("descriptor-file", null);
+    String descriptorFile = config.getProperty(DESCRIPTOR_FILE_PROP, null);
     if (descriptorFile != null) {
       descriptorFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
                                      descriptorFile);
       try {
         descriptorPrintWriter = new PrintWriter(new File(descriptorFile));
-        LOGGER.info("Writing descriptors to file: " + descriptorFile);
+        LOGGER.info("descriptor file: " + descriptorFile);
       } catch (FileNotFoundException e) {
         LOGGER.severe(e.getMessage());
         System.exit(-1);
       }
     }
     
-    String classificationFile = config.getProperty("classification-file", null);
+    String classificationFile = config.getProperty(CLASSIFICATION_FILE_PROP, 
+                                                   null);
     if (classificationFile != null) 
       classificationFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
                                          classificationFile);
@@ -318,7 +323,7 @@ public class HandTrackingApp extends KeyAdapter {
     Scanner scanner = null;
     try {
       scanner = new Scanner(new File(filename));
-      scanner.useDelimiter(",");
+      scanner.useDelimiter("[,\\s]");
       while (scanner.hasNext()) {
         int frameID = scanner.nextInt();
         int classLabel = scanner.nextInt();

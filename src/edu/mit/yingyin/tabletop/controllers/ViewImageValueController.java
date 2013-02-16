@@ -5,11 +5,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JFrame;
-
 import edu.mit.yingyin.gui.ImageComponent;
 import edu.mit.yingyin.gui.ImageFrame;
 
+/**
+ * Controls the viewing of image values.
+ * @author yingyin
+ *
+ */
 public class ViewImageValueController extends MouseAdapter {
   private static final Logger LOGGER = Logger.getLogger(
       ViewImageValueController.class.getName());
@@ -24,7 +27,7 @@ public class ViewImageValueController extends MouseAdapter {
     displayValue();
   }
   
-  public JFrame frame() { return imageFrame; }
+  public ImageFrame frame() { return imageFrame; }
   
   @Override
   public void mouseClicked(MouseEvent me) {

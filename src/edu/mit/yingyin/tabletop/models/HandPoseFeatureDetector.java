@@ -9,7 +9,6 @@ import static com.googlecode.javacv.cpp.opencv_core.cvT;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import org.OpenNI.Point3D;
 import org.OpenNI.StatusException;
@@ -26,13 +25,10 @@ import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
  *
  */
 public class HandPoseFeatureDetector {
-  private static final Logger LOGGER = Logger.getLogger(
-      HandPoseFeatureDetector.class.getName());
-  
   /**
    * Depth image width and height.
    */
-  private final int width, height;
+  private final int width;
   private final int dim = 3;
   private final OpenNIDevice openni;
   private final CvMat mean = CvMat.create(1, dim, CV_32FC1);
@@ -48,12 +44,11 @@ public class HandPoseFeatureDetector {
       
   public HandPoseFeatureDetector(int width, int height, OpenNIDevice openni) {
     this.width = width;
-    this.height = height;
     this.openni = openni;
   }
   
   /**
-   * Detects hand pose features based on data in the {@code ProcessPacket}.
+   * Detects hand pose features based on data in the packet.
    * @param packet
    * @throws StatusException
    */
@@ -82,7 +77,7 @@ public class HandPoseFeatureDetector {
    * @param rawDepthData
    * @param handRegion
    * @param mask foreground after cleaning up. The mask should have 8 bit depth.
-   * @return
+   * @return points in the world coordinates.
    * @throws StatusException
    */
   Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
@@ -103,6 +98,11 @@ public class HandPoseFeatureDetector {
     return openni.convertProjectiveToRealWorld(projective);
   }
   
+  /**
+   * Performas PCA alignment.
+   * @param worldPoints
+   * @return
+   */
   CvMat alignPCA(Point3D[] worldPoints) {
     int n = worldPoints.length;
     // Row matrix.
