@@ -14,13 +14,10 @@
     </Dumps>
   </Log>
   <ProductionNodes>
-    <Recording file="./data/oni/diectic.oni" />
-    <!--
     <Node type="Depth" name="Depth1">
     </Node>
     <Node type="Image" name="Image1" stopOnError="false">
     </Node>
-    -->
     <!--
     <Node type="Audio" name="Audio1"/>
     -->

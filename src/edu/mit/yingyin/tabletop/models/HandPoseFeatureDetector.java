@@ -101,7 +101,7 @@ public class HandPoseFeatureDetector {
   /**
    * Performas PCA alignment.
    * @param worldPoints
-   * @return
+   * @return aligned points centered at the origin.
    */
   CvMat alignPCA(Point3D[] worldPoints) {
     int n = worldPoints.length;

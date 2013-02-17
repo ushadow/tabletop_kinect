@@ -13,4 +13,6 @@ public class EnvConstant {
       "fingertip");
   public static final String DESCRIPTOR_DIR = FileUtil.join(DATA_DIR,
       "descriptor");
+  public static final String HAND_POINT_CLOUD_DIR = FileUtil.join(DATA_DIR,
+      "hand_point_cloud");
 }
