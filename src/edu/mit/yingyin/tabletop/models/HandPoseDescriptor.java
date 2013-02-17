@@ -18,6 +18,10 @@ public class HandPoseDescriptor {
   private float[] histogram = 
       new float[NUM_CIRCLES * NUM_SECTORS * NUM_DEPTH_SECTIONS]; 
   
+  /**
+   * Creates a descriptor.
+   * @param points in physical coordinates.
+   */
   public HandPoseDescriptor(CvMat points) {
     if (points.cols() != 3)
       throw new IllegalArgumentException(

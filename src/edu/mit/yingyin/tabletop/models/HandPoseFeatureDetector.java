@@ -73,7 +73,7 @@ public class HandPoseFeatureDetector {
   }
   
   /**
-   * Preprocesses the data points in the hand region.
+   * Converts the foreground points in the hand region to physical coordinates.
    * @param rawDepthData
    * @param handRegion
    * @param mask foreground after cleaning up. The mask should have 8 bit depth.
