@@ -1,13 +1,13 @@
 package edu.mit.yingyin.tabletop.models;
 
-import java.io.File;	
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.nio.FloatBuffer;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import com.googlecode.javacv.cpp.opencv_core.CvMat;
+import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.FileUtil;
@@ -20,11 +20,14 @@ public class HandPointCloudWriter {
   private PrintWriter pw;
   
   public HandPointCloudWriter(String mainDir, Properties prop) {
-    String file = prop.getProperty(HAND_POINT_CLOUD_PROP, null);
-    if (file != null) {
-      file = FileUtil.join(mainDir, EnvConstant.HAND_POINT_CLOUD_DIR, file);
+    String filename = prop.getProperty(HAND_POINT_CLOUD_PROP, null);
+    if (filename != null) {
+      String dir = FileUtil.join(mainDir, EnvConstant.HAND_POINT_CLOUD_DIR);
+      (new File(dir)).mkdir();
+      filename = FileUtil.join(dir, filename);
+      File file = new File(filename);
       try {
-        pw = new PrintWriter(new File(file));
+        pw = new PrintWriter(file);
       } catch (FileNotFoundException fnfe) {
         LOGGER.severe(fnfe.getMessage());
         System.exit(-1);
@@ -43,13 +46,10 @@ public class HandPointCloudWriter {
     }
   }
 
-  public String pointCloudToString(CvMat pointCloud) {
+  public String pointCloudToString(List<Point3f> pointCloud) {
     StringBuffer sb = new StringBuffer();
-    FloatBuffer fb = pointCloud.getFloatBuffer();
-    fb.rewind();
-    float[] p = new float[3];
-    for (int i = 0; i < pointCloud.rows(); i++) {
-      fb.get(p);
+    for (Point3f p : pointCloud) {
+      sb.append(String.format("%.3f,%.3f,%.3f,", p.x, p.y, p.z));
     }
     return sb.toString();
   }

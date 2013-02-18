@@ -62,6 +62,7 @@ public class HandPoseDescriptor {
    * @return
    */
   private float findRadius(CvMat points) {
+    // 1 pixel is roughly 2mm.
     return (float) Math.sqrt(points.rows()) * 2;
   }
   

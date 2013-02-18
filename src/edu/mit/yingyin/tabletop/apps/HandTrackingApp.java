@@ -23,6 +23,7 @@ import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
+import edu.mit.yingyin.tabletop.models.HandPointCloudWriter;
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
 import edu.mit.yingyin.tabletop.models.HandTrackingEngine;
@@ -127,6 +128,7 @@ public class HandTrackingApp extends KeyAdapter {
   private String mainDir;
   private boolean displayOn = true, saveFingertip = false;
   private boolean paused = false;
+  private HandPointCloudWriter hpcw;
 
   @SuppressWarnings("unchecked")
   public HandTrackingApp(String mainDir) {
@@ -188,6 +190,8 @@ public class HandTrackingApp extends KeyAdapter {
       classificationFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
                                          classificationFile);
 
+    hpcw = new HandPointCloudWriter(mainDir, config);
+    
     try {
       engine = new HandTrackingEngine(openniConfigFile, calibrationFile);
     } catch (GeneralException ge) {
@@ -275,6 +279,7 @@ public class HandTrackingApp extends KeyAdapter {
                                           ff.hpd.toString());
         }
       }
+      hpcw.output(packet);
       packet.release();
     } catch (GeneralException ge) {
       LOGGER.severe(ge.getMessage());

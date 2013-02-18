@@ -1,12 +1,13 @@
 package edu.mit.yingyin.tabletop.views;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import javax.swing.JFrame;
+import javax.vecmath.Point3f;
 
 import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
@@ -33,22 +34,19 @@ public class HandPoseDebugView implements DebugView {
     byte[] imageArray = ((DataBufferByte)bi.getRaster().getDataBuffer()).
                         getData();
     Arrays.fill(imageArray, (byte) 0);
+    Point topleft = new Point();
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       if (ff.handPose != null) {
-        int radius = (int) ff.hpd.radius();
-        FloatBuffer fb = ff.handPose.getFloatBuffer();
-        fb.rewind();
-        float[] p = new float[3];
-        for (int i = 0; i < ff.handPose.rows(); i++) {
-          fb.get(p);
-          for (int j = 0; j < 2; j++) {
-            p[j] = p[j] + radius;
-          }
-          if (p[0] >= 0 && p[1] >= 0)
-            imageArray[((int) p[1] * WIDTH) + (int) p[0]] = (byte) 255;
+        int width = (int) ff.handPoseWidth;
+        for (Point3f p : ff.handPose) {
+          p.x += width / 2 + topleft.x;
+          p.y += width / 2 + topleft.y;
+          if (p.x >= 0 && p.y >= 0)
+            imageArray[((int) p.y * WIDTH) + (int) p.x] = (byte) 255;
         }
         Graphics2D g = (Graphics2D) bi.getGraphics();
-        g.drawOval(0, 0, radius * 2, radius * 2);
+        g.drawRect(topleft.x, topleft.y, width, width);
+        topleft.move(width, 0);
       }
     }
     frame.updateImage(bi);
