@@ -57,7 +57,7 @@ public class HandPoseDescriptor {
   }
   
   /**
-   * 
+   * Radius of the window enclosing the hand, excluding outliers.
    * @param points centered at the origin.
    * @return
    */

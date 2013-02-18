@@ -1,15 +1,14 @@
-package edu.mit.yingyin.tabletop.views;
+package edu.mit.yingyin.tabletop.models;
 
-import java.io.File;
+import java.io.File;	
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.FloatBuffer;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 
-import edu.mit.yingyin.tabletop.models.EnvConstant;
-import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.FileUtil;
 
@@ -46,6 +45,12 @@ public class HandPointCloudWriter {
 
   public String pointCloudToString(CvMat pointCloud) {
     StringBuffer sb = new StringBuffer();
+    FloatBuffer fb = pointCloud.getFloatBuffer();
+    fb.rewind();
+    float[] p = new float[3];
+    for (int i = 0; i < pointCloud.rows(); i++) {
+      fb.get(p);
+    }
     return sb.toString();
   }
 }
