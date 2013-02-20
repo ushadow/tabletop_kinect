@@ -27,7 +27,6 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
 import javax.swing.JFrame;
-import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -150,8 +149,10 @@ public class Table3DFrame extends JFrame {
   
   private Group createForelimb(Forelimb fl) {
     Group group = new Group();
-    if (fl.armJointW() == null || fl.numFingertips() <= 0)
+    if (fl.armJointW() == null || fl.numFingertips() != 1) {
+      LOGGER.fine("Number of fingers: " + fl.numFingertips());
       return null;
+    }
     
     Point3f armJointLoc = fl.armJointW();
     Point3f fingerLoc = fl.getFingertipsW().get(0);
@@ -286,20 +287,6 @@ public class Table3DFrame extends JFrame {
     return new Shape3D(lineArr, app);
   }
   
-  private AxisAngle4f createRotation(Vector3f v1, Vector3f v2) {
-    v1.normalize();
-    v2.normalize();
-    Vector3f normal = new Vector3f();
-    normal.cross(v1, v2);
-    double cosTheta = v1.dot(v2);
-    double sineTheta = normal.length();
-    double angle = Math.atan2(sineTheta, cosTheta);
-    normal.normalize();
-    LOGGER.info("axis of rotation is " + normal);
-    LOGGER.info("angle of rotation is " + angle);
-    return new AxisAngle4f(normal, (float) angle);
-  }
-
   private void positionViewer() {
     ViewingPlatform vp = universe.getViewingPlatform();
     Transform3D lookAt = new Transform3D();

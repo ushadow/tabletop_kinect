@@ -177,7 +177,11 @@ public class ProcessPacketView {
     
     CanvasFrame cf = new CanvasFrame(ANALYSIS_FRAME_TITLE);
     cf.setPreferredSize(new Dimension(width, height));
+    frames.put(ANALYSIS_FRAME_TITLE, cf);
 
+    debugView = new HandPoseDebugView();
+    frames.put(DEBUG_FRAME_TITLE, debugView.frame());
+    
     if (toggleMap.get(Toggles.SHOW_DEPTH_VIEW)) {
       depthView = new DepthDebugView(width, height);
       frames.put(DEPTH_FRAME_TITLE, depthView.frame());
@@ -188,10 +192,6 @@ public class ProcessPacketView {
       frames.put(TABLE3D_FRAME_TITLE, table3DView);
     }
 
-    debugView = new HandPoseDebugView();
-    
-    frames.put(ANALYSIS_FRAME_TITLE, cf);
-    frames.put(DEBUG_FRAME_TITLE, debugView.frame());
     tile();
   }
   
@@ -293,8 +293,8 @@ public class ProcessPacketView {
   }
 
   private void initToggles() {
-    toggleMap.put(Toggles.SHOW_DEPTH_VIEW, false);
-    toggleMap.put(Toggles.SHOW_3D, false);
+    toggleMap.put(Toggles.SHOW_DEPTH_VIEW, true);
+    toggleMap.put(Toggles.SHOW_3D, true);
     toggleMap.put(Toggles.SHOW_CONVEXITY_DEFECTS, false);
     toggleMap.put(Toggles.SHOW_HULL, false);
     toggleMap.put(Toggles.SHOW_MORPHED, true);
