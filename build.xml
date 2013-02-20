@@ -46,6 +46,7 @@
     <target name="HandTrackingApp">
         <java classname="edu.mit.yingyin.tabletop.apps.HandTrackingApp" failonerror="true" fork="yes">
             <classpath refid="tabletop_kinect.classpath"/>
+            <sysproperty key="java.library.path" value="${java.library.path}${path.separator}lib"/>  
             <jvmarg value="-Djava.util.logging.config.file=config/logging.properties"/>
         </java>
     </target>

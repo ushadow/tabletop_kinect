@@ -149,13 +149,18 @@ public class Table3DFrame extends JFrame {
   
   private Group createForelimb(Forelimb fl) {
     Group group = new Group();
-    if (fl.armJointW() == null || fl.numFingertips() != 1) {
-      LOGGER.fine("Number of fingers: " + fl.numFingertips());
+    if (fl.armJointW() == null || fl.numFingertips() <= 0) {
       return null;
     }
     
     Point3f armJointLoc = fl.armJointW();
-    Point3f fingerLoc = fl.getFingertipsW().get(0);
+    Point3f fingerLoc = new Point3f();
+    
+    for (Point3f p : fl.getFingertipsW()) {
+      fingerLoc.add(p);
+    }
+    
+    fingerLoc.scale((float) 1 / fl.getFingertipsW().size());
     
     group.addChild(createSphere(30, new Vector3f(armJointLoc), RED));
     group.addChild(createSphere(10, new Vector3f(fingerLoc), RED));

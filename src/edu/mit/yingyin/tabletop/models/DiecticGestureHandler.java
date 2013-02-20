@@ -46,9 +46,11 @@ public class DiecticGestureHandler {
     if (fl.numFingertips() <= 0) 
       return null;
     
-    // TODO: assumes the first fingertip is the pointing finger. Need to have a
-    // more generalized version.
-    Point3f fingertip = fl.getFingertipsW().get(0);
+    Point3f fingertip = new Point3f();
+    for (Point3f p : fl.getFingertipsW())
+      fingertip.add(p);
+    fingertip.scale((float) 1 / fl.getFingertipsW().size());
+    
     Point3f armJoint = fl.armJointW();
     if (armJoint == null)
       return null;
