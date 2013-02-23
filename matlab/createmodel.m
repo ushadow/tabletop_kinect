@@ -21,7 +21,7 @@ nF = 2; % 0, 1
 
 intra = zeros(ss);
 G1 = 1; S1 = 2; F1 = 3; X1 = 4; 
-G2 = G1 + ss; S2 = S2 + ss; F2 = F1; X2 = X1; 
+G2 = G1 + ss; S2 = S1 + ss; F2 = F1; X2 = X1; 
 intra(G1, S1) = 1;
 intra(S1, X1) = 1;
 intra(G1, F1) = 1;
@@ -48,9 +48,18 @@ ahmm = mk_dbn(intra, inter, nodeSizes, 'discrete', dnodes, 'observed', ...
 % Set CPD.
 ahmm.CPD{G1} = tabular_CPD(ahmm, G1, params.G1);
 ahmm.CPD{S1} = tabular_CPD(ahmm, S1, params.S1);
-ahmm.CPD{F1} = hhmmF_CPD(ahmm, F1, S1, [], 'Qps', G1, 'termprob', ...
-                         params.F1);
+
+% TODO: Check whether it is necessary to use hhmmF_CPD because it always 
+% assumes F is hidden.
+if isfield(params, 'F1')
+    ahmm.CPD{F1} = hhmmF_CPD(ahmm, F1, S1, [], 'Qps', G1, 'termprob', ...
+                             params.F1);
+else
+    ahmm.CPD{F1} = hhmmF_CPD(ahmm, F1, S1, [], 'Qps', G1);
+end
 %ahmm.CPD{X1} = 
-ahmm.CPD{G2} = tabular_CPD(ahmm, G2, params.G2);
+ahmm.CPD{G2} = hhmm2Q_CPD(ahmm, G2, 'Fself', [], 'Fbelow', F1, 'Qps', ...
+                          [], 'startprob', params.G2startprob, ...
+                          'transprob', params.G2transprob);
 ahmm.CPD{S2} = tabular_CPD(ahmm, S2, params.S2);
 end
