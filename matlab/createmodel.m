@@ -16,7 +16,7 @@ function ahmm = createmodel(nS, params)
 
 ss = 4; % Number of nodes in one time slice.
 nG = 5; % Select, manipulative, stop, point, come back.
-nX = 6;
+nX = 11; % Number of continuous features.
 nF = 2; % 0, 1
 
 intra = zeros(ss);
