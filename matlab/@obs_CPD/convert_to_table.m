@@ -6,7 +6,7 @@ ns(domain) = sz;
 
 odom = domain(~isemptycell(evidence(domain))); % All observed nodes.
 ps = domain(1 : end - 1);
-dps = ps(CPD.dps);:
+dps = ps(CPD.dps);
 
 [m, C, hand] = gaussian_CPD_params_given_dps(CPD, domain, evidence);
 
@@ -19,6 +19,7 @@ self_val = evidence{self};
 T = zeros(dpsize, 1);
 for i = 1 : dpsize
   T(i) = gaussian_prob(self_val{1}, m(:, i), C(:, :, i)) * ...
-         hand_prob(self_val{2}, hand(:, :, i));
+         hand_prob(self_val{2}, hand(:, :, i), CPD.hd_mu, ...
+         CPD.hd_sigma);
 end
 end

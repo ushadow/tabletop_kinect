@@ -1,4 +1,4 @@
-function CPD = obs_CPD(bnet, self, hand, varargin)
+function CPD = obs_CPD(bnet, self, hand, hd_mu, hd_sigma, varargin)
 %
 % hand: initial hand for each S(i).
 %
@@ -47,6 +47,9 @@ CPD.tied_cov = 0;
 CPD.clamped_mean = 0;
 CPD.clamped_cov = 0;
 CPD.hand = hand;
+CPD.hd_mu = hd_mu;
+CPD.hd_sigma = hd_sigma;
+
 nargs = length(args);
 if nargs > 0 
   CPD = set_fields(CPD, args{:});
@@ -95,4 +98,6 @@ CPD.WY1sum = [];
 CPD.WY1Y1sum = [];
 CPD.WY2sum = [];
 CPD.nsamples = [];
+CPD.hd_mu = [];
+CPD.hd_sigma = [];
 end
