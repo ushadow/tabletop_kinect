@@ -15,7 +15,7 @@ if nargin == 0
   clamp = 0;
   CPD = class(CPD, 'obs_CPD', generic_CPD(clamp));
   return;
-elseif is(bnet, 'obs_CPD')
+elseif isa(bnet, 'obs_CPD')
   % This might occor if we are copying an object.
   CPD = bnet;
   return;
@@ -93,6 +93,10 @@ CPD.sizes = [];
 CPD.dps = [];
 CPD.mean = [];
 CPD.cov = [];
+CPD.clamped_mean = [];
+CPD.clamped_cov = [];
+CPD.cov_type = [];
+CPD.tied_cov = [];
 CPD.hand = [];
 CPD.WY1sum = [];
 CPD.WY1Y1sum = [];
@@ -100,4 +104,5 @@ CPD.WY2sum = [];
 CPD.nsamples = [];
 CPD.hd_mu = [];
 CPD.hd_sigma = [];
+CPD.nparams = [];
 end
