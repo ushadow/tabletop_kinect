@@ -18,8 +18,8 @@ self_val = evidence{self};
 
 T = zeros(dpsize, 1);
 for i = 1 : dpsize
-  T(i) = gaussian_prob(self_val{1}, m(:, i), C(:, :, i)) * ...
-         hand_prob(self_val{2}, hand(:, :, i), CPD.hd_mu, ...
-         CPD.hd_sigma);
+  g = gaussian_prob(self_val{1}, m(:, i), C(:, :, i));
+  h = hand_prob(self_val{2}, hand(:, :, i), CPD.hd_mu, CPD.hd_sigma);
+  T(i) =  g * h;         
 end
 end

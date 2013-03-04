@@ -7,6 +7,7 @@ function ahmm = createmodel(params)
 %   nX: number of continuous features.
 %   Gstartprob: nG vector of start prob for G1. 
 %   Sstartprob: nG X nS vector of start prob for S1.
+%   hand: hand(:, :, i) is a depth image of the hand.
 %
 % Topology of the model:
 % G1-->G2 

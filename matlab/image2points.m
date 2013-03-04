@@ -1,5 +1,5 @@
 function points = image2points(image)
-% IMAGE2POINTS converts a 2D depth image into points.
+% IMAGE2POINTS converts a 2D depth image into points columnwise.
 %
 % points = image2points(image)
 n = size(image, 1);

@@ -18,6 +18,9 @@ function [hd D] = hausdorfflikedist(P,Q,lmf)
 % 
 % The Hausdorff Distance is defined as max{dhd(P,Q),dhd(Q,P)}
 %
+% The Huasdorff-like Distance uses sum instead of max operation. In the end
+% an root mean square distance is returned.
+%
 % D is the matrix of distances where D(n,m) is the distance of the nth
 % point in P from the mth point in Q.
 %
