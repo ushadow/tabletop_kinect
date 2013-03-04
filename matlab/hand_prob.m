@@ -8,7 +8,7 @@ P = image2points(example);
 Q = image2points(template);
 
 hd = hausdorfflikedist(P, Q, 1);
-p = normalpdf(hd, mu, sigma);
+p = normpdf(hd, mu, sigma);
 
 if use_log
   p = log(p);

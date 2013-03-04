@@ -58,12 +58,6 @@ ahmm = mk_dbn(intra, inter, nodeSizes, 'discrete', dnodes, 'observed', ...
 ahmm.CPD{G1} = tabular_CPD(ahmm, G1, params.Gstartprob);
 ahmm.CPD{S1} = tabular_CPD(ahmm, S1, params.Sstartprob);
 
-
-term = params.Stermprob;
-params.Stermprob = zeros(params.nG, params.nS, 2);
-params.Stermprob(:, :, 2) = term;
-params.Stermprob(:, :, 1) = ones(params.nG, params.nS) - term;
-
 ahmm.CPD{F1} = tabular_CPD(ahmm, F1, params.Stermprob);
 
 ahmm.CPD{X1} = obs_CPD(ahmm, X1, params.hand, params.hd_mu, ...
@@ -74,5 +68,8 @@ ahmm.CPD{X1} = obs_CPD(ahmm, X1, params.hand, params.hd_mu, ...
 ahmm.CPD{G2} = hhmm2Q_CPD(ahmm, G2, 'Fself', [], 'Fbelow', F1, 'Qps', ...
                           [], 'startprob', params.Gstartprob, ...
                           'transprob', params.Gtransprob);
+% Tablular CPD are stored as multidimentional arrays where the dimensions
+% are arranged in the same order as the nodes. Nodes in the 2nd slice is 
+% is after the ndoes in the 1st slice.
 ahmm.CPD{S2} = tabular_CPD(ahmm, S2, params.Stransprob);
 end

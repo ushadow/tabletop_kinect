@@ -8,7 +8,7 @@ odom = domain(~isemptycell(evidence(domain))); % All observed nodes.
 ps = domain(1 : end - 1);
 dps = ps(CPD.dps);
 
-[m, C, hand] = gaussian_CPD_params_given_dps(CPD, domain, evidence);
+[m, C, hand] = obs_CPD_params_given_dps(CPD, domain, evidence);
 
 ns(odom) = 1;
 dpsize = prod(ns(dps));
