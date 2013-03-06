@@ -253,6 +253,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
       updateTitle();
       depthViewer.updateImage(pointLabel.depthImage());
       rgbViewer.updateImage(pointLabel.rgbImage());
+      updateStatus();
     } catch (StatusException e) {
       System.err.println(e.getMessage());
       System.exit(-1);
@@ -273,6 +274,11 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
             "Enter gesture label:", "Gesture Label Input Dialog",
             JOptionPane.PLAIN_MESSAGE);
     gestureLabel.add(pointLabel.depthFrameID(), label);
-    depthViewer.setStatus(String.format("G: %s", label));
+    updateStatus();
+  }
+  
+  private void updateStatus() {
+    depthViewer.setStatus(String.format("G: %s", 
+        gestureLabel.predecessor(pointLabel.depthFrameID())));
   }
 }

@@ -78,6 +78,10 @@ public class ManualGestureLabel {
         pw.close();
     }
   }
+ 
+  public String predecessor(int frameID) {
+    return labels.floorEntry(frameID).getValue();
+  }
   
   private void initEmptyLabel() {
     labels = new TreeMap<Integer, String>();
