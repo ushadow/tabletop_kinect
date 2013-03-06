@@ -52,7 +52,7 @@ public class FileUtil {
    * Creates a new file name with the new extension.
    * 
    * @param fileName the original file name.
-   * @param ext the new extension withoug '.'.
+   * @param ext the new extension without '.'.
    * @return new file name.
    */
   public static String setExtension(String fileName, String ext) {
@@ -81,5 +81,16 @@ public class FileUtil {
     }
     sb.append(strings[strings.length - 1]);
     return sb.toString();
+  }
+  
+  public static String basename(String fileName) {
+    String[] tokens = fileName.split(String.valueOf(File.separatorChar));
+    return tokens[tokens.length - 1];
+  }
+  
+  public static String basename(String fileName, String suffix) {
+    fileName = FileUtil.basename(fileName);
+    int index = fileName.lastIndexOf(suffix);
+    return fileName.substring(0, index);
   }
 }

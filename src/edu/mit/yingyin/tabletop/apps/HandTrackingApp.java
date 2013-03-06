@@ -88,16 +88,14 @@ public class HandTrackingApp extends KeyAdapter {
     public void fingerPointed(DiecticEvent de) {}
   }
 
+  private static final Logger LOGGER = Logger.getLogger(
+      HandTrackingApp.class.getName());
+  
   /**
    * Application properties.
    */
   private static final String CLASSIFICATION_FILE_PROP = "classification-file";
   private static final String DESCRIPTOR_FILE_PROP = "descriptor-file";
-
-  private static final Logger LOGGER = Logger.getLogger(
-      HandTrackingApp.class.getName());
-
-  
   private static final String APP_PROPS = FileUtil.join(EnvConstant.CONFIG_DIR, 
       "fingertip_tracking.properties");
   private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(

@@ -28,7 +28,7 @@ import edu.mit.yingyin.util.DirectBufferUtil;
  *
  */
 public class OpenNIDevice {
-  private static Logger logger = Logger.getLogger(
+  private static Logger LOGGER = Logger.getLogger(
       OpenNIDevice.class.getName());
   
   private Context context;
@@ -51,33 +51,13 @@ public class OpenNIDevice {
    * @throws GeneralException
    */
   public OpenNIDevice(String configFile) throws GeneralException {
-    context = Context.createFromXmlFile(configFile, scriptNode);
-    NodeInfoList list = context.enumerateExistingNodes();
-    for (NodeInfo node : list) {
-      NodeType type = node.getDescription().getType();
-      if (type.equals(NodeType.DEPTH)) {
-        depthGen = (DepthGenerator)node.getInstance();
-        depthMD = depthGen.getMetaData();
-        depthWidth = depthMD.getFullXRes();
-        depthHeight = depthMD.getFullYRes();
-        depthByteBufferSize = depthHeight * depthWidth * 
-            depthMD.getData().getBytesPerPixel();
-        depthBuffer = DirectBufferUtil.allocateByteBuffer(
-            depthByteBufferSize);
-      } else if (type.equals(NodeType.PLAYER)) {
-        player = (Player)node.getInstance();
-      } else if (type.equals(NodeType.IMAGE)) {
-        imageGen = (ImageGenerator)node.getInstance();
-        imageMD = imageGen.getMetaData();
-        imageWidth = imageMD.getFullXRes();
-        imageHeight = imageMD.getFullYRes();
-        imageByteBufferSize = imageHeight * imageWidth 
-            * imageMD.getData().getBytesPerPixel();
-        imageBuffer = DirectBufferUtil.allocateByteBuffer(
-            imageByteBufferSize);
-      }
+    if (configFile.endsWith(".xml")) {
+      context = Context.createFromXmlFile(configFile, scriptNode);
+    } else if (configFile.endsWith(".oni")) {
+      context = new Context();
+      context.openFileRecordingEx(configFile);
     }
-    logger.fine(info());
+    init();
   }
   
   public int getDepthWidth() { return depthWidth; }
@@ -186,7 +166,7 @@ public class OpenNIDevice {
   
   public void release() { 
     context.release(); 
-    logger.info("OpenNI released.");
+    LOGGER.info("OpenNI released.");
   }
   
   /**
@@ -226,6 +206,35 @@ public class OpenNIDevice {
     }
     Point3D[] converted = depthGen.convertRealWorldToProjective(copy);
     return converted;
+  }
+  
+  private void init() throws GeneralException {
+    NodeInfoList list = context.enumerateExistingNodes();
+    for (NodeInfo node : list) {
+      NodeType type = node.getDescription().getType();
+      if (type.equals(NodeType.DEPTH)) {
+        depthGen = (DepthGenerator)node.getInstance();
+        depthMD = depthGen.getMetaData();
+        depthWidth = depthMD.getFullXRes();
+        depthHeight = depthMD.getFullYRes();
+        depthByteBufferSize = depthHeight * depthWidth * 
+            depthMD.getData().getBytesPerPixel();
+        depthBuffer = DirectBufferUtil.allocateByteBuffer(
+            depthByteBufferSize);
+      } else if (type.equals(NodeType.PLAYER)) {
+        player = (Player)node.getInstance();
+      } else if (type.equals(NodeType.IMAGE)) {
+        imageGen = (ImageGenerator)node.getInstance();
+        imageMD = imageGen.getMetaData();
+        imageWidth = imageMD.getFullXRes();
+        imageHeight = imageMD.getFullYRes();
+        imageByteBufferSize = imageHeight * imageWidth 
+            * imageMD.getData().getBytesPerPixel();
+        imageBuffer = DirectBufferUtil.allocateByteBuffer(
+            imageByteBufferSize);
+      }
+    }
+    LOGGER.fine(info());
   }
   
   private void updateMetaData() {

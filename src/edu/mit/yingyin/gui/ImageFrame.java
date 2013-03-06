@@ -52,6 +52,14 @@ public class ImageFrame extends JFrame {
 	  ic.setImage(bi);
 	  initialize();
 	}
+		
+	/**
+	 * Shows the UI.
+	 */
+	public void showUI() {
+	  pack();
+	  setVisible(true);
+	}
 	
 	public void updateImage(BufferedImage bi) {
 		if(ic != null)
@@ -60,11 +68,6 @@ public class ImageFrame extends JFrame {
 	
 	public void setStatus(String status) {
 		sb.setMessage(status);
-	}
-	
-	public void showUI() {
-		pack();
-		setVisible(true);
 	}
 	
 	public void addMouseListenerToImageComponent(MouseListener ml) {
