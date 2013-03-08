@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
 
@@ -21,8 +20,6 @@ import edu.mit.yingyin.util.ObjectIO;
  *
  */
 public class ManualPointLabel {
-  private static final Logger LOGGER = 
-      Logger.getLogger(ManualGestureLabel.class.getName());
   /**
    * Points at each frame. Multiple points at each frame for tracking multiple
    * fingers. 

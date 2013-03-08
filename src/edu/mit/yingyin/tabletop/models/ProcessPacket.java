@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.vecmath.Point3f;
+import javax.vecmath.Tuple3f;
 
 import org.OpenNI.GeneralException;
 
@@ -22,7 +23,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvSeq;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import edu.mit.yingyin.image.ImageConvertUtils;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.util.ValConfidencePair;
 
 
 /**
@@ -41,11 +42,9 @@ public class ProcessPacket {
     public CvRect boundingBox;
     public CvSeq convexityDefects;
     public CvRect handRegion, armJointRegion;
-    public List<ValConfiPair<Point3f>> fingertips = 
-        new ArrayList<ValConfiPair<Point3f>>();
-    public List<Point3f> handPose;
-    public float handPoseWidth;
-    public HandPoseDescriptor hpd;
+    public List<ValConfidencePair<Point3f>> fingertips = 
+        new ArrayList<ValConfidencePair<Point3f>>();
+    public HandFeatures hf;
     
     public void release() {
       if (approxPoly != null)
@@ -53,6 +52,13 @@ public class ProcessPacket {
       if (hull != null)
         cvReleaseMat(hull);
     }
+  }
+  
+  static public class HandFeatures {
+    public Point3f centroidWorld;
+    public Tuple3f rot;
+    public List<Point3f> handPose;
+    public float handPoseWidth;
   }
   
   /**

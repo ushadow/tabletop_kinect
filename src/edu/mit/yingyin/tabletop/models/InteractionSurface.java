@@ -40,7 +40,12 @@ public class InteractionSurface {
   private FloatBuffer avg, diff;
   private int avgWidthStep, diffWidthStep, width, height;
   private boolean initialized = false;
+  
   private Vector3f surfaceNormal;
+  
+  /**
+   * Center of the surface in world coordinates.
+   */
   private Point3f center;
   private OpenNIDevice openni;
   
@@ -72,7 +77,7 @@ public class InteractionSurface {
     if (instance == null) {
       logger.severe("Instance is not initialized. You need to call " +
       		"initInstance first.");
-      Thread.dumpStack();
+      System.exit(-1);
     }
     return instance;
   }
@@ -144,6 +149,16 @@ public class InteractionSurface {
   public Option<Point3f> center() {
     return center == null ? new None<Point3f>() : 
                             new Some<Point3f>(new Point3f(center));
+  }
+  
+  /**
+   * Perpendicular distance above the interaction surface.
+   * @param point
+   * @return distance is always greater than or equal to 0.
+   */
+  public float distanceAboveSurface(Point3f point) {
+    float dist = Geometry.distancePointToPlane(surfaceNormal, center, point);
+    return Math.max(0, dist);
   }
 
   /**

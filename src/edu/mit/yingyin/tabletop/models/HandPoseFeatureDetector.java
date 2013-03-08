@@ -11,7 +11,6 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.logging.Logger;
 
 import javax.vecmath.Point3f;
 
@@ -23,16 +22,17 @@ import com.googlecode.javacv.cpp.opencv_core.CvRect;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
+import edu.mit.yingyin.tabletop.models.ProcessPacket.HandFeatures;
 import edu.mit.yingyin.util.CvUtil;
+import edu.mit.yingyin.util.Geometry;
 
 /**
  * Detects hand pose features.
+ * 
  * @author yingyin
- *
+ * 
  */
 public class HandPoseFeatureDetector {
-  private static final Logger LOGGER = Logger.getLogger(
-      HandPoseFeatureDetector.class.getName());
   /**
    * Dimension of the hand point cloud.
    */
@@ -43,6 +43,7 @@ public class HandPoseFeatureDetector {
   private final int width;
   private final OpenNIDevice openni;
   private final CvMat mean = CvMat.create(1, DIM, CV_32FC1);
+  
   /**
    * Eigenvalues with decreasing magnitude.
    */
@@ -52,14 +53,15 @@ public class HandPoseFeatureDetector {
    */
   private final CvMat eigenvecs = CvMat.create(DIM, DIM, CV_32FC1);
   private final CvMat rotMat = CvMat.create(DIM, DIM, CV_32FC1);
-      
+
   public HandPoseFeatureDetector(int width, int height, OpenNIDevice openni) {
     this.width = width;
     this.openni = openni;
   }
-  
+
   /**
    * Detects hand pose features based on data in the packet.
+   * 
    * @param packet
    * @throws StatusException
    */
@@ -70,37 +72,39 @@ public class HandPoseFeatureDetector {
                                            packet.morphedImage); 
         if (worldPoints.length < DIM)
           continue;
-        // Hand pose cloud points in physical coordinates.
-        CvMat aligned = alignPCA(worldPoints);
-        ff.handPose = camshift(CvUtil.cvMatToLinkedList(aligned));
-        ff.handPoseWidth = findRadius(ff.handPose.size()) * 2;
+        HandFeatures hf = new HandFeatures();
+        // Finds hand pose cloud points in physical coordinates.
+        alignPCA(worldPoints, hf);
+        reCenter(hf);
+        hf.handPoseWidth = findRadius(hf.handPose.size()) * 2;
+        ff.hf = hf;
       }
     }
   }
-  
+
   public void release() {
     mean.release();
     eigenvals.release();
     eigenvecs.release();
     rotMat.release();
   }
-  
+
   /**
    * Converts the foreground points in the hand region to physical coordinates.
+   * 
    * @param rawDepthData
    * @param handRegion
    * @param mask foreground after cleaning up. The mask should have 8 bit depth.
    * @return points in the world coordinates.
    * @throws StatusException
    */
-  Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
-                               IplImage mask) 
-      throws StatusException {
+  private Point3D[] preprocess(int[] rawDepthData, CvRect handRegion, 
+      IplImage mask) throws StatusException {
     ByteBuffer foregroundMask = mask.getByteBuffer();
     int maskWidthStep = mask.widthStep();
     int handWidth = handRegion.width();
     int handHeight = handRegion.height();
-    ArrayList<Point3D> points = new ArrayList<Point3D>(handWidth * handHeight); 
+    ArrayList<Point3D> points = new ArrayList<Point3D>(handWidth * handHeight);
     for (int y = handRegion.y(); y < handRegion.y() + handHeight; y++)
       for (int x = handRegion.x(); x < handRegion.x() + handWidth; x++) {
         if (foregroundMask.get(y * maskWidthStep + x) != 0)
@@ -110,13 +114,14 @@ public class HandPoseFeatureDetector {
     points.toArray(projective);
     return openni.convertProjectiveToRealWorld(projective);
   }
-  
+
   /**
    * Performs PCA alignment.
+   * 
    * @param worldPoints
    * @return aligned points centered at the origin.
    */
-  CvMat alignPCA(Point3D[] worldPoints) {
+  private void alignPCA(Point3D[] worldPoints, HandFeatures hf) {
     int n = worldPoints.length;
     // Row matrix.
     CvMat worldPointsMat = CvMat.create(n, DIM, CV_32FC1);
@@ -139,25 +144,29 @@ public class HandPoseFeatureDetector {
     checkPolarity(eigenvecs);
     // Rotation matrix is inverse of the PCA space coordinate axes.
     cvT(eigenvecs, rotMat);
-    
+
     CvMat aligned = CvMat.create(n, DIM, CV_32FC1);
     /**
-     * aligned = 1 * op(worldPointsMat)* op(eigenvecs) + 0 * op(null)
-     * op() = 0 means no transposition.
+     * aligned = 1 * op(worldPointsMat)* op(eigenvecs) + 0 * op(null) op() = 0
+     * means no transposition.
      */
     cvGEMM(worldPointsMat, rotMat, 1, null, 0, aligned, 0);
-    
+
     worldPointsMat.release();
-    return aligned;
+    
+    hf.handPose = CvUtil.cvMatToLinkedList(aligned);
+    hf.centroidWorld = new Point3f((float) mean.get(0), (float) mean.get(1), 
+                                   (float) mean.get(2));
+    hf.rot = Geometry.rotMatrixToEuler(rotMat);
   }
-  
+
   private void checkPolarity(CvMat mat) {
     // Makes sure depth is the last axis.
     int zIndex = 0;
     double max = Float.NEGATIVE_INFINITY;
     for (int i = 0; i < 3; i++) {
       double z = Math.abs(mat.get(i, 2));
-      if ( z > max) {
+      if (z > max) {
         max = z;
         zIndex = i;
       }
@@ -170,13 +179,13 @@ public class HandPoseFeatureDetector {
         mat.put(i + 1, j, p[j]);
       }
     }
-    
+
     if (mat.get(2, 2) < 0) {
       mat.put(2, 0, -mat.get(2, 0));
       mat.put(2, 1, -mat.get(2, 1));
       mat.put(2, 2, -mat.get(2, 2));
     }
-  
+
     double x = mat.get(0, 1) * mat.get(1, 2) - mat.get(0, 2) * mat.get(1, 1);
     if (x * mat.get(2, 0) < 0) {
       mat.put(0, 0, -mat.get(0, 0));
@@ -184,20 +193,23 @@ public class HandPoseFeatureDetector {
       mat.put(0, 2, -mat.get(0, 2));
     }
   }
-  
-  private List<Point3f> reCenter(List<Point3f> points, Point3f center) {
+
+  private List<Point3f> reCenter(HandFeatures hf) {
+    List<Point3f> points = hf.handPose;
+    Point3f newCenter = camshift(points);
     for (Point3f p : points) {
-      p.sub(center);
+      p.sub(newCenter);
     }
+    hf.centroidWorld.add(newCenter);
     return points;
   }
-    
+
   private float findRadius(int numPoints) {
     // 1 pixel is roughly 2mm.
     return (float) Math.sqrt(numPoints) * 2;
   }
-  
-  private List<Point3f> camshift(List<Point3f> points) {
+
+  private Point3f camshift(List<Point3f> points) {
     boolean stop = false;
     Point3f center = new Point3f();
     while (!stop) {
@@ -208,8 +220,8 @@ public class HandPoseFeatureDetector {
       Point3f newCenter = new Point3f();
       while (iter.hasNext()) {
         Point3f p = iter.next();
-        float d2 = (p.x - center.x) * (p.x - center.x) + 
-                   (p.y - center.y) * (p.y - center.y);
+        float d2 = (p.x - center.x) * (p.x - center.x) + (p.y - center.y) *
+                   (p.y - center.y);
         if (d2 > radius2) {
           iter.remove();
           stop = false;
@@ -217,8 +229,8 @@ public class HandPoseFeatureDetector {
           newCenter.add(p);
         }
       }
-      center.scale((float) 1 / points.size(), newCenter); 
+      center.scale((float) 1 / points.size(), newCenter);
     }
-    return reCenter(points, center);
+    return center;
   }
 }

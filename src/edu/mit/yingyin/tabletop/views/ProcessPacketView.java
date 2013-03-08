@@ -33,12 +33,12 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import edu.mit.yingyin.tabletop.controllers.ViewImageValueController;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
 import edu.mit.yingyin.tabletop.models.HistogramImageComponent;
 import edu.mit.yingyin.tabletop.models.InteractionSurface;
 import edu.mit.yingyin.tabletop.models.ProcessPacket;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 import edu.mit.yingyin.util.CvUtil;
+import edu.mit.yingyin.util.ValConfidencePair;
 
 public class ProcessPacketView {
   /**
@@ -67,11 +67,6 @@ public class ProcessPacketView {
     @Override
     public JFrame frame() { return imageController.frame(); }
     
-    /**
-     * Shows the histogram based depth image.
-     * 
-     * @param packet
-     */
     @Override
     public void showDebugImage(ProcessPacket packet) {
       Arrays.fill(debugImage, 0);
@@ -94,6 +89,11 @@ public class ProcessPacketView {
     }  
   }
   
+  /**
+   * Shows the histogram based depth image.
+   * 
+   * @param packet
+   */
   public class DepthDebugView implements DebugView {
     public static final String NAME = "Depth debug";
     
@@ -317,7 +317,7 @@ public class ProcessPacketView {
 
   /**
    * Shows the analysis image that displays intermediate processing steps by the
-   * <code>HandAnalyzer</code>.
+   * {@code ForelimbFeatureDetector}.
    */
   private void showAnalysisImage(ProcessPacket packet) {
     if (toggleMap.get(Toggles.SHOW_MORPHED))
@@ -352,7 +352,7 @@ public class ProcessPacketView {
 
       // Shows unfiltered finger tips.
       if (toggleMap.get(Toggles.SHOW_FINGERTIP)) {
-        for (ValConfiPair<Point3f> vcp : ff.fingertips) {
+        for (ValConfidencePair<Point3f> vcp : ff.fingertips) {
           Point3f p = vcp.value;
           cvCircle(analysisImage, new CvPoint((int) p.x, (int) p.y), 4,
               CvScalar.GREEN, -1, 8, 0);

@@ -156,11 +156,11 @@ public class Table3DFrame extends JFrame {
     Point3f armJointLoc = fl.armJointW();
     Point3f fingerLoc = new Point3f();
     
-    for (Point3f p : fl.getFingertipsW()) {
+    for (Point3f p : fl.fingertipsW()) {
       fingerLoc.add(p);
     }
     
-    fingerLoc.scale((float) 1 / fl.getFingertipsW().size());
+    fingerLoc.scale((float) 1 / fl.fingertipsW().size());
     
     group.addChild(createSphere(30, new Vector3f(armJointLoc), RED));
     group.addChild(createSphere(10, new Vector3f(fingerLoc), RED));

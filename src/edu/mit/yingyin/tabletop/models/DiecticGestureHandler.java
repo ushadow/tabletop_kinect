@@ -47,9 +47,9 @@ public class DiecticGestureHandler {
       return null;
     
     Point3f fingertip = new Point3f();
-    for (Point3f p : fl.getFingertipsW())
+    for (Point3f p : fl.fingertipsW())
       fingertip.add(p);
-    fingertip.scale((float) 1 / fl.getFingertipsW().size());
+    fingertip.scale((float) 1 / fl.fingertipsW().size());
     
     Point3f armJoint = fl.armJointW();
     if (armJoint == null)

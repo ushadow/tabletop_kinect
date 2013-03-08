@@ -29,6 +29,7 @@ import edu.mit.yingyin.gui.ImageFrame;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
 import edu.mit.yingyin.tabletop.models.ManualGestureLabel;
 import edu.mit.yingyin.tabletop.models.ManualPointLabel;
+import edu.mit.yingyin.tabletop.models.OpenNIDevice;
 import edu.mit.yingyin.util.FileUtil;
 
 /**
@@ -105,9 +106,9 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
     }
     
     String basename = null;
-    if (openniConfigFile.endsWith(EnvConstant.RECORDING_SUFFIX)) {
+    if (OpenNIDevice.isRecordingFile(openniConfigFile)) {
       basename = FileUtil.basename(openniConfigFile, 
-                                   EnvConstant.RECORDING_SUFFIX);
+                                   OpenNIDevice.RECORDING_SUFFIX);
     }
     
     String labelPoint = config.getProperty("label-point", "false");

@@ -8,9 +8,10 @@ public class EnvConstant {
   public static final int MIN_DEPTH = 500;
   public static final int MAX_DEPTH = 1300;
   
-  public static final String RECORDING_SUFFIX = ".oni";
   public static final String POINT_LABEL_SUFFIX = ".plab";
   public static final String GESTURE_LABEL_SUFFIX = ".glab";
+  public static final String GESTURE_FEATURE_SUFFIX = ".gfet";
+  public static final String DEFAULT_BASENAME = "captured";
   
   public static final String CONFIG_DIR = "config";
   public static final String DATA_DIR = "data";

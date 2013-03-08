@@ -28,8 +28,13 @@ import edu.mit.yingyin.util.DirectBufferUtil;
  *
  */
 public class OpenNIDevice {
+  public static final String RECORDING_SUFFIX = ".oni";
   private static Logger LOGGER = Logger.getLogger(
       OpenNIDevice.class.getName());
+  
+  public static boolean isRecordingFile(String filename) {
+    return filename.endsWith(RECORDING_SUFFIX);
+  }
   
   private Context context;
   private OutArg<ScriptNode> scriptNode = new OutArg<ScriptNode>();
@@ -51,11 +56,11 @@ public class OpenNIDevice {
    * @throws GeneralException
    */
   public OpenNIDevice(String configFile) throws GeneralException {
-    if (configFile.endsWith(".xml")) {
-      context = Context.createFromXmlFile(configFile, scriptNode);
-    } else if (configFile.endsWith(".oni")) {
+    if (isRecordingFile(configFile)) {
       context = new Context();
       context.openFileRecordingEx(configFile);
+    } else {
+      context = Context.createFromXmlFile(configFile, scriptNode);
     }
     init();
   }

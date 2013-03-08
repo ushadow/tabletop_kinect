@@ -22,7 +22,7 @@ import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvRNG;
 import com.googlecode.javacv.cpp.opencv_video.CvKalman;
 
-import edu.mit.yingyin.tabletop.models.Forelimb.ValConfiPair;
+import edu.mit.yingyin.util.ValConfidencePair;
 import edu.mit.yingyin.tabletop.models.ProcessPacket.ForelimbFeatures;
 
 public class KalmanFilter {
@@ -81,7 +81,7 @@ public class KalmanFilter {
       return null;
     } else {
       // Hack(ushadow): assumes one forelimb only.
-      // TODO(ushadow): use multiple kalman filters for multiple forelimbs.
+      // TODO(ushadow): use multiple Kalman filters for multiple forelimbs.
       ForelimbFeatures ff = packet.forelimbFeatures.get(0);
       if (initialized) {
         Point3f tip = filter(ff);
@@ -142,7 +142,7 @@ public class KalmanFilter {
     float y = (float)yk.get(1);
     Point2f p1 = new Point2f(x, y);
     
-    for (ValConfiPair<Point3f> vcp : ff.fingertips) {
+    for (ValConfidencePair<Point3f> vcp : ff.fingertips) {
       Point3f tip = vcp.value;
       Point2f p2 = new Point2f(tip.x, tip.y);
       float distance2 = p1.distanceSquared(p2);
@@ -167,14 +167,14 @@ public class KalmanFilter {
    * @param forelimb the <code>Forelimb</code> that contains the fingertips.
    * @return a point that is most likely as the fingertip.
    */
-  private Point3f findBestPoint(List<ValConfiPair<Point3f>> fingertips) {
+  private Point3f findBestPoint(List<ValConfidencePair<Point3f>> fingertips) {
     // Hack(yingyin): assumes the point that is nearest to the center of the 
     // of the image as the fintertip. Assumes hand is extended from the bottom 
     // of the image.
     // TODO(yingyin): need to consider different hand orientation.
     float bestY = height;
     Point3f bestPoint = null;
-    for (ValConfiPair<Point3f> vcp : fingertips) {
+    for (ValConfidencePair<Point3f> vcp : fingertips) {
       Point3f tip = vcp.value;
       if (tip.y < bestY) {
         bestY = tip.y;

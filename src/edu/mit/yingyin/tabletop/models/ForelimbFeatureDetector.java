@@ -145,8 +145,8 @@ public class ForelimbFeatureDetector {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
-    forelimbModelEstimator.updateModel(packet);
     hpfd.detect(packet);
+    forelimbModelEstimator.updateModel(packet);
   }
 
   /**
