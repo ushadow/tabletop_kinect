@@ -279,7 +279,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   }
   
   private void updateStatus() {
-    depthViewer.setStatus(String.format("G: %s", 
+    depthViewer.setStatus(String.format("G,F: %s", 
         gestureLabel.predecessor(pointLabel.depthFrameID())));
   }
 }

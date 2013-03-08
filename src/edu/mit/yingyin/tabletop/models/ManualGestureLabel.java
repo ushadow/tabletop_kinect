@@ -54,22 +54,23 @@ public class ManualGestureLabel {
     try {
       pw = new PrintWriter(csvFileName);
       Integer lastFrame = labels.lastKey();
-      pw.println(String.format("%d,1", lastFrame));
+      // Print header.
+      pw.println(String.format("frameID,G,F", lastFrame));
       Iterator<Entry<Integer, String>> iterator = labels.entrySet().iterator();
       
       Entry<Integer, String> nextEntry = iterator.next();
       int curFrame = nextEntry.getKey();
       String label = nextEntry.getValue();
-      pw.println(label);
+      println(pw, curFrame, label);
       while (iterator.hasNext()) {
         nextEntry = iterator.next();
         curFrame++;
         while (curFrame < nextEntry.getKey()) {
-          pw.println(label);
+          println(pw, curFrame, label);
           curFrame++;
         }
         label = nextEntry.getValue();
-        pw.println(label);
+        println(pw, curFrame, label);
       }
     } catch (FileNotFoundException e) {
       LOGGER.severe(e.getMessage());
@@ -80,7 +81,17 @@ public class ManualGestureLabel {
   }
  
   public String predecessor(int frameID) {
-    return labels.floorEntry(frameID).getValue();
+    Entry<Integer, String> predecessor = labels.floorEntry(frameID);
+    if (predecessor != null) {
+      return predecessor.getValue();
+    }
+    return "null";
+  }
+  
+  private void println(PrintWriter pw, int frameID, String label) {
+    if (!label.startsWith("0")) {
+      pw.println(frameID + "," + label);
+    }
   }
     
   private void initEmptyLabel() {
