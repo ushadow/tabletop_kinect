@@ -45,7 +45,7 @@ public class HandPoseDebugView implements DebugView {
   }
   
   public void drawFeatureImage(byte[] imageArray, Forelimb forelimb) {
-    int width = FeatureBuilder.IMAGE_SIZE;
+    int width = FeatureBuilder.IMAGE_WIDTH;
     int offset = FeatureBuilder.CONTINUOUS_FEATURE_SIZE;
     float[] features = FeatureBuilder.create(forelimb);
     for (int y = 0; y < width; y++) 

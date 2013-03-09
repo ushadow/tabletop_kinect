@@ -97,7 +97,7 @@ public class HandTrackingApp extends KeyAdapter {
   private static final String CLASSIFICATION_FILE_PROP = "classification-file";
   private static final String DESCRIPTOR_FILE_PROP = "descriptor-file";
   private static final String APP_PROPS = FileUtil.join(EnvConstant.CONFIG_DIR, 
-      "fingertip_tracking.properties");
+      "fingertip-tracking.properties");
   private static final String DEFAULT_OPENNI_CONFIG_FILE = FileUtil.join(
       EnvConstant.CONFIG_DIR, "config.xml");
   private static final String DEFAULT_CALIB_FILE = FileUtil.join(

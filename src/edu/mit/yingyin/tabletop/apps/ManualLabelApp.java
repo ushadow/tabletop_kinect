@@ -68,7 +68,7 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
       Logger.getLogger(ManualLabelApp.class.getName());
   private static final String DIR = "/afs/csail/u/y/yingyin/research/kinect";
   private static final String CONFIG_FILE = FileUtil.join(DIR,
-      "config/manual_label.config");
+      "config/manual-label.config");
   private static final int MAX_DEPTH = 1600;
 
   public static void main(String[] args) {

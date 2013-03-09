@@ -36,7 +36,8 @@ public class Forelimb {
   /**
    * Creates a forelimb model from the parameters. The model references the 
    * parameters.
-   * @param fingertipsI
+   * @param fingertipsI can be null;
+   * @param fingertipsW can be null;
    * @param armJoints list of 2 arm joints. The first on is in the image 
    *    coordinates and the second one is in the world coordinates.
    */

@@ -16,10 +16,19 @@ public class FeatureWriter {
       File file = new File(filename);
       try {
         pw = new PrintWriter(file);
+        outputHeader();
       } catch (FileNotFoundException fnfe) {
         LOGGER.severe(fnfe.getMessage());
         System.exit(-1);
       }
+    }
+  }
+  
+  public void outputHeader() {
+    if (pw != null) {
+      pw.println(String.format("frame_id,continuous_feature_size,%d," +
+      		"image_width,%d", FeatureBuilder.CONTINUOUS_FEATURE_SIZE, 
+      		FeatureBuilder.IMAGE_WIDTH));
     }
   }
   

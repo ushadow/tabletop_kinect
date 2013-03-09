@@ -81,43 +81,48 @@ public class ForelimbModelEstimator {
     List<Point3f> filteredFingertips = filter.filter(packet);
     
     // HACK: only consider one hand now.
-    if (packet.forelimbFeatures.size() > 0 && filteredFingertips != null ) {
+    if (packet.forelimbFeatures.size() > 0) {
       ForelimbFeatures ff = packet.forelimbFeatures.get(0);
-      // Convert to world coordinates.
-      Point3D[] points = new Point3D[filteredFingertips.size()];
-      for (int i = 0; i < filteredFingertips.size(); i++) {
-        Point3f point = filteredFingertips.get(i);
-        points[i] = new Point3D(point.x, point.y, point.z);
-      }
-      Point3D[] converted = openni.convertProjectiveToRealWorld(points);
-      List<Point3f> fingertipsW = new ArrayList<Point3f>(converted.length);
-      for (Point3D p : converted)
-        fingertipsW.add(new Point3f(p.getX(), p.getY(), p.getZ()));
-      
-      List<Point3f> armJoints = findCentroid(packet, ff.armJointRegion);
       HandFeatures hf = ff.hf;
-      Vector3f v = null, a = null;
-      if (prevS != null) {
-        v = new Vector3f();
-        v.sub(hf.centroidWorld, prevS);
-        if (prevV != null) {
-          a = new Vector3f();
-          a.sub(v, prevV);
-          float dist = InteractionSurface.instance().
-              distanceAboveSurface(hf.centroidWorld);
-          Hand hand = new Hand(dist, hf.handPoseWidth, hf.centroidWorld, v, a, 
-                               hf.rot, hf.handPose);
-          Forelimb forelimb = new Forelimb(filteredFingertips, fingertipsW, 
-              armJoints, hand);
-          packet.forelimbs.add(forelimb);
+      if (hf != null) {
+        List<Point3f> fingertipsW = null;
+        if (filteredFingertips != null) {
+          // Convert to world coordinates.
+          Point3D[] points = new Point3D[filteredFingertips.size()];
+          for (int i = 0; i < filteredFingertips.size(); i++) {
+            Point3f point = filteredFingertips.get(i);
+            points[i] = new Point3D(point.x, point.y, point.z);
+          }
+          Point3D[] converted = openni.convertProjectiveToRealWorld(points);
+          fingertipsW = new ArrayList<Point3f>(converted.length);
+          for (Point3D p : converted)
+            fingertipsW.add(new Point3f(p.getX(), p.getY(), p.getZ()));
+          
         }
+        List<Point3f> armJoints = findCentroid(packet, ff.armJointRegion);
+        Vector3f v = null, a = null;
+        if (prevS != null) {
+          v = new Vector3f();
+          v.sub(hf.centroidWorld, prevS);
+          if (prevV != null) {
+            a = new Vector3f();
+            a.sub(v, prevV);
+            float dist = InteractionSurface.instance().
+                distanceAboveSurface(hf.centroidWorld);
+            Hand hand = new Hand(dist, hf.handPoseWidth, hf.centroidWorld, v, a, 
+                                 hf.rot, hf.handPose);
+            Forelimb forelimb = new Forelimb(filteredFingertips, fingertipsW, 
+                armJoints, hand);
+            packet.forelimbs.add(forelimb);
+          }
+        }
+        prevS = hf.centroidWorld;
+        prevV = v;
+        return;
       }
-      prevS = hf.centroidWorld;
-      prevV = v;
-    } else {
-      prevS = null;
-      prevV = null;
     }
+    prevS = null;
+    prevV = null;
   }
 
   /**

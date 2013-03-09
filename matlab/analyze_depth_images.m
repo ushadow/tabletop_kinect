@@ -1,9 +1,10 @@
-% Analyzes and plots depth raw values from several frames. 
-%
-% Args:
-%   row_: The row that to be ploted.
-%   column_range_ : The range of columns to be ploted.
 function analyze_depth_images(row_, column_range_)
+% ANALYZE_DEPTH_IMAGE Analyzes and plots depth raw values from several 
+% frames. 
+%
+% analyze_depth_images(row_, column_range_)
+% row_: The row that to be ploted.
+% column_range_ : The range of columns to be ploted.
 
 column_range = 480 : 580;
 row = 240;

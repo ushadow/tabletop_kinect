@@ -5,11 +5,11 @@ import javax.vecmath.Tuple3f;
 
 public class FeatureBuilder {
   public static final int CONTINUOUS_FEATURE_SIZE = 11;
-  public static final int IMAGE_SIZE = 50;
+  public static final int IMAGE_WIDTH = 50;
   
   public static float[] create(Forelimb forelimb) {
     float[] features = new float[CONTINUOUS_FEATURE_SIZE + 
-                                 IMAGE_SIZE * IMAGE_SIZE];
+                                 IMAGE_WIDTH * IMAGE_WIDTH];
     Hand hand = forelimb.hand();
     features[0] = forelimb.armLength();
     features[1] = hand.distAboveSurface();
@@ -30,14 +30,14 @@ public class FeatureBuilder {
   }
   
   private static void addHandPoints(float[] features, Hand hand) {
-    float scale = IMAGE_SIZE / hand.width();
-    float offset = IMAGE_SIZE / 2;
+    float scale = IMAGE_WIDTH / hand.width();
+    float offset = IMAGE_WIDTH / 2;
     for (Point3f p : hand.pointCloud()) {
       int x = (int) (p.x * scale + offset);
       int y = (int) (p.y * scale + offset);
-      if (x >= 0 && x < IMAGE_SIZE && y >= 0 && y < IMAGE_SIZE) {
+      if (x >= 0 && x < IMAGE_WIDTH && y >= 0 && y < IMAGE_WIDTH) {
         float z = p.z * scale + offset;
-        features[CONTINUOUS_FEATURE_SIZE + y * IMAGE_SIZE + x] = Math.max(0, z);
+        features[CONTINUOUS_FEATURE_SIZE + y * IMAGE_WIDTH + x] = Math.max(0, z);
       }
     }
   }

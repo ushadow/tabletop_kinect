@@ -55,7 +55,7 @@ public class ManualGestureLabel {
       pw = new PrintWriter(csvFileName);
       Integer lastFrame = labels.lastKey();
       // Print header.
-      pw.println(String.format("frameID,G,F", lastFrame));
+      pw.println(String.format("frame_id,G,F", lastFrame));
       Iterator<Entry<Integer, String>> iterator = labels.entrySet().iterator();
       
       Entry<Integer, String> nextEntry = iterator.next();
