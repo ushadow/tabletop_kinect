@@ -41,7 +41,7 @@ inter(G1, G1) = 1;
 inter(F1, G1) = 1;
 inter(S1, S1) = 1;
  
-nodeSizes = [params.nG params.nS params.nF params.nX];
+node_sizes = [params.nG params.nS params.nF params.nX];
 dnodes = [G1 S1 F1];
 onodes = X1;
 
@@ -51,7 +51,7 @@ onodes = X1;
 eclass1 = 1 : ss;
 eclass2 = [G2, S2, F2, X2];
 
-ahmm = mk_dbn(intra, inter, nodeSizes, 'discrete', dnodes, 'observed', ...
+ahmm = mk_dbn(intra, inter, node_sizes, 'discrete', dnodes, 'observed', ...
               onodes, 'eclass1', eclass1, 'eclass2', eclass2);
 
 % Set CPD.

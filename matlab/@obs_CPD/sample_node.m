@@ -14,5 +14,5 @@ else
 end
 
 y{1} = gsamp(CPD.mean(:, i), CPD.cov(:, :, i), 1);
-y{1} = y{1}(:);
-y{2} = CPD.hand(:, :, i);
+y{1} = y{1}(:); % makes it a column vector.
+y{2} = CPD.hand(:, i);

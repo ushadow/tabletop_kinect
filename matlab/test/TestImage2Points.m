@@ -6,13 +6,21 @@ methods
   end
   
   function test(self) %#ok<MANU>
-    image = [1 2
-             3 4];
+    image = [1 2 3 4]';
     points = image2points(image);
-    expected = [1 1 1
-                2 1 3
-                1 2 2
-                2 2 4];
+    expected = [0 0 1
+                1 0 2
+                0 1 3
+                1 1 4];
+    assertTrue(all(points(:) == expected(:)));
+  end
+  
+  function testWithZero(self) %#ok<MANU>
+    image = [1 2 3 0]';
+    points = image2points(image);
+    expected = [0 0 1
+                1 0 2
+                0 1 3];
     assertTrue(all(points(:) == expected(:)));
   end
 end

@@ -32,11 +32,17 @@ for i = 1 : length(data)
   T = length(indices);
   data{i} = cell(modelparams.ss, T);
   data{i}(1 : 2, :) = num2cell(label(indices, 2 : 3)');
-  feature_seg = feature(indices, 2 : end);
-  feature_cell = mat2cell(feature_seg, ones(1, T), [11 50 * 50])';
+  feature_seg = feature(indices, 2 : end)';
+  feature_cell = mat2cell(feature_seg, ...
+      [modelparams.nX modelparams.hand_size], ones(1, T));
   for t = 1 : T
     data{i}{4, t} = feature_cell(:, t);
   end
+  assert(size(data{i}{1, 1}) == 1);
+  assert(size(data{i}{2, 1}) == 1);
+  assert(isempty(data{i}{3, 1}));
+  assert(size(data{i}{4, 1}{1}) == modelparams.nX);
+  assert(size(data{i}{4, 1}{2}) == modelparams.hand_size);
 end
 end
 

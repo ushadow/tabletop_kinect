@@ -10,7 +10,7 @@ self = dom(end);
 
 CPD.nsamples = CPD.nsamples + 1;
 [ss dpsz] = size(CPD.mean); % ss = self size for the continuous features.
-[n, n, dpsz] = size(CPD.hand); % n = size of the hand depth image.
+n = size(CPD.hand, 1); % n = size of the hand depth image.
 
 w = fmarginal.T(:);
 CPD.Wsum = CPD.Wsum + w;

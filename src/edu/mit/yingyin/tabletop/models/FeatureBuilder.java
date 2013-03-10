@@ -36,8 +36,8 @@ public class FeatureBuilder {
       int x = (int) (p.x * scale + offset);
       int y = (int) (p.y * scale + offset);
       if (x >= 0 && x < IMAGE_WIDTH && y >= 0 && y < IMAGE_WIDTH) {
-        float z = p.z * scale + offset;
-        features[CONTINUOUS_FEATURE_SIZE + y * IMAGE_WIDTH + x] = Math.max(0, z);
+        float z = Math.max(0, p.z * scale + offset);
+        features[CONTINUOUS_FEATURE_SIZE + y * IMAGE_WIDTH + x] = z;
       }
     }
   }

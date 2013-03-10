@@ -24,7 +24,7 @@ prior = repmat(CPD.cov_prior_weight * eye(ss, ss), [1 1 dpsz]);
     'cov_prior', prior);
   
 for i = 1 : dpsz
-  CPD.hand(:, :, i) = CPD.WY2sum(:, :, i) / w(i);
+  CPD.hand(:, i) = CPD.WY2sum(:, i) / w(i);
 end
 
 end

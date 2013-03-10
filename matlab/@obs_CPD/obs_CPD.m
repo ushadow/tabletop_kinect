@@ -1,6 +1,8 @@
 function CPD = obs_CPD(bnet, self, hand, hd_mu, hd_sigma, varargin)
+% OBS_CPD Customized observation CPD.
 %
-% hand: initial hand for each S(i).
+% CPD = obs_CPD(bnet, self, hand, hd_mu, hd_sigma, varargin)
+% hand(:, i) is the initial hand template for S = i.
 %
 % Optional arguments:
 % mean: mu(:, i) is the mean continuous features given S = i 
@@ -62,8 +64,8 @@ CPD.cov = myreshape(CPD.cov, [ss ss ns(dps)]);
 % Expected sufficient statistics.
 CPD.WY1sum = zeros(ss, dpsz);
 CPD.WY1Y1sum = zeros(ss, ss, dpsz);
-n = size(hand, 1); % size of the hand image.
-CPD.WY2sum = zeros(n, n, dpsz);
+n = length(hand); % size of the hand image.
+CPD.WY2sum = zeros(n, dpsz);
 
 % For BIC
 CPD.nsamples = 0;

@@ -2,6 +2,7 @@ classdef TestAHMM < TestCase
   
 properties
   ahmm
+  hand_size = 4 * 4;
 end
 
 methods
@@ -65,22 +66,25 @@ methods
                                  0 1
                                  0 1];
                              
-    n = 4;
-    params.hand = zeros(n, n, params.nS);
+    params.hand = zeros(self.hand_size, params.nS);
     for i = 1 : params.nS
-      params.hand(:, :, i) = repmat(i, n);
+      params.hand(:, i) = repmat(i, self.hand_size, 1);
     end
 
     params.hd_mu = 0;
     params.hd_sigma = 1;
 
-    params.Xmean = reshape(1 : 2 * n, [params.nX params.nS]);
+    params.Xmean = reshape(1 : params.nX * params.nS, ...
+                           [params.nX params.nS]);
     params.Xcov = repmat(eye(params.nX) * 0.1, [1, 1, params.nS]);
 
     self.ahmm = createmodel(params);
   end
 
   function testSample(self)
+    ns = self.ahmm.node_sizes_slice;
+    assertTrue(all(ns == [4 4 2 2]));
+    
     T = 10;
     evidence = sample_dbn(self.ahmm, T);
 
@@ -88,6 +92,8 @@ methods
     for i = 1 : T
       s = evidence{S1, i};
       hand = evidence{X1, i}{2};
+      assertTrue(all(size(hand) == [self.hand_size, 1]));
+      assertTrue(all(size(evidence{X1, i}{1}) == [ns(X1), 1]));
       assertTrue(all(hand(:) == s));
       assertTrue(s == evidence{G1, i});
       if i > 1 

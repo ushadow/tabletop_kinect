@@ -1,5 +1,5 @@
 function [m, C, hand] = obs_CPD_params_given_dps(CPD, domain, evidence)
-% OBS_CPD_PARAMS_GIVEN_ON_DPS Extracts parameters given evidence on all
+% OBS_CPD_PARAMS_GIVEN_DPS Extracts parameters given evidence on all
 % discrete parents.
 % [m, C, hand] = obs_CPD_params_given_dps(CPD, domain, evidence)
 
@@ -18,13 +18,13 @@ else
     dpval = sbv2ind(dpsizes, dpvals(:)');
     m = CPD.mean(:, dpval);
     C = CPD.cov(:, :, dpval);
-    hand = CPD.hand(:, :, dpval);
+    hand = CPD.hand(:, dpval);
   else % Some of the discrete parents are not observed.
     map = find_equiv_posns(dops, dps);
     index = mk_multi_index(length(dps), map, dpvals);
     m = CPD.mean(:, index{:});
     C = CPD.cov(:, :, index{:});
-    hand = CPD.hand(:, :, index{:});
+    hand = CPD.hand(:, index{:});
   end
 end
     
