@@ -22,9 +22,10 @@ prior = repmat(CPD.cov_prior_weight * eye(ss, ss), [1 1 dpsz]);
     CPD.WY1Y1sum, [], 'cov_type', CPD.cov_type, 'clamped_mean', ...
     cl_mean, 'clamped_cov', cl_cov, 'tied_cov', CPD.tied_cov, ...
     'cov_prior', prior);
-  
+
+CPD.Wsum = CPD.Wsum + (CPD.Wsum == 0);
 for i = 1 : dpsz
-  CPD.hand(:, i) = CPD.WY2sum(:, i) / w(i);
+  CPD.hand(:, i) = CPD.WY2sum(:, i) / CPD.Wsum(i);
 end
 
 end

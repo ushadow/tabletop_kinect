@@ -13,9 +13,9 @@ else
   odom = domain(~isemptycell(evidence(domain)));
   dops = myintersect(dps, odom);
   dpvals = cat(1, evidence{dops});
-  if length(dops) == length(dps); % All discrete parents are observed.
+  if length(dops) == length(dps) % All discrete parents are observed.
     dpsizes = CPD.sizes(CPD.dps);
-    dpval = sbv2ind(dpsizes, dpvals(:)');
+    dpval = subv2ind(dpsizes, dpvals(:)');
     m = CPD.mean(:, dpval);
     C = CPD.cov(:, :, dpval);
     hand = CPD.hand(:, dpval);

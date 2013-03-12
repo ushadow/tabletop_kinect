@@ -43,7 +43,7 @@ inter(S1, S1) = 1;
  
 node_sizes = [params.nG params.nS params.nF params.nX];
 dnodes = [G1 S1 F1];
-onodes = X1;
+onodes = params.onodes;
 
 % eclass1(i) is the equivalence class that node i in slice 1 belongs to. 
 % eclass2(i) is the equivalence class that node i in slice 2, 3, ..., 

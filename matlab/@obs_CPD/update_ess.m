@@ -24,8 +24,5 @@ CPD.WY1sum = CPD.WY1sum + y1(:) * w(:)'; % w(:)' is a row matrix.
 CPD.WY1Y1sum = CPD.WY1Y1sum + ...
                WY1Y1 .* repmat(reshape(Cy1y1, [ss ss 1]), [1 1 dpsz]);
 
-WY2 = repmat(w(:)', n, 1);
-WY2Y2 = repmat(reshapte(WY2, [n 1 dpsz]), [1 n 1]);
-CPD.WY2sum = CPD.WY2sum + ...
-             WY2Y2 .* repmat(y2, [1 1 dpsz]);
+CPD.WY2sum = CPD.WY2sum + y2(:) * w(:)';
 end

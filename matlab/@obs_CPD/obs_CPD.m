@@ -48,6 +48,7 @@ CPD.cov_type = 'full';
 CPD.tied_cov = 0;
 CPD.clamped_mean = 0;
 CPD.clamped_cov = 0;
+CPD.cov_prior_weight = 0.01;
 CPD.hand = hand;
 CPD.hd_mu = hd_mu;
 CPD.hd_sigma = hd_sigma;
@@ -62,6 +63,7 @@ CPD.cov = myreshape(CPD.cov, [ss ss ns(dps)]);
 
 % Learning
 % Expected sufficient statistics.
+CPD.Wsum = zeros(dpsz, 1);
 CPD.WY1sum = zeros(ss, dpsz);
 CPD.WY1Y1sum = zeros(ss, ss, dpsz);
 n = length(hand); % size of the hand image.
@@ -99,7 +101,9 @@ CPD.clamped_mean = [];
 CPD.clamped_cov = [];
 CPD.cov_type = [];
 CPD.tied_cov = [];
+CPD.cov_prior_weight = [];
 CPD.hand = [];
+CPD.Wsum = [];
 CPD.WY1sum = [];
 CPD.WY1Y1sum = [];
 CPD.WY2sum = [];

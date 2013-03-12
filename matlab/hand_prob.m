@@ -7,8 +7,12 @@ if nargin < 5, use_log = 0; end
 P = image2points(example);
 Q = image2points(template);
 
-hd = hausdorfflikedist(P, Q, 1);
-p = normpdf(hd, mu, sigma);
+if isempty(P) || isempty(Q)
+  p = 0;
+else
+  hd = hausdorfflikedist(P, Q, 1);
+  p = normpdf(hd, mu, sigma);
+end
 
 if use_log
   p = log(p);
