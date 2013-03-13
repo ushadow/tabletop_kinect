@@ -25,9 +25,9 @@ methods
     self.params.onodes = [self.params.X1];
 
     self.params.Gstartprob = [1 0 0 0];
-    self.params.Gtransprob = [0 1 0 0
-                              0 0 1 0
-                              0 0 0 1
+    self.params.Gtransprob = [0 0.45 0.45 0.1
+                              0 0.5 0 0.5
+                              0 0 0.5 0.5
                               1 0 0 0];
 
     % 2 x 4 matrix                   
@@ -136,18 +136,18 @@ methods
 
       engine = enter_evidence(engine, evidence);
       hnodes = mysetdiff(1 : ss, onodes);
-      map = TestAHMM.getMarginals(engine, hnodes, T);
-      %logdebug('TestAHMM', 'map', map);
+      map_est = TestAHMM.getMarginals(engine, hnodes, ss, T);
+      %logdebug('TestAHMM', 'map_est', map_est);
       for t = 1 : T
         for n = hnodes(:)'
-          assertTrue(map(n, t) == ev{n, t});
+          assertTrue(map_est(n, t) == ev{n, t});
         end
       end
     end
   end
   
   function testLearning(self)
-    T = 10;
+    T = 20;
     max_iter = 10;
     true_params = self.deterministicParams;
     ahmm = createmodel(true_params);
@@ -161,17 +161,34 @@ methods
     
     new_ahmm = createmodel(new_params);
     engine = smoother_engine(jtree_2TBN_inf_engine(new_ahmm));
-    final_ahmm = learn_params_dbn_em(engine, evidence, ...
+    [final_ahmm, ~, engine] = learn_params_dbn_em(engine, evidence, ...
         'max_iter', max_iter);
+    
+    hnodes = mysetdiff(1 : ss, new_params.onodes);
+    map_est = TestAHMM.getMarginals(engine, hnodes, ss, T);
+    map_S = map_est(new_params.S1, :);
+    true_S = [ev{new_params.S1, :}];
+    assertTrue(all(map_S(:) == true_S(:)));
     
     learned_Gstartprob = CPD_to_CPT(final_ahmm.CPD{1});
     assertTrue(all(learned_Gstartprob == true_params.Gstartprob(:)));
     learned_Sstartprob = CPD_to_CPT(final_ahmm.CPD{2});
     assertTrue(learned_Sstartprob(1, 1) == 1);
     learned_Stermprob = CPD_to_CPT(final_ahmm.CPD{3});
-    assertTrue(all(learned_Stermprob(:) == true_params.Stermprob(:)));
+    assertTrue(all(learned_Stermprob(:, 1) == 0));
     learned_hand = struct(final_ahmm.CPD{4}).hand;
     assertTrue(all(learned_hand(:) == true_params.hand(:)));
+    learned_GCPT = CPD_to_CPT(final_ahmm.CPD{5});
+    learned_GCPT = learned_GCPT(:, 1, :);
+    expected = eye(new_params.nG, new_params.nG);
+    assertTrue(all(learned_GCPT(:) == expected(:)));
+    learned_Gtransprob = struct(final_ahmm.CPD{5}).transprob;
+    assertTrue(all(learned_Gtransprob(:) == true_params.Gtransprob(:)));
+    learned_Stransprob = CPD_to_CPT(final_ahmm.CPD{6});
+    assertTrue(learned_Stransprob(1, 2, 2) == 1);
+    assertTrue(learned_Stransprob(2, 3, 3) == 1);
+    assertTrue(learned_Stransprob(3, 4, 4) == 1);
+    assertTrue(learned_Stransprob(4, 1, 1) == 1);
   end
   
   function params = deterministicParams(self)
@@ -196,9 +213,9 @@ methods
 
     % 2 x 4 matrix                   
     params.Sstartprob = [1 0 0 0
-                              0 1 0 0
-                              0 0 1 0
-                              0 0 0 1];
+                         0 1 0 0
+                         0 0 1 0
+                         0 0 0 1];
                        
     params.Stransprob = zeros(params.nS, params.nG, params.nS);
     params.Stransprob(:, 1, :) = [1 0 0 0 
@@ -267,10 +284,7 @@ methods
     params.onodes = [params.G1 params.F1 params.X1];
       
     params.Gstartprob = ones(1, params.nG) / params.nG;
-    params.Gtransprob = [0 0.45 0.45 0.1
-                         0 0.1 0.1 0.8
-                         0 0.1 0.1 0.8
-                         1 0 0 0];
+    params.Gtransprob = ones(params.nG, params.nG) / params.nG;
     
     % P_ij = P(S = j | G = i)
     params.Sstartprob = [1 0 0 0
@@ -278,29 +292,14 @@ methods
                          0 0 1 0
                          0 0 0 1];
                        
-    params.Stransprob = zeros(params.nS, params.nG, params.nS);
-    params.Stransprob(:, 1, :) = [1 0 0 0 
-                                  1 0 0 0 
-                                  1 0 0 0 
-                                  1 0 0 0];
-    params.Stransprob(:, 2, :) = [0 1 0 0 
-                                  0 1 0 0
-                                  0 1 0 0
-                                  0 1 0 0];
-
-    params.Stransprob(:, 3, :) = [0 0 1 0 
-                                  0 0 1 0
-                                  0 0 1 0
-                                  0 0 1 0];
-                                
-    params.Stransprob(:, 4, :) = [0 0 0 1 
-                                  0 0 0 1
-                                  0 0 0 1
-                                  0 0 0 1];
+    params.Stransprob = ones(params.nS, params.nG, params.nS) / params.nS;
 
     params.Stermprob = ones(params.nG, params.nS, params.nF) / params.nF;
                              
     params.hand = ones(self.hand_size, params.nS);
+    for i = 1 : params.nS
+      params.hand(:, i) = params.hand(:, i) * (1 + i / 10);
+    end
  
     params.hd_mu = 0;
     params.hd_sigma = 1;
@@ -311,13 +310,15 @@ methods
 end
 
 methods(Static)
-  function map = getMarginals(engine, hnodes, T)
-    map = zeros(length(hnodes), T);
+  function map_est = getMarginals(engine, hnodes, ss, T)
+  % Computes node marginals for hidden nodes.
+  % ss: slice size;
+    map_est = zeros(ss, T);
     for t = 1 : T
       for n = hnodes(:)'
         m = marginal_nodes(engine, n, t);
         [~, index] = max(m.T);
-        map(n, t) = index;
+        map_est(n, t) = index;
       end
     end
   end

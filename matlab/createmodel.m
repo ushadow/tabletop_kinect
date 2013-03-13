@@ -28,7 +28,7 @@ ss = 4; % Number of nodes in one time slice.
 intra = zeros(ss);
 
 % Has to be in the topological order.
-G1 = 1; S1 = 2; F1 = 3; X1 = 4; 
+G1 = params.G1; S1 = params.S1; F1 = params.F1; X1 = params.X1; 
 G2 = G1 + ss; S2 = S1 + ss; F2 = F1; X2 = X1;
 
 intra(G1, S1) = 1;

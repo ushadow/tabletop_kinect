@@ -21,9 +21,14 @@ function data = combine_label_feature(label, feature, modelparams)
 label_frameid = label(:, 1);
 feature_frameid = feature(:, 1);
 [frameids, ilabel, ifeature] = intersect(label_frameid, feature_frameid);
+fprintf('number of frames = %d', length(frameids));
 segments = segment(frameids); % cell array
 label = label(ilabel, :);
+
+assert(modelparams.nG == length(unique(label(:, 2))));
+assert(modelparams.nF == length(unique(label(:, 3))));
 assert(check_label(label), 'Label is not valid.');
+
 feature = feature(ifeature, :);
 assert(size(label, 1) == size(feature, 1));
 data = cell(1, length(segments));
@@ -59,7 +64,7 @@ end
 end
 
 function valid = check_label(label)
-% Checks the validity of labeling.
+% Checks the validity of G, F labeling.
 nrows = size(label, 1);
 for i = 1 : nrows - 1
   if label(i, 2) ~= label(i + 1, 2)
