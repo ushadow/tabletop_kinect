@@ -1,11 +1,11 @@
-function params = init_model_params(data)
+function params = initmodelparams(data)
 
 % Node sizes.
 params.nG = 6;
 params.nS = 4;
 params.nF = 2;
-params.nX = 11; % number of continuous features
-params.hand_size = 2500;
+params.nX = 11; % default number of continuous features.
+params.handSize = 2500; % default number of hand size.
 
 params.ss = 4; % slice size
 

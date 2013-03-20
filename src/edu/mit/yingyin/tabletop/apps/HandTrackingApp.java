@@ -23,6 +23,7 @@ import org.apache.commons.cli.OptionBuilder;
 
 import edu.mit.yingyin.tabletop.controllers.ProcessPacketController;
 import edu.mit.yingyin.tabletop.models.EnvConstant;
+import edu.mit.yingyin.tabletop.models.FeatureBuilder;
 import edu.mit.yingyin.tabletop.models.FeatureWriter;
 import edu.mit.yingyin.tabletop.models.OpenNIDevice;
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
@@ -257,13 +258,19 @@ public class HandTrackingApp extends KeyAdapter {
     if (classificationFile != null) 
       classificationFile = FileUtil.join(mainDir, EnvConstant.DESCRIPTOR_DIR, 
                                          classificationFile);
+    
+    String imageWidthStr = config.getProperty("image-width", null);
+    if (imageWidthStr != null) {
+      FeatureBuilder.imageWidth(Integer.parseInt(imageWidthStr));
+    }
 
     String saveFeatures = config.getProperty("save-features", "false");
     if (saveFeatures.equalsIgnoreCase("true")) {
       String dir = FileUtil.join(mainDir, EnvConstant.GESUTRE_DIR);
       (new File(dir)).mkdirs();
       String filename = FileUtil.join(dir, 
-                        basename + EnvConstant.GESTURE_FEATURE_SUFFIX);
+                        basename + "-" + FeatureBuilder.imageWidth() + 
+                        EnvConstant.GESTURE_FEATURE_SUFFIX);
       featureWriter = new FeatureWriter(filename);
     }
   }

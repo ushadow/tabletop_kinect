@@ -28,7 +28,7 @@ public class FeatureWriter {
     if (pw != null) {
       pw.println(String.format("frame_id,continuous_feature_size,%d," +
       		"image_width,%d", FeatureBuilder.CONTINUOUS_FEATURE_SIZE, 
-      		FeatureBuilder.IMAGE_WIDTH));
+      		FeatureBuilder.imageWidth()));
     }
   }
   

@@ -1,4 +1,4 @@
-function data = prep_training_data(dirname, modelparams)
+function [data modelparams] = preptrainingdata(dirname, modelparams)
 files = dir(dirname);
 for i = 1 : length(files)
   file = files(i);
@@ -11,13 +11,18 @@ for i = 1 : length(files)
     if strcmp(ext, 'glab.csv')
       label = importdata([dirname name], ',', 1);
       feature = importdata([dirname basename '.gfet'], ',', 1);
-      data = combine_label_feature(label.data, feature.data, modelparams);
+      header = textscan(feature.textdata{1}, '%s%s%d%s%d', ...
+                        'delimiter', ',');
+      modelparams.nX = header{3};
+      imageWidth = header{5};
+      modelparams.handSize = imageWidth * imageWidth; 
+      data = combinelabelfeature(label.data, feature.data, modelparams);
     end
   end
 end
 end
 
-function data = combine_label_feature(label, feature, modelparams)
+function data = combinelabelfeature(label, feature, modelparams)
 label_frameid = label(:, 1);
 feature_frameid = feature(:, 1);
 [frameids, ilabel, ifeature] = intersect(label_frameid, feature_frameid);
@@ -39,7 +44,7 @@ for i = 1 : length(data)
   data{i}(1 : 2, :) = num2cell(label(indices, 2 : 3)');
   feature_seg = feature(indices, 2 : end)';
   feature_cell = mat2cell(feature_seg, ...
-      [modelparams.nX modelparams.hand_size], ones(1, T));
+      [modelparams.nX modelparams.handSize], ones(1, T));
   for t = 1 : T
     data{i}{4, t} = feature_cell(:, t);
   end
@@ -47,7 +52,7 @@ for i = 1 : length(data)
   assert(size(data{i}{2, 1}) == 1);
   assert(isempty(data{i}{3, 1}));
   assert(size(data{i}{4, 1}{1}) == modelparams.nX);
-  assert(size(data{i}{4, 1}{2}) == modelparams.hand_size);
+  assert(size(data{i}{4, 1}{2}) == modelparams.handSize);
 end
 end
 
