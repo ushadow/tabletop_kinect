@@ -1,8 +1,12 @@
 function points = image2points(image)
-% IMAGE2POINTS converts a depth image into points. The image is stored as
-% a column vector where pixels in the same row are contiguous.
+% IMAGE2POINTS converts a depth image into points. 
 %
 % points = image2points(image)
+%
+% Args:
+% The image is stored as
+% image: a column vector where pixels in the same row are contiguous.
+
 n = sqrt(length(image));
 
 points = zeros(n * n, 3);

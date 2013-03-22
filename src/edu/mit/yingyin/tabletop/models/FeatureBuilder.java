@@ -46,8 +46,8 @@ public class FeatureBuilder {
     float scale = imageWidth / hand.width();
     float offset = imageWidth / 2;
     for (Point3f p : hand.pointCloud()) {
-      int x = (int) (p.x * scale + offset);
-      int y = (int) (p.y * scale + offset);
+      int x = Math.round(p.x * scale + offset);
+      int y = Math.round(p.y * scale + offset);
       if (x >= 0 && x < imageWidth && y >= 0 && y < imageWidth) {
         float z = Math.max(0, p.z * scale + offset);
         features[CONTINUOUS_FEATURE_SIZE + y * imageWidth + x] = z;

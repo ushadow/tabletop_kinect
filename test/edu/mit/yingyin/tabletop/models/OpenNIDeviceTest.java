@@ -4,12 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.logging.Logger;
+
 import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
 import org.OpenNI.StatusException;
 import org.junit.After;
 import org.junit.Test;
 
 public class OpenNIDeviceTest {
+  private static final Logger LOGGER = Logger.getLogger(
+      OpenNIDeviceTest.class.getName());
   private static final int WIDTH = 640;
   private static final int HEIGHT = 480;
   
@@ -92,6 +97,25 @@ public class OpenNIDeviceTest {
     } catch (StatusException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+    }
+  }
+  
+  @Test
+  public void testConvertRealWorldToProjective() {
+    setUpFromConfigFile();
+    Point3D[] points = new Point3D[2];
+    points[0] = new Point3D(1, 2, -3);
+    points[1] = new Point3D(1, 2, -30);
+    try {
+      Point3D[] converted = openni.convertRealWorldToProjective(points);
+      LOGGER.info(String.format("(%f, %f, %f)", 
+                  converted[0].getX(), converted[0].getY(), 
+                  converted[0].getZ()));
+      LOGGER.info(String.format("(%f, %f, %f)", 
+          converted[1].getX(), converted[1].getY(), 
+          converted[1].getZ()));
+    } catch (StatusException e) {
+      fail();
     }
   }
 }

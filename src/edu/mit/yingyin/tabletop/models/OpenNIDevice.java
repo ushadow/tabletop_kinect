@@ -202,6 +202,12 @@ public class OpenNIDevice {
     return converted;
   }
   
+  /**
+   * The z values are flipped.
+   * @param points
+   * @return
+   * @throws StatusException
+   */
   public Point3D[] convertRealWorldToProjective(Point3D[] points) 
       throws StatusException {
     Point3D[] copy = new Point3D[points.length]; 
@@ -209,8 +215,13 @@ public class OpenNIDevice {
       Point3D p = points[i];
       copy[i] = new Point3D(p.getX(), p.getY(), -p.getZ());
     }
-    Point3D[] converted = depthGen.convertRealWorldToProjective(copy);
-    return converted;
+    return depthGen.convertRealWorldToProjective(copy);
+  }
+  
+  public Point3D convertRealWorldToProjective(Point3D p) 
+      throws StatusException {
+    Point3D worldP = new Point3D(p.getX(), p.getY(), -p.getZ());
+    return depthGen.convertRealWorldToProjective(worldP);
   }
   
   private void init() throws GeneralException {

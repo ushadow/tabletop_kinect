@@ -32,7 +32,7 @@ import edu.mit.yingyin.util.Geometry;
  * @author yingyin
  * 
  */
-public class HandPoseFeatureDetector {
+public class HandFeatureDetector {
   /**
    * Dimension of the hand point cloud.
    */
@@ -54,7 +54,7 @@ public class HandPoseFeatureDetector {
   private final CvMat eigenvecs = CvMat.create(DIM, DIM, CV_32FC1);
   private final CvMat rotMat = CvMat.create(DIM, DIM, CV_32FC1);
 
-  public HandPoseFeatureDetector(int width, int height, OpenNIDevice openni) {
+  public HandFeatureDetector(int width, int height, OpenNIDevice openni) {
     this.width = width;
     this.openni = openni;
   }
@@ -76,7 +76,9 @@ public class HandPoseFeatureDetector {
         // Finds hand pose cloud points in physical coordinates.
         alignPCA(worldPoints, hf);
         reCenter(hf);
-        hf.handPoseWidth = findRadius(hf.handPose.size()) * 2;
+        hf.handPoseWidth = findRadius(hf.pointCloud.size()) * 2;
+        hf.pointCloudImage = toProjective(hf.pointCloud, hf.centroidWorld);
+        hf.centroidImage = toProjective(hf.centroidWorld);
         ff.hf = hf;
       }
     }
@@ -113,6 +115,22 @@ public class HandPoseFeatureDetector {
     Point3D[] projective = new Point3D[points.size()];
     points.toArray(projective);
     return openni.convertProjectiveToRealWorld(projective);
+  }
+  
+  private Point3D[] toProjective(List<Point3f> points, Point3f center) 
+      throws StatusException {
+    Point3D[] world = new Point3D[points.size()];
+    for (int i = 0; i < points.size(); i++) {
+      Point3f p = new Point3f();
+      p.add(points.get(i), center);
+      world[i] = new Point3D(p.x, p.y, p.z);
+    }
+    return openni.convertRealWorldToProjective(world);
+  }
+  
+  private Point3D toProjective(Point3f p) throws StatusException {
+    Point3D world = new Point3D(p.x, p.y, p.z);
+    return openni.convertRealWorldToProjective(world);
   }
 
   /**
@@ -154,7 +172,7 @@ public class HandPoseFeatureDetector {
 
     worldPointsMat.release();
     
-    hf.handPose = CvUtil.cvMatToLinkedList(aligned);
+    hf.pointCloud = CvUtil.cvMatToLinkedList(aligned);
     hf.centroidWorld = new Point3f((float) mean.get(0), (float) mean.get(1), 
                                    (float) mean.get(2));
     hf.rot = Geometry.rotMatrixToEuler(rotMat);
@@ -194,8 +212,13 @@ public class HandPoseFeatureDetector {
     }
   }
 
+  /**
+   * Recenters the point cloud using camshift.
+   * @param hf
+   * @return
+   */
   private List<Point3f> reCenter(HandFeatures hf) {
-    List<Point3f> points = hf.handPose;
+    List<Point3f> points = hf.pointCloud;
     Point3f newCenter = camshift(points);
     for (Point3f p : points) {
       p.sub(newCenter);
@@ -209,6 +232,11 @@ public class HandPoseFeatureDetector {
     return (float) Math.sqrt(numPoints) * 2;
   }
 
+  /**
+   * Removes outliers in {@code points}.
+   * @param points maybe modified.
+   * @return
+   */
   private Point3f camshift(List<Point3f> points) {
     boolean stop = false;
     Point3f center = new Point3f();
@@ -231,6 +259,8 @@ public class HandPoseFeatureDetector {
       }
       center.scale((float) 1 / points.size(), newCenter);
     }
+    for (Point3f p : points) 
+      p.sub(center);
     return center;
   }
 }

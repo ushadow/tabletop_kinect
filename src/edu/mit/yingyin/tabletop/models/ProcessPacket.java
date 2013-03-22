@@ -15,6 +15,7 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Tuple3f;
 
 import org.OpenNI.GeneralException;
+import org.OpenNI.Point3D;
 
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
 import com.googlecode.javacv.cpp.opencv_core.CvMemStorage;
@@ -57,8 +58,10 @@ public class ProcessPacket {
   static public class HandFeatures {
     public Point3f centroidWorld;
     public Tuple3f rot;
-    public List<Point3f> handPose;
+    public List<Point3f> pointCloud;
     public float handPoseWidth;
+    public Point3D[] pointCloudImage;
+    public Point3D centroidImage;
   }
   
   /**

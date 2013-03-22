@@ -95,7 +95,7 @@ public class ForelimbFeatureDetector {
   private final IplImage tempImage;
   private final ForelimbModelEstimator forelimbModelEstimator;
   private final OpenNIDevice openni;
-  private final HandPoseFeatureDetector hpfd;
+  private final HandFeatureDetector hpfd;
   
   /**
    * Initializes the data structures.
@@ -109,7 +109,7 @@ public class ForelimbFeatureDetector {
     background = Background.initInstance(width, height);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
     this.openni = openni;
-    hpfd = new HandPoseFeatureDetector(width, height, openni);
+    hpfd = new HandFeatureDetector(width, height, openni);
   }
 
   /**

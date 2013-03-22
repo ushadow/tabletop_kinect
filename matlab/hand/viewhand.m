@@ -1,15 +1,22 @@
-function H = viewhand(data)
-% VIEWHAND display hand images for one sequence.
-ncol = 20;
-image_width = 50;
+function H = viewhand(data, feature)
+% VIEWHAND displays hand images for one sequence.
+% 
+% H = viewhand(data)
+%
+% Args
+% data: N X M matrix where N is the number of pixels in the image and M is 
+%       number of frames.
+[N M] = size(data);
+imageWidth = sqrt(N);
+ncol = floor(1000 / imageWidth);
+nrow = ceil(M / ncol);
 
 H = figure('visible', 'off');
 
-n = size(data, 2);
-nrow = ceil(n / ncol);
-for j = 1 : n
-  hand = reshape(data(:, j), image_width, image_width)';
+for j = 1 : M
+  hand = reshape(data(:, j), imageWidth, imageWidth)';
   image = mat2gray(hand);
   subplot(nrow, ncol, j);
   imshow(image);
+  title(strjoin(feature(:, j), ','));
 end

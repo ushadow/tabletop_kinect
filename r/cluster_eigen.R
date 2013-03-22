@@ -9,7 +9,8 @@ Cluster1 <- function(data, num.features) {
   mclust <- Mclust(data[, 1 : num.features], 1 : 20)
 }
 
-PlotClusterRes <- function(num.features, clusters) {
+# Plot loglik or BIC with different number of features chosen.
+PlotFeatureComp <- function(num.features, clusters) {
   loglik <- sapply(clusters, function(x) { x$loglik });
   bic <- sapply(clusters, function(x) { x$bic });
   ylim <- c(min(bic), max(loglik))
@@ -35,3 +36,34 @@ SaveClassification <- function(clusters, filename) {
   classes <- ldply(clusters, function(x) { x$classification })
   write.csv(classes, filename, row.names = FALSE)
 }
+
+PlotClassifcation <- function(cluster, ylab) {
+  data <- eval.parent(cluster$call$data)
+  classification <- cluster$classification
+  ylim <- c(min(data), max(data)) 
+  xlim <- c(min(classification), max(classification))
+  plot(1, type = 'n', ylim = ylim, xlim = xlim, ylab = ylab, xlab = 'class')
+  nclass <- cluster$G
+  col <- palette()[1 : nclass]
+  sapply(1 : nclass, PlotOneClass, classification = classification, data = data,
+         col = col)
+  title('classification')
+}
+
+PlotOneClass <- function(class.label, classification, data, col) {
+  class.data <- data[classification == class.label]
+  points(rep(class.label, length(class.data)), class.data, col =
+         col[class.label])
+}
+
+PlotMcluster <- function(cluster, prefix) {
+  what <- c('BIC', 'classification', 'uncertainty', 'density')
+  sapply(what, PlotMcluster1, cluster = cluster, prefix = prefix)
+}
+
+PlotMcluster1 <- function(what, cluster, prefix) {
+  png(paste(prefix, '-', what, '.png', sep = ''));
+  plot(cluster, what = what)
+  dev.off()
+}
+

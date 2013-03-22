@@ -110,7 +110,7 @@ public class ForelimbModelEstimator {
             float dist = InteractionSurface.instance().
                 distanceAboveSurface(hf.centroidWorld);
             Hand hand = new Hand(dist, hf.handPoseWidth, hf.centroidWorld, v, a, 
-                                 hf.rot, hf.handPose);
+                                 hf.rot, hf.pointCloud);
             Forelimb forelimb = new Forelimb(filteredFingertips, fingertipsW, 
                 armJoints, hand);
             packet.forelimbs.add(forelimb);

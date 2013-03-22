@@ -65,19 +65,7 @@ if nargin == 3
         error('3rd ''lmf'' input must be 0 or 1')
     end
 else
-    largeMat = 0;   % assume this is a small matrix until we check
-    % If the result is too large, we will not be able to build the matrix of
-    % differences, we must loop.
-    if sP(1)*sQ(1) > 2e6
-        % ok, the resulting matrix or P-to-Q distances will be really big, lets
-        % check if our memory can handle the space we'll need
-        memSpecs = memory;          % load in memory specifications
-        varSpecs = whos('P','Q');   % load in variable memory specs
-        sf = 10;                    % build in a saftey factor of 10 so we don't run out of memory for sure
-        if prod([varSpecs.bytes]./[sP(2) sQ(2)]) > memSpecs.MaxPossibleArrayBytes/sf
-            largeMat = 1;   % we have now concluded this is a large matrix situation
-        end
-    end
+    largeMat = 1;  
 end
 
 if largeMat

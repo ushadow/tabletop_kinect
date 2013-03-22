@@ -52,6 +52,10 @@ meanFeature = mean(rawFeature, 2);
 meanFeatureRep = repmat(meanFeature, 1, M);
 Phi = rawFeature - meanFeatureRep;
 A = Phi;
+
+% Let u be the eigenhand. We want to find AA' * u = lamda * u, but AA' is a 
+% large matrix.
+
 C = A' * A;
 [eigMat, eigVal] = eig(C);
 
