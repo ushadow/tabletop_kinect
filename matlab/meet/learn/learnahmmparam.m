@@ -1,4 +1,4 @@
-function learn_ahmm_params(ahmm, data, max_iter)
+function learnahmmparam(ahmm, data, max_iter)
 % LEARN_AHMM_PARAMS
 %
 % learn_ahmm_params(data)

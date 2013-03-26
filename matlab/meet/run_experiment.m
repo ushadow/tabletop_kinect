@@ -1,4 +1,4 @@
-function R = run_experiment( params, split, data )    
+function R = run_experiment(param, split, data)    
 % R = run_experiment( params, split )
 %
 % Input:
@@ -28,35 +28,35 @@ function R = run_experiment( params, split, data )
      
     % Step 2: Preprocess data (optional)
     %   Dimensionality reduction, standardzation, sparsification
-    if isfield(params,'preprocess')
-        switch params.preprocess
+    if isfield(param, 'preprocess')
+        switch param.preprocess
             case 'pca'
-                X = pre_pca( X, params );
+                X = pre_pca( X, param );
         end
     end
         
     % Step 3: Train and test model, get prediction on all three splits
-    switch params.learner
+    switch param.learner
         case 'svr'
-            R = learn_svr( Y, X, params );
+            R = learn_svr( Y, X, param );
         otherwise
-            error('%s Not implemented yet', params.model);
+            error('%s Not implemented yet', param.model);
     end
     
     % Step 4: Postprocess prediction result (optional)
-    if isfield(params,'postprocess')
-        switch params.postprocess
+    if isfield(param,'postprocess')
+        switch param.postprocess
             case 'exp_smooth'
-                R.prediction = post_exp_smooth( R.prediction, params.exp_smooth_alpha );
+                R.prediction = post_exp_smooth( R.prediction, param.exp_smooth_alpha );
         end
     end
     
     % Step 5: Evaluate performance of prediction
-    switch params.learner
+    switch param.learner
         case 'svr'
-            R.stat = eval_svr( Y, R.prediction, params );
+            R.stat = eval_svr( Y, R.prediction, param );
         otherwise
-            error('%s Not implemented yet', params.model);
+            error('%s Not implemented yet', param.model);
     end
     
 end

@@ -67,3 +67,12 @@ PlotMcluster1 <- function(what, cluster, prefix) {
   dev.off()
 }
 
+AveCov <- function(cov) {
+  dim <- dim(cov)
+  mean <- apply(cov, 3, function(x) { mean(diag(x)) })
+  mean(mean)
+}
+
+
+
+

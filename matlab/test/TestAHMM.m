@@ -29,8 +29,7 @@ methods
                               0 0.5 0 0.5
                               0 0 0.5 0.5
                               1 0 0 0];
-
-    % 2 x 4 matrix                   
+                 
     self.params.Sstartprob = [1 0 0 0
                               0 1 0 0
                               0 0 1 0
@@ -90,7 +89,7 @@ methods
   end
 
   function testSample(self)
-    ahmm = createmodel(self.params);
+    ahmm = createahmm(self.params);
     ns = ahmm.node_sizes_slice;
     assertTrue(all(ns == [4 4 2 2]));
     
@@ -118,7 +117,7 @@ methods
   
   function testInference(self)
     det_params = self.deterministicParams;
-    ahmm = createmodel(det_params);
+    ahmm = createahmm(det_params);
     engine = smoother_engine(jtree_2TBN_inf_engine(ahmm));
 
     T = 4;
@@ -150,7 +149,7 @@ methods
     T = 20;
     max_iter = 10;
     true_params = self.deterministicParams;
-    ahmm = createmodel(true_params);
+    ahmm = createahmm(true_params);
     ev = sample_dbn(ahmm, 'length', T);
     ss = length(ahmm.intra);
     evidence = cell(1, 1);
@@ -159,7 +158,7 @@ methods
     new_params = self.priorParams;
     evidence{1}(new_params.onodes, :) = ev(new_params.onodes, :);
     
-    new_ahmm = createmodel(new_params);
+    new_ahmm = createahmm(new_params);
     engine = smoother_engine(jtree_2TBN_inf_engine(new_ahmm));
     [final_ahmm, ~, engine] = learn_params_dbn_em(engine, evidence, ...
         'max_iter', max_iter);

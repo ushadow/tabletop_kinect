@@ -1,8 +1,11 @@
-function [data segFrameId modelparam] = preptrainingdata(dirname, ... 
-                                                         modelparam)
+function [data segFrameId stdConFet modelparam] = ...
+         preptrainingdata(dirname, modelparam)
 % PREPTRAININGDATA prepares the training data into right structure for 
 % preprocesssing.
-
+%
+% Return
+% data: a cell array of cells. Each cell is a cell array of labels and 
+% features. The continuous hand features are standardized.
 files = dir(dirname);
 for i = 1 : length(files)
   file = files(i);
@@ -17,52 +20,52 @@ for i = 1 : length(files)
       feature = importdata([dirname basename '.gfet'], ',', 1);
       header = textscan(feature.textdata{1}, '%s%s%d%s%d', ...
                         'delimiter', ',');
-      modelparam.nX = header{3};
+      modelparam.nXconFet = header{3};
+      modelparam.nG = length(unique(label.data(:, 2)));
       imageWidth = header{5};
-      modelparam.handSize = imageWidth * imageWidth; 
-      [data segFrameId] = combinelabelfeature(label.data, feature.data, ...
-                                           modelparam);
+      modelparam.imageSize = imageWidth * imageWidth; 
+      [data segFrameId stdConFet] = combinelabelfeature(label.data, ...
+                                    feature.data, modelparam);
     end
   end
 end
 end
 
-function [data segFrameId] = combinelabelfeature(label, feature, ...
-                                                 modelparam)
+function [data segFrameId stdConFet] = combinelabelfeature(label, ...
+         feature, param)
 labelFrameId = label(:, 1);
 featureFrameId = feature(:, 1);
 [frameids, labelNDX, featureNDX] = intersect(labelFrameId, featureFrameId);
-fprintf('number of frames = %d', length(frameids));
+fprintf('number of frames = %d\n', length(frameids));
 [segment segFrameId] = createsegment(frameids); % cell array
-label = label(labelNDX, :);
-feature = feature(featureNDX, :); % Each row is a feature vector.
+label = label(labelNDX, 2 : end); % Removes frame ID.
+feature = feature(featureNDX, 2 : end); % Each row is a feature vector.
 
-standardized = stdfeature(feature(:, 1 : modelparam.nX));
-feature(:, 1 : modelparam.nX) = standardized;
+stdConFet = stdfeature(feature(:, 1 : param.nXconFet));
+feature(:, 1 : param.nXconFet) = stdConFet;
 
-assert(modelparam.nG == length(unique(label(:, 2))));
-assert(modelparam.nF == length(unique(label(:, 3))));
+assert(param.nF == length(unique(label(:, 2))));
 assert(checklabel(label), 'Label is not valid.');
 assert(size(label, 1) == size(feature, 1));
-assert(all(abs(mean(feature(:, 1 : modelparam.nX), 1)) < 1e-9));
+assert(all(abs(mean(feature(:, 1 : param.nXconFet), 1)) < 1e-9));
 
 data = cell(1, length(segment));
 for i = 1 : length(data)
   indices = segment{i};
   T = length(indices);
-  data{i} = cell(modelparam.ss, T);
-  data{i}(1 : 2, :) = num2cell(label(indices, 2 : 3)');
-  featureSeg = feature(indices, 2 : end)';
+  data{i} = cell(param.ss, T);
+  data{i}([param.G1 param.F1], :) = num2cell(label(indices, 1: 2)');
+  featureSeg = feature(indices, :)';
   featureCell = mat2cell(featureSeg, ...
-      [modelparam.nX modelparam.handSize], ones(1, T));
+      [param.nXconFet param.imageSize], ones(1, T));
   for t = 1 : T
     data{i}{4, t} = featureCell(:, t);
   end
-  assert(size(data{i}{1, 1}) == 1);
-  assert(size(data{i}{2, 1}) == 1);
-  assert(isempty(data{i}{3, 1}));
-  assert(size(data{i}{4, 1}{1}) == modelparam.nX);
-  assert(size(data{i}{4, 1}{2}) == modelparam.handSize);
+  assert(size(data{i}{param.G1, 1}) == 1);
+  assert(size(data{i}{param.F1, 1}) == 1);
+  assert(isempty(data{i}{param.S1, 1}));
+  assert(size(data{i}{4, 1}{1}) == param.nXconFet);
+  assert(size(data{i}{4, 1}{2}) == param.imageSize);
 end
 end
 
@@ -78,22 +81,34 @@ function [seg segFrameId] = createsegment(frameid)
 % the input frame ID vector.
 seg = {};
 segFrameId = {};
-start = 1;
-for i = 2 : length(frameid)
-  if frameid(i) - 1 ~= frameid(i - 1)
-    seg{end + 1} = start : i - 1; %#ok<AGROW>
-    segFrameId{end + 1} = frameid(start : i - 1); %#ok<AGROW>
-    start = i;
+startNDX = 1;
+nframe = length(frameid);
+for i = 2 : nframe
+  if frameid(i) - 1 ~= frameid(i - 1) ||  i == nframe
+    if frameid(i) - 1 ~= frameid(i - 1)
+      lastNDX = i - 1;
+    elseif i == nframe
+      lastNDX = i;
+    end
+    seg{end + 1} = startNDX : lastNDX; %#ok<AGROW>
+    segFrameId{end + 1} = frameid(startNDX : lastNDX); %#ok<AGROW>
+    startNDX = i;
   end
 end
+
+nframe = 0;
+for i = 1 : length(seg)
+  nframe = nframe + length(seg{i});
+end
+assert(nframe == length(frameid));
 end
 
 function valid = checklabel(label)
 % Checks the validity of G, F labeling.
 nrows = size(label, 1);
 for i = 1 : nrows - 1
-  if label(i, 2) ~= label(i + 1, 2)
-    valid = label(i, 3) == 2;
+  if label(i, 1) ~= label(i + 1, 1)
+    valid = label(i, 2) == 2;
     if ~valid
       disp(label(i, :));
       disp(label(i + 1, :));
