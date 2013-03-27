@@ -31,30 +31,33 @@ function R = run_experiment(param, split, data)
     if isfield(param, 'preprocess')
         switch param.preprocess
             case 'pca'
-                X = pre_pca( X, param );
+                X = pre_pca(X, param);
         end
     end
         
     % Step 3: Train and test model, get prediction on all three splits
     switch param.learner
-        case 'svr'
-            R = learn_svr( Y, X, param );
-        otherwise
-            error('%s Not implemented yet', param.model);
+      case 'svr'
+        R = learn_svr(Y, X, param);
+      case 'ahmm'
+        R.prediction = learnahmm(Y, X, param);
+      otherwise
+          error('%s Not implemented yet', param.model);
     end
     
     % Step 4: Postprocess prediction result (optional)
-    if isfield(param,'postprocess')
+    if isfield(param, 'postprocess')
         switch param.postprocess
             case 'exp_smooth'
-                R.prediction = post_exp_smooth( R.prediction, param.exp_smooth_alpha );
+                R.prediction = post_exp_smooth(R.prediction, ...
+                                               param.exp_smooth_alpha);
         end
     end
     
     % Step 5: Evaluate performance of prediction
     switch param.learner
         case 'svr'
-            R.stat = eval_svr( Y, R.prediction, param );
+            R.stat = eval_svr(Y, R.prediction, param);
         otherwise
             error('%s Not implemented yet', param.model);
     end

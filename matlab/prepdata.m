@@ -29,7 +29,8 @@ for i = 1 : length(files)
       dataParam.nF = length(unique(label.data(:, 3)));
       imageWidth = header{5};
       dataParam.imageSize = imageWidth * imageWidth; 
-
+      dataParam.dir = dirname;
+      
       [data segFrameId] = combinelabelfeature(label.data, feature.data, ...
                                               dataParam);
     end

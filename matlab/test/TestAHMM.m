@@ -164,10 +164,11 @@ methods
         'max_iter', max_iter);
     
     hnodes = mysetdiff(1 : ss, new_params.onodes);
-    map_est = TestAHMM.getMarginals(engine, hnodes, ss, T);
-    map_S = map_est(new_params.S1, :);
-    true_S = [ev{new_params.S1, :}];
-    assertTrue(all(map_S(:) == true_S(:)));
+    mapEst = mapest(engine, hnodes, T);
+    SNDX = hnodes == new_params.S1; 
+    mapS = mapEst(SNDX(:), :);
+    trueS = [ev{new_params.S1, :}];
+    assertTrue(all(cell2mat(mapS(:)) == trueS(:)));
     
     learned_Gstartprob = CPD_to_CPT(final_ahmm.CPD{1});
     assertTrue(all(learned_Gstartprob == true_params.Gstartprob(:)));
@@ -309,15 +310,15 @@ methods
 end
 
 methods(Static)
-  function map_est = getMarginals(engine, hnodes, ss, T)
-  % Computes node marginals for hidden nodes.
+  function mapEst = getMarginals(engine, hnodes, ss, T)
+  % Computes MAP estimate for hidden nodes.
   % ss: slice size;
-    map_est = zeros(ss, T);
+    mapEst = zeros(ss, T);
     for t = 1 : T
       for n = hnodes(:)'
         m = marginal_nodes(engine, n, t);
         [~, index] = max(m.T);
-        map_est(n, t) = index;
+        mapEst(n, t) = index;
       end
     end
   end

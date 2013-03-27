@@ -1,5 +1,5 @@
 function r = cross_correlation_coeff( Ytrue, Ystar )
-% [r] = cross_correlation_coeff( Ytrue, Ystar )
+% [r] = cross_correlation_coeff(Ytrue, Ystar)
 %   Computes cross correlation coefficient, a performance metric for AVEC
 %
 % Input:

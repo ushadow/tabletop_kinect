@@ -1,4 +1,5 @@
-function [newX sortedEigVal eigHand] = eigenhand(X, neigHand, startHandFetNDX)
+function [newX sortedEigVal eigHand] = eigenhand(X, nhandFet, ...
+                                                 startHandFetNDX)
 % EIGENHAND computes eigenhands and hand features based on the eigenhands.
 %
 % [eigHand handFeature rawFeature H] = eigenhand(X) 
@@ -7,7 +8,9 @@ function [newX sortedEigVal eigHand] = eigenhand(X, neigHand, startHandFetNDX)
 %    data is a cell array and each cell is a feature vector.
 % 
 % Returns
-% X: structure of train, validate, test data with eigenhand features.
+% newX: if X is a structure of train, validate, test data, newX is also a
+%       structure with the same fields with eigenhand features. If X is a 
+%       cell array, newX is also a cell array.
 % sortedEigVal: a vector of sorted eigenvalues correspoinding to the 
 %               eigHand.
 % eigHand: a npixel x K matrix where K is the number of eigenvectors chosen.
@@ -32,17 +35,23 @@ C = A' * A;
 
 eigValVect = diag(eigVal);
 [sortedEigVal, eigNDX] = sort(eigValVect, 'descend');
-sortedEigMat = eigMat(:, eigNDX(1 : neigHand)); % nframe x neighenhand
-sortedEigVal = sortedEigVal(1 : neigHand);
+sortedEigMat = eigMat(:, eigNDX(1 : nhandFet)); % nframe x neighenhand
+sortedEigVal = sortedEigVal(1 : nhandFet);
 
 eigHand = normc(A * sortedEigMat); % npixel x neigenhand
 
-newX.train = updatedata(train, eigHand, startHandFetNDX, ...
-                     'normalized', normalizedFeature);
+newFeature = updatedata(train, eigHand, startHandFetNDX, ...
+                        'normalized', normalizedFeature);
 
+if isfield(X, 'train')
+  newX.train = newFeature;
+else
+  newX = newFeature;
+end
+  
 if isfield(X, 'validate')
   newX.validate = updatedata(X.validate, eigHand, startHandFetNDX, ...
-                          'mean', mean);
+                             'mean', mean);
 end
 
 if isfield(X, 'test')
@@ -50,9 +59,9 @@ if isfield(X, 'test')
 end
 
 npixel = size(normalizedFeature, 1);
-assert(all(size(eigHand) == [npixel neigHand]));
-assert(all(size(newX.train{end}{end}) == ...
-                [startHandFetNDX - 1 + neigHand, 1]));
+assert(all(size(eigHand) == [npixel nhandFet]));
+assert(all(size(newFeature{end}{end}) == ...
+                [startHandFetNDX - 1 + nhandFet, 1]));
 assert(abs(norm(eigHand(:, 1)) - 1) < 1e-9);
 end
   

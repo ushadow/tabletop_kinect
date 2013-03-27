@@ -18,12 +18,14 @@ function R = run_experiment_parallel( data, model_params, job_params )
     % Generate tasks
     if verbose, fprintf('Generate tasks'); tid=tic(); end
     num_tasks = 1;
-    for model=1:numel(model_params) % for each model (row)
+    for model = 1 : numel(model_params) % for each model (row)
         params = model_params{model};
-        for fold=1:size(data.split,2) % for each fold (col)
+        for fold = 1 : size(data.split, 2) % for each fold (col)
+          params.fold = fold;
           if verbose, fprintf('.'); end  
           if distributed
-            createTask(job,@run_experiment,nargout,{params,data.split(:,fold)});
+            createTask(job, @run_experiment, nargout, ...
+                       {params, data.split(:, fold)});
           else
             R{model,fold}{end+1} = run_experiment(params, ...
                 data.split(:, fold), data.data);
