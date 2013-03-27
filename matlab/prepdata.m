@@ -1,11 +1,10 @@
-function [data segFrameId stdConFet modelparam] = ...
-         preptrainingdata(dirname, modelparam)
+function [data segFrameId dataParam] = prepdata(dirname, suffix)
 % PREPTRAININGDATA prepares the training data into right structure for 
 % preprocesssing.
 %
 % Return
-% data: a cell array of cells. Each cell is a cell array of labels and 
-% features. The continuous hand features are standardized.
+% - data: a cell array of cells. Each cell is a cell array of labels and 
+% features. 
 files = dir(dirname);
 for i = 1 : length(files)
   file = files(i);
@@ -16,56 +15,52 @@ for i = 1 : length(files)
     basename = name(1 : last_index - 1);
     ext = name(last_index + 1 : end);
     if strcmp(ext, 'glab.csv')
-      label = importdata([dirname name], ',', 1);
-      feature = importdata([dirname basename '.gfet'], ',', 1);
+      labelFile = [dirname name];
+      label = importdata(labelFile, ',', 1);
+      logdebug('prepdata', 'label file', labelFile);
+      featureFile = [dirname basename suffix '.gfet'];
+      logdebug('prepdata', 'feature file', featureFile);
+      feature = importdata(featureFile, ',', 1);
       header = textscan(feature.textdata{1}, '%s%s%d%s%d', ...
                         'delimiter', ',');
-      modelparam.nXconFet = header{3};
-      modelparam.nG = length(unique(label.data(:, 2)));
+      % Init parameters.
+      dataParam.nXconFet = header{3};
+      dataParam.nG = length(unique(label.data(:, 2)));
+      dataParam.nF = length(unique(label.data(:, 3)));
       imageWidth = header{5};
-      modelparam.imageSize = imageWidth * imageWidth; 
-      [data segFrameId stdConFet] = combinelabelfeature(label.data, ...
-                                    feature.data, modelparam);
+      dataParam.imageSize = imageWidth * imageWidth; 
+
+      [data segFrameId] = combinelabelfeature(label.data, feature.data, ...
+                                              dataParam);
     end
   end
 end
 end
 
-function [data segFrameId stdConFet] = combinelabelfeature(label, ...
-         feature, param)
+function [data segFrameId] = combinelabelfeature(label, feature, param)
 labelFrameId = label(:, 1);
 featureFrameId = feature(:, 1);
 [frameids, labelNDX, featureNDX] = intersect(labelFrameId, featureFrameId);
-fprintf('number of frames = %d\n', length(frameids));
+logdebug('preptrainingdata', 'number of frames', length(frameids));
 [segment segFrameId] = createsegment(frameids); % cell array
 label = label(labelNDX, 2 : end); % Removes frame ID.
 feature = feature(featureNDX, 2 : end); % Each row is a feature vector.
 
-stdConFet = stdfeature(feature(:, 1 : param.nXconFet));
-feature(:, 1 : param.nXconFet) = stdConFet;
-
-assert(param.nF == length(unique(label(:, 2))));
 assert(checklabel(label), 'Label is not valid.');
 assert(size(label, 1) == size(feature, 1));
-assert(all(abs(mean(feature(:, 1 : param.nXconFet), 1)) < 1e-9));
 
-data = cell(1, length(segment));
-for i = 1 : length(data)
+data.Y = cell(1, length(segment));
+data.X = cell(1, length(segment));
+for i = 1 : length(segment)
   indices = segment{i};
   T = length(indices);
-  data{i} = cell(param.ss, T);
-  data{i}([param.G1 param.F1], :) = num2cell(label(indices, 1: 2)');
+  data.Y{i} = num2cell(label(indices, 1: 2)');
   featureSeg = feature(indices, :)';
-  featureCell = mat2cell(featureSeg, ...
-      [param.nXconFet param.imageSize], ones(1, T));
-  for t = 1 : T
-    data{i}{4, t} = featureCell(:, t);
-  end
-  assert(size(data{i}{param.G1, 1}) == 1);
-  assert(size(data{i}{param.F1, 1}) == 1);
-  assert(isempty(data{i}{param.S1, 1}));
-  assert(size(data{i}{4, 1}{1}) == param.nXconFet);
-  assert(size(data{i}{4, 1}{2}) == param.imageSize);
+  data.X{i} = mat2cell(featureSeg, param.nXconFet + param.imageSize, ...
+                       ones(1, T));
+
+  assert(all(size(data.Y{i}) == [2, T]));
+  assert(length(data.X{i}{T}) == param.nXconFet + param.imageSize);
 end
 end
 
@@ -116,13 +111,4 @@ for i = 1 : nrows - 1
     end
   end
 end
-end
-
-function transformed = stdfeature(feature)
-% stdfeature(feature) Standardizes the features.
-%
-% Args
-% feature: each row is a feature.
-  transformed = standardize(feature'); % Changes to column feature.
-  transformed = transformed';
 end

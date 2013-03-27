@@ -73,6 +73,18 @@ AveCov <- function(cov) {
   mean(mean)
 }
 
+SaveClusterMean <- function(prefix, nfold, G) {
+  filename <- paste(prefix, 1 : nfold, sep = '-')
+  sapply(filename, SaveClusterMean1, G = G)
+}
+
+SaveClusterMean1 <- function(prefix, G) {
+  filename <- paste(prefix, '.csv', sep = '')
+  data <- read.table(filename, sep = ',')
+  cluster <- Mclust(data, G)
+  output.filename <- paste(prefix, '-mean-', G, '.csv', sep = '')
+  write.csv(cluster$parameters[[3]], output.filename, row.names = FALSE)
+}
 
 
 

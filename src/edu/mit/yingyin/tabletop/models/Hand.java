@@ -21,6 +21,10 @@ public class Hand {
 
   private final float distAboveSurface;
   private final float width;
+  
+  /** 
+   * Position in the world coordinate. 
+   */
   private final Point3f position;
   private final Vector3f v, a;
   /**
@@ -54,6 +58,10 @@ public class Hand {
     this.pointCloud = pointCloud;
   }
   
+  /** 
+   * Position in the world coordinate.
+   * @return
+   */
   public Point3f position() { return new Point3f(position); }
   
   public float distAboveSurface() { return distAboveSurface; }

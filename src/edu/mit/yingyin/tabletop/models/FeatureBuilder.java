@@ -18,7 +18,7 @@ public class FeatureBuilder {
     float[] features = new float[CONTINUOUS_FEATURE_SIZE + 
                                  imageWidth * imageWidth];
     Hand hand = forelimb.hand();
-    features[0] = forelimb.armLength();
+    features[0] = hand.position().y;
     features[1] = hand.distAboveSurface();
     int startIndex = 2;
     addTuple(features, startIndex, hand.velocity());

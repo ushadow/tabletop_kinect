@@ -285,7 +285,8 @@ public class HandTrackingApp extends KeyAdapter {
       LOGGER.info("Done writing features.");
     }
     engine.release();
-    packetController.release();
+    if (packetController != null)
+      packetController.release();
   }
  
   /**

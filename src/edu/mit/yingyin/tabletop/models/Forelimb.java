@@ -110,15 +110,6 @@ public class Forelimb {
     return new Point3f(armJointW);
   }
   
-  public float armLength() {
-    if (armJointW == null)
-      return hand.position().y;
-    
-    Vector3f v = new Vector3f();
-    v.sub(hand.position(), armJointW);
-    return v.length();
-  }
-  
   /**
    * @return the reference of the hand.
    */
