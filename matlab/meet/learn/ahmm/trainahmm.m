@@ -1,12 +1,6 @@
 function finalAhmm = trainahmm(param, data)
 % Arg
 % - data: cell array of training data.
-nfeature = param.nXconFet + nXhandFet;
-filename = sprintf('%sfeature-%d-mean-%d.csv', param.dir, nfeature, ...
-                   param.fold); 
-mean = importdata(filename, ',', 1);
-
-param = initahmmparam(param, mean);
 
 ahmm = createahmm(param);
 

@@ -24,7 +24,7 @@ for i = 1 : length(files)
       header = textscan(feature.textdata{1}, '%s%s%d%s%d', ...
                         'delimiter', ',');
       % Init parameters.
-      dataParam.nXconFet = header{3};
+      dataParam.nconFet = header{3};
       dataParam.nG = length(unique(label.data(:, 2)));
       dataParam.nF = length(unique(label.data(:, 3)));
       imageWidth = header{5};
@@ -57,11 +57,11 @@ for i = 1 : length(segment)
   T = length(indices);
   data.Y{i} = num2cell(label(indices, 1: 2)');
   featureSeg = feature(indices, :)';
-  data.X{i} = mat2cell(featureSeg, param.nXconFet + param.imageSize, ...
+  data.X{i} = mat2cell(featureSeg, param.nconFet + param.imageSize, ...
                        ones(1, T));
 
   assert(all(size(data.Y{i}) == [2, T]));
-  assert(length(data.X{i}{T}) == param.nXconFet + param.imageSize);
+  assert(length(data.X{i}{T}) == param.nconFet + param.imageSize);
 end
 end
 

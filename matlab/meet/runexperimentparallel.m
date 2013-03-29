@@ -1,5 +1,7 @@
-function R = run_experiment_parallel( data, model_params, job_params )
-     
+function R = runexperimentparallel(data, split, modelParam, job_params)
+%
+% Args
+% - modelParam: a cell array of model parameter.
     verbose = job_params.verbose;
     
     switch job_params.type
@@ -12,23 +14,22 @@ function R = run_experiment_parallel( data, model_params, job_params )
     end
     
     
-    R = cell(numel(model_params),size(data.split,2));    
+    R = cell(numel(modelParam),size(split, 2));    
     nargout = 1; % to be returned from each task 
  
     % Generate tasks
     if verbose, fprintf('Generate tasks'); tid=tic(); end
     num_tasks = 1;
-    for model = 1 : numel(model_params) % for each model (row)
-        params = model_params{model};
-        for fold = 1 : size(data.split, 2) % for each fold (col)
+    for model = 1 : numel(modelParam) % for each model (row)
+        params = modelParam{model};
+        for fold = 1 : size(split, 2) % for each fold (col)
           params.fold = fold;
           if verbose, fprintf('.'); end  
           if distributed
             createTask(job, @run_experiment, nargout, ...
-                       {params, data.split(:, fold)});
+                       {params, split(:, fold)});
           else
-            R{model,fold}{end+1} = run_experiment(params, ...
-                data.split(:, fold), data.data);
+            R{model, fold} = run_experiment(params, split(:, fold), data);
           end
           job_log{num_tasks}.row = model;
           job_log{num_tasks}.col = fold;

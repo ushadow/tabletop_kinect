@@ -22,6 +22,8 @@ methods
     self.params.F1 = 3; 
     self.params.X1 = 4; 
 
+    self.params.ss = 4;
+    
     self.params.onodes = [self.params.X1];
 
     self.params.Gstartprob = [1 0 0 0];
@@ -203,6 +205,7 @@ methods
     params.F1 = 3; 
     params.X1 = 4; 
 
+    params.ss = 4;
     params.onodes = [params.X1];
 
     params.Gstartprob = [1 0 0 0];
@@ -281,6 +284,7 @@ methods
     params.F1 = 3; 
     params.X1 = 4; 
 
+    params.ss = 4;
     params.onodes = [params.G1 params.F1 params.X1];
       
     params.Gstartprob = ones(1, params.nG) / params.nG;

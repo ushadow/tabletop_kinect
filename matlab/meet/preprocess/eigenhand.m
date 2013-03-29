@@ -1,12 +1,17 @@
-function [newX sortedEigVal eigHand] = eigenhand(X, nhandFet, ...
-                                                 startHandFetNDX)
+function [newX sortedEigVal eigHand] = eigenhand(X, param)
 % EIGENHAND computes eigenhands and hand features based on the eigenhands.
 %
 % [eigHand handFeature rawFeature H] = eigenhand(X) 
 % 
-% X: observed data or a struct with train, validate and test data. Each 
-%    data is a cell array and each cell is a feature vector.
-% 
+% Args
+% -X: observed data or a struct with train, validate and test data. Each 
+%     data is a cell array and each cell is a feature vector.
+% -param: a struct with the following fields
+%   -nhandFet: number of hand features should be included in the result.
+%               This determineds the number of eigen hand used.
+%   -startHandFetNDX: the start index of the hand image in the feature 
+%                     vector.
+%
 % Returns
 % newX: if X is a structure of train, validate, test data, newX is also a
 %       structure with the same fields with eigenhand features. If X is a 
@@ -22,6 +27,9 @@ if isfield(X, 'train')
 else
   train = X;
 end
+
+nhandFet = param.nhandFet;
+startHandFetNDX = param.startHandFetNDX;
 
 [normalizedFeature, mean] = normalizefeature(train, startHandFetNDX);
 
@@ -99,7 +107,7 @@ for i = 1 : nseq
   for t = 1 : length(data{i})
     ndx = ndx + 1;
     old = data{i}{t};
-    data{i}{t} = [old(1 : startHandFetNDX - 1); handFeature(:, ndx)]; 
+    data{i}{t} = [old(1 : startHandFetNDX - 1); handFeature(:, ndx)];
   end
 end
 neigHand = size(eigHand, 2);

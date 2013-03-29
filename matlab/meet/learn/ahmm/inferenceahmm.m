@@ -1,6 +1,6 @@
 function R = inferenceahmm(ahmm, data, predictNode)
 
-engine = smoother_egine(jtree_2TBN_inf_egine(ahmm));
+engine = smoother_engine(jtree_2TBN_inf_engine(ahmm));
 
 nseq = length(data);
 R = cell(1, nseq);
