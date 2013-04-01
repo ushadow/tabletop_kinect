@@ -22,6 +22,9 @@ end
 end
 
 function r = evaluate(Ytrue, Ystar)
+%
+% Args:
+% - Ytrue: cell array of sequences.
 total = 0;
 nlabel = size(Ytrue{1}, 1);
 r.error = zeros(nlabel, 1);
