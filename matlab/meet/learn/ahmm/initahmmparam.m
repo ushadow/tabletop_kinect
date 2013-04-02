@@ -15,7 +15,7 @@ param.S1 = 2;
 param.F1 = 3; 
 param.X1 = 4;
 
-param.onodes = [param.G1 param.F1 param.X1];
+param.onodes = [param.G1 param.X1];
 % Parameters related to G.
 param.Gstartprob = zeros(1, param.nG);
 param.Gstartprob(1, 1) = 1;

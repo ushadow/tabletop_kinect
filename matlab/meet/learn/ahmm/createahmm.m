@@ -37,7 +37,7 @@ intra(G1, F1) = 1;
 intra(S1, F1) = 1;
 
 inter = zeros(ss);
-inter(G1, G1) = 1;
+inter(G1, G1) = 1; % Node G1 in slice t - 1 connects to node G1 in slice t.
 inter(F1, G1) = 1;
 inter(S1, S1) = 1;
  

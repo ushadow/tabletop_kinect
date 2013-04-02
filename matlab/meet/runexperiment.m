@@ -66,7 +66,7 @@ function R = runexperiment(param, split, data)
     case 'svr'
       R.stat = eval_svr(Y, R.prediction, param);
     case 'ahmm'
-      R.stat = evalclassification(Y, R.prediction);
+      R.stat = evalclassification(Y, R.prediction, @zerooneloss);
     otherwise
       error('%s Not implemented yet', param.model);
   end

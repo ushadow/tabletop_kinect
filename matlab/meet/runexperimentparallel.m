@@ -29,7 +29,7 @@ function R = runexperimentparallel(data, split, modelParam, job_params)
             createTask(job, @run_experiment, nargout, ...
                        {params, split(:, fold)});
           else
-            R{model, fold} = run_experiment(params, split(:, fold), data);
+            R{model, fold} = runexperiment(params, split(:, fold), data);
           end
           job_log{num_tasks}.row = model;
           job_log{num_tasks}.col = fold;
