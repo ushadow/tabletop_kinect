@@ -150,8 +150,8 @@ methods
   function testLearning(self)
     T = 20;
     max_iter = 10;
-    true_params = self.deterministicParams;
-    ahmm = createahmm(true_params);
+    trueParam = self.deterministicParams;
+    ahmm = createahmm(trueParam);
     ev = sample_dbn(ahmm, 'length', T);
     ss = length(ahmm.intra);
     evidence = cell(1, 1);
@@ -173,19 +173,19 @@ methods
     assertTrue(all(cell2mat(mapS(:)) == trueS(:)));
     
     learned_Gstartprob = CPD_to_CPT(final_ahmm.CPD{1});
-    assertTrue(all(learned_Gstartprob == true_params.Gstartprob(:)));
+    assertTrue(all(learned_Gstartprob == trueParam.Gstartprob(:)));
     learned_Sstartprob = CPD_to_CPT(final_ahmm.CPD{2});
     assertTrue(learned_Sstartprob(1, 1) == 1);
     learned_Stermprob = CPD_to_CPT(final_ahmm.CPD{3});
     assertTrue(all(learned_Stermprob(:, 1) == 0));
     learned_hand = struct(final_ahmm.CPD{4}).hand;
-    assertTrue(all(learned_hand(:) == true_params.hand(:)));
+    assertTrue(all(learned_hand(:) == trueParam.hand(:)));
     learned_GCPT = CPD_to_CPT(final_ahmm.CPD{5});
     learned_GCPT = learned_GCPT(:, 1, :);
     expected = eye(new_params.nG, new_params.nG);
     assertTrue(all(learned_GCPT(:) == expected(:)));
     learned_Gtransprob = struct(final_ahmm.CPD{5}).transprob;
-    assertTrue(all(learned_Gtransprob(:) == true_params.Gtransprob(:)));
+    assertTrue(all(learned_Gtransprob(:) == trueParam.Gtransprob(:)));
     learned_Stransprob = CPD_to_CPT(final_ahmm.CPD{6});
     assertTrue(learned_Stransprob(1, 2, 2) == 1);
     assertTrue(learned_Stransprob(2, 3, 3) == 1);

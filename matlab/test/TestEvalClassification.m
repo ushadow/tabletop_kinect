@@ -11,9 +11,11 @@ methods
     R.train = {{1 2; 3 4}};
     R.validate = {{5 6; 7 8}};
     stat = evalclassification(Y, R, @zerooneloss);
-    assertTrue(length(stat.train.error) == 2);
-    assertTrue(all(stat.train.error == 0));
-    assertTrue(all(stat.validate.error == 0));
+    train = stat('train');
+    validate = stat('validate');
+    assertTrue(length(train('error')) == 2);
+    assertTrue(all(train('error') == 0));
+    assertTrue(all(validate('error') == 0));
   end
 end
 end

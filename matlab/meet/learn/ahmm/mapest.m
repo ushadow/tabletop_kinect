@@ -1,4 +1,6 @@
 function mapEst = mapest(engine, hnode, T)
+% Args:
+% - hnode: hidden node that we want to estimate the state.
 % Return
 % - mapEst: a cell array.
 nhnode = length(hnode);

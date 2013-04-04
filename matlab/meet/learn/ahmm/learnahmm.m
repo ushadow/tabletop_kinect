@@ -21,6 +21,7 @@ finalAhmm = trainahmm(param, trainData);
 predictNode = [param.G1 param.F1];
 param.onodes = [param.X1];
 finalAhmm = sethiddenbit(finalAhmm, param.onodes);
+checkahmm(finalAhmm);
 
 trainData = createInputData(Y.train, X.train, param);
 R.train = inferenceahmm(finalAhmm, trainData, predictNode);
