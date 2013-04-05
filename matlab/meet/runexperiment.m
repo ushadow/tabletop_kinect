@@ -47,7 +47,7 @@ function R = runexperiment(param, split, data)
     case 'svr'
       R = learn_svr(Y, X, param);
     case 'ahmm'
-      R.prediction = learnahmm(Y, X, param);
+      [R.prediction R.learnedModel] = learnahmm(Y, X, param);
     otherwise
         error('%s Not implemented yet', param.model);
   end

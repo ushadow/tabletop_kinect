@@ -1,4 +1,4 @@
-function R = learnahmm(Y, X, param)
+function [R finalAhmm] = learnahmm(Y, X, param)
 % LEARNAHMMPARAM learns the parameters for the AHMM model.
 %
 % learn_ahmm_params(data)

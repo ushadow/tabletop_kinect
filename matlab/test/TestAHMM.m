@@ -106,14 +106,7 @@ methods
       assertTrue(all(size(evidence{X1, i}{1}) == [ns(X1), 1]));
       assertTrue(all(hand(:) == s));
       assertTrue(s == evidence{G1, i});
-      if i > 1 
-        f = evidence{F1, i - 1};
-        if f == 1
-          assertTrue(evidence{G1, i - 1} == evidence{G1, i})
-        else
-          assertTrue(f == 2);
-        end
-      end
+      checkahmmresult(evidence, G1, F1);
     end
   end
   
