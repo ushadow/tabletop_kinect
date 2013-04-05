@@ -4,7 +4,7 @@ hyperParam.nhandFet = 3;
 
 hyperParam.startHandFetNDX = paramFromData.nconFet + 1;
 hyperParam.dir = paramFromData.dir;
-hyperParam.maxIter = 10;
+hyperParam.maxIter = 100;
 
 nmodel = length(hyperParam.nS);
 hyperParam.model = cell(1, nmodel);

@@ -1,4 +1,6 @@
 function jobParam = jobparam
 jobParam.verbose = true;
-jobParam.type = 'none';
+jobParam.destroy = true;
+jobParam.type = 'local';
+jobParam.path = [genpath('c:/users/yingyin/workspace/tabletop/matlab-lib/lib') ';' genpath(pwd)];
 end

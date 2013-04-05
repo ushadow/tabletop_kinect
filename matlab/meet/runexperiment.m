@@ -1,8 +1,8 @@
 function R = runexperiment(param, split, data)    
-% R = run_experiment( params, split )
+% R = runexperiment(param, split, data)
 %
 % Input:
-%   - params : struct, model parameters
+%   - param : struct, model parameters
 %   - split  : 2-by-1 or 3-by-1 cell array
 %
 % Output:

@@ -1,12 +1,12 @@
-function R = runexperimentparallel(data, split, modelParam, job_params)
+function R = runexperimentparallel(data, split, modelParam, jobParam)
 %
 % Args
 % - modelParam: a cell array of model parameter.
-    verbose = job_params.verbose;
+    verbose = jobParam.verbose;
     
-    switch job_params.type
+    switch jobParam.type
         case 'local'
-            jm = findResource('scheduler','type','local');
+            jm = parcluster('local');
             job = createJob(jm);
             distributed = true;
         case 'none'
@@ -26,8 +26,7 @@ function R = runexperimentparallel(data, split, modelParam, job_params)
           params.fold = fold;
           if verbose, fprintf('.'); end  
           if distributed
-            createTask(job, @run_experiment, nargout, ...
-                       {params, split(:, fold)});
+            createTask(job, @runexperiment, nargout, {params, split(:, fold), data});
           else
             R{model, fold} = runexperiment(params, split(:, fold), data);
           end
@@ -46,7 +45,7 @@ function R = runexperimentparallel(data, split, modelParam, job_params)
         job_data.Y = data.Y;
         job_data.job_log = job_log;
         set(job, 'JobData', job_data);
-        set(job, 'PathDependencies', strread(job_params.path,'%s','delimiter',';'));
+        set(job, 'PathDependencies', strread(jobParam.path,'%s','delimiter',';'));
         if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end  
 
 
@@ -75,7 +74,7 @@ function R = runexperimentparallel(data, split, modelParam, job_params)
         if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end
         
         % Destroy job
-        if job_params.destroy,
+        if jobParam.destroy,
             job.destroy();
         end
     end
