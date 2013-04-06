@@ -6,11 +6,11 @@ nseq = length(data);
 R = cell(1, nseq);
 for i = 1 : nseq
   evidence = data{i};
-  %engine = enter_evidence(engine, evidence);
-  %R{i} = mapest(engine, predictNode, length(evidence));
+  engine = enter_evidence(engine, evidence);
+  R{i} = mapest(engine, predictNode, length(evidence));
   
   % Find the most probable explanation (Viterbi).
-  mpe = find_mpe(engine, evidence);
-  R{i} = mpe(predictNode, :);
+  %mpe = find_mpe(engine, evidence);
+  %R{i} = mpe(predictNode, :);
 end
 end
