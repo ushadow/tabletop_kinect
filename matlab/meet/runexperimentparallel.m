@@ -6,7 +6,7 @@ function R = runexperimentparallel(data, split, modelParam, jobParam)
     
     switch jobParam.type
         case 'local'
-            jm = parcluster('local');
+            jm = findResource('scheduler','type','local');
             job = createJob(jm);
             distributed = true;
         case 'none'

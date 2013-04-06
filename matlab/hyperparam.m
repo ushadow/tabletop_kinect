@@ -1,6 +1,18 @@
-function hyperParam = hyperparam(paramFromData)
-hyperParam.nS = 11;
+function hyperParam = hyperparam(paramFromData, varargin)
+
+% Default values.
+hyperParam.nS = 37;
 hyperParam.nhandFet = 64;
+
+for i = 1 : 2 : length(varargin)
+  switch varargin{i}
+    case 'nS'
+      hyperParam.nS = varargin{i + 1};
+    otherwise
+      error(['Unrecognized parameter: ' varargin{i}]);
+  end
+end
+
 
 hyperParam.startHandFetNDX = paramFromData.nconFet + 1;
 hyperParam.dir = paramFromData.dir;

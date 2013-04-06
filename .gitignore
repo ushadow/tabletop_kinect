@@ -14,3 +14,4 @@ doc
 data/descriptor
 *.RData
 *.Rhistory
+*.asv
