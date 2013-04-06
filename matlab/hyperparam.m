@@ -1,6 +1,6 @@
 function hyperParam = hyperparam(paramFromData)
 hyperParam.nS = 11;
-hyperParam.nhandFet = 3;
+hyperParam.nhandFet = 64;
 
 hyperParam.startHandFetNDX = paramFromData.nconFet + 1;
 hyperParam.dir = paramFromData.dir;

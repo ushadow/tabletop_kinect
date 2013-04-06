@@ -79,6 +79,7 @@ rawFeature = mat(startHandFetNDX : end, :);
 end
 
 function [normalized meanFeature] = normalizefeature(data, startHandFetNDX)
+% Subtracts the mean from the features.
 rawFeature = rawhandfeature(data, startHandFetNDX);
 nframe = size(rawFeature, 2);
 meanFeature = mean(rawFeature, 2);

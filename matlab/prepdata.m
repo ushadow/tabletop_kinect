@@ -3,8 +3,8 @@ function [data segFrameId dataParam] = prepdata(dirname, suffix)
 % preprocesssing.
 %
 % Return
-% - data: a cell array of cells. Each cell is a cell array of labels and 
-% features. 
+% - data: a struct. data.Y is the label and data.X is the feature.
+%         Each field is a cell array.
 files = dir(dirname);
 for i = 1 : length(files)
   file = files(i);
