@@ -36,5 +36,6 @@ param.Stransprob = ones(param.nS, param.nG, param.nS) / param.nS;
 param.Stermprob = ones(param.nG, param.nS, param.nF) / param.nF;
 
 param.Xmean = mean;
-param.Xcov = repmat(eye(param.nX, param.nX) * 0.5, [1, 1, param.nS]);
+param.Xcov = repmat(eye(param.nX, param.nX), [1, 1, param.nS]);
+param.Xcov_type = param.cov_type;
 end

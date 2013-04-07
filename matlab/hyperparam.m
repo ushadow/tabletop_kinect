@@ -2,7 +2,8 @@ function hyperParam = hyperparam(paramFromData, varargin)
 
 % Default values.
 hyperParam.nS = 37;
-hyperParam.nhandFet = 64;
+hyperParam.nhandFet = 3;
+hyperParam.cov_type = 'diag';
 
 for i = 1 : 2 : length(varargin)
   switch varargin{i}
@@ -29,6 +30,7 @@ for i = 1 : nmodel
   param.startHandFetNDX = hyperParam.startHandFetNDX;
   param.dir = hyperParam.dir;
   param.maxIter = hyperParam.maxIter;
+  param.cov_type = hyperParam.cov_type;
   hyperParam.model{i} = param;
 end
 end

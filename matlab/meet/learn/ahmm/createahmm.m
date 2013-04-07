@@ -68,7 +68,7 @@ if isfield(param, 'hand')
                          param.Xcov);
 else
   ahmm.CPD{X1} = gaussian_CPD(ahmm, X1, 'mean', param.Xmean, ...
-      'cov', param.Xcov);
+      'cov', param.Xcov, 'cov_type', param.Xcov_type);
 end
 
 % Slice 2.

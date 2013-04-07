@@ -47,6 +47,10 @@ function memo = computeonefold(r, memo, nfold, index)
 %
 % Args:
 % - r: stats for one fold.
+if iscell(r)
+  r = r{1};
+end
+
 if isfield(r, 'stat');
   stat = r.stat;
 else
