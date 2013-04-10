@@ -1,4 +1,4 @@
-function denoised = savefeature(X, userID, split, hyperParam)
+function denoised = savefeature(X, split, hyperParam)
 % SAVEFEATURE saves the standardized features.
 %
 % Args
@@ -14,8 +14,8 @@ for i = 1 : size(split, 2)
   standardized = standardizefeature(result, 0, 'retMat', true);
   nfeature = size(standardized, 1);
   assert(nfeature == hyperParam.nhandFet + hyperParam.startHandFetNDX - 1);
-  filename = sprintf('%s%s-feature-%d-%d.csv', hyperParam.dir, userID, ...
-                     nfeature, i);
+  filename = sprintf('%s%s-feature-%d-%d.csv', hyperParam.dir, ...
+                     hyperParam.userId, nfeature, i);
   csvwrite(filename, standardized');
 end
 end

@@ -61,7 +61,7 @@ function R = runexperimentparallel(data, split, modelParam, jobParam)
         cols = cellfun(@(x) getfield(x,'col'), job.JobData.job_log);
         for r = unique(rows)
           for c = unique(cols)
-            task = rows == r & cols == c
+            task = rows == r & cols == c;
             if verbose, fprintf('.'); end 
             if ~isempty(job.Tasks(task).OutputArguments)
               R{r,c} = job.Tasks(task).OutputArguments{1};

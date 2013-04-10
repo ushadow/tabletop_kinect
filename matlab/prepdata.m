@@ -1,4 +1,4 @@
-function [data, segFrameId, dataParam] = prepdata(dirname, suffix, userID)
+function [data, segFrameId, dataParam] = prepdata(dirname, suffix, userId)
 % PREPTRAININGDATA prepares the training data into right structure for 
 % preprocesssing.
 %
@@ -19,7 +19,7 @@ for i = 1 : length(files)
     last_index = indices(1);
     basename = name(1 : last_index - 1); % without extension.
     ext = name(last_index + 1 : end);
-    if strcmp(ext, 'glab.csv') && isuserfile(basename, userID)
+    if strcmp(ext, 'glab.csv') && isuserfile(basename, userId)
       labelFile = [dirname name];
       label = importdata(labelFile, ',', 1);
       logdebug('prepdata', 'label file', labelFile);
@@ -34,7 +34,7 @@ for i = 1 : length(files)
       imageWidth = header{5};
       dataParam.imageSize = imageWidth * imageWidth; 
       dataParam.dir = dirname;
-      
+      dataParam.userId = userId;  
       [data, segFrameId] = combinelabelfeature(label.data, feature.data, ...
                                                dataParam);
     end

@@ -8,7 +8,7 @@ function [R, finalAhmm] = learnahmm(Y, X, param)
 % unobserved.
 nfeature = param.nconFet + param.nhandFet;
 filename = sprintf('%s%s-feature-%d-%d-mean-%d.csv', param.dir, ...
-                   param.userID, nfeature, param.fold, param.nS);
+                   param.userId, nfeature, param.fold, param.nS);
 logdebug('learnahmm', 'read file', filename);
 imported = importdata(filename, ',', 1);
 mean = imported.data;
