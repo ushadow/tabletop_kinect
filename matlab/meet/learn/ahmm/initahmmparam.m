@@ -4,6 +4,7 @@ function param = initahmmparam(param, mean)
 % - param: struct with the following fields
 %   -- fold: the current fold.
 
+param.nF = 2;
 param.nX = param.nconFet + param.nhandFet;
 assert(all(size(mean) == [param.nX param.nS]));
 

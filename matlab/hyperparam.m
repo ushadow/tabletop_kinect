@@ -1,9 +1,10 @@
-function hyperParam = hyperparam(paramFromData, varargin)
+function hyperParam = hyperparam(paramFromData, userID, varargin)
 
 % Default values.
-hyperParam.nS = 37;
+hyperParam.nS = 11;
 hyperParam.nhandFet = 3;
 hyperParam.cov_type = 'diag';
+hyperParam.userID = userID;
 
 for i = 1 : 2 : length(varargin)
   switch varargin{i}
@@ -23,6 +24,7 @@ nmodel = length(hyperParam.nS);
 hyperParam.model = cell(1, nmodel);
 for i = 1 : nmodel
   param = paramFromData;
+  param.userID = hyperParam.userID;
   param.learner = 'ahmm';
   param.preprocess = {@denoise @eigenhand @standardizefeature};
   param.nS = hyperParam.nS(i);

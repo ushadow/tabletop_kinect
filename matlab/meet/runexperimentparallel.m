@@ -59,17 +59,14 @@ function R = runexperimentparallel(data, split, modelParam, jobParam)
         if verbose, fprintf('Collect results'); tid=tic(); end    
         rows = cellfun(@(x) getfield(x,'row'), job.JobData.job_log);
         cols = cellfun(@(x) getfield(x,'col'), job.JobData.job_log);
-        for r=unique(rows)
-            for c=unique(cols)
-                tasks = find(rows==r & cols==c);
-                R{r,c} = cell(1,numel(tasks));
-                for t=1:numel(tasks)
-                    if verbose, fprintf('.'); end 
-                    if ~isempty(job.Tasks(tasks(t)).OutputArguments)
-                        R{r,c}{t} = job.Tasks(tasks(t)).OutputArguments{1};
-                    end
-                end
+        for r = unique(rows)
+          for c = unique(cols)
+            task = rows == r & cols == c
+            if verbose, fprintf('.'); end 
+            if ~isempty(job.Tasks(task).OutputArguments)
+              R{r,c} = job.Tasks(task).OutputArguments{1};
             end
+          end
         end
         if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end
         

@@ -1,6 +1,11 @@
-function [data segFrameId dataParam] = prepdata(dirname, suffix)
+function [data, segFrameId, dataParam] = prepdata(dirname, suffix, userID)
 % PREPTRAININGDATA prepares the training data into right structure for 
 % preprocesssing.
+%
+% Args:
+% - suffix: suffix of the feature file, e.g. '-100'.
+% - userID: an optional string or cell array of userIDs indicating the user 
+%           data to be imported.
 %
 % Return
 % - data: a struct. data.Y is the label and data.X is the feature.
@@ -12,9 +17,9 @@ for i = 1 : length(files)
     name = file.name;
     indices = strfind(name, '.');
     last_index = indices(1);
-    basename = name(1 : last_index - 1);
+    basename = name(1 : last_index - 1); % without extension.
     ext = name(last_index + 1 : end);
-    if strcmp(ext, 'glab.csv')
+    if strcmp(ext, 'glab.csv') && isuserfile(basename, userID)
       labelFile = [dirname name];
       label = importdata(labelFile, ',', 1);
       logdebug('prepdata', 'label file', labelFile);
@@ -26,28 +31,30 @@ for i = 1 : length(files)
       % Init parameters.
       dataParam.nconFet = header{3};
       dataParam.nG = length(unique(label.data(:, 2)));
-      dataParam.nF = length(unique(label.data(:, 3)));
       imageWidth = header{5};
       dataParam.imageSize = imageWidth * imageWidth; 
       dataParam.dir = dirname;
       
-      [data segFrameId] = combinelabelfeature(label.data, feature.data, ...
-                                              dataParam);
+      [data, segFrameId] = combinelabelfeature(label.data, feature.data, ...
+                                               dataParam);
     end
   end
 end
 end
 
-function [data segFrameId] = combinelabelfeature(label, feature, param)
+function b = isuserfile(basename, userID)
+  b = isempty(userID) || any(strncmp(basename, userID, length(basename)));
+end
+
+function [data, segFrameId] = combinelabelfeature(label, feature, param)
 labelFrameId = label(:, 1);
 featureFrameId = feature(:, 1);
 [frameids, labelNDX, featureNDX] = intersect(labelFrameId, featureFrameId);
 logdebug('preptrainingdata', 'number of frames', length(frameids));
-[segment segFrameId] = createsegment(frameids); % cell array
+[segment, segFrameId] = createsegment(frameids); % cell array
 label = label(labelNDX, 2 : end); % Removes frame ID.
 feature = feature(featureNDX, 2 : end); % Each row is a feature vector.
 
-assert(checklabel(label), 'Label is not valid.');
 assert(size(label, 1) == size(feature, 1));
 
 data.Y = cell(1, length(segment));
@@ -65,7 +72,7 @@ for i = 1 : length(segment)
 end
 end
 
-function [seg segFrameId] = createsegment(frameid)
+function [seg, segFrameId] = createsegment(frameid)
 % segments = segment(frameids) finds the segments in a vector of frame 
 % IDs. A segment is a sequence of continuous frame IDs. 
 % 
