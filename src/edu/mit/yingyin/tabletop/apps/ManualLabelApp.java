@@ -272,9 +272,11 @@ public class ManualLabelApp extends KeyAdapter implements MouseListener {
   private void showGestureLabelInputDialog() {
     String label =
         (String) JOptionPane.showInputDialog(depthViewer,
-            "Enter gesture label:", "Gesture Label Input Dialog",
+            "Enter gesture label:<G>,<F> Use 0 when there is no gesture", 
+            "Gesture Label Input Dialog",
             JOptionPane.PLAIN_MESSAGE);
-    gestureLabel.add(pointLabel.depthFrameID(), label);
+    if (label != null && !label.isEmpty())
+      gestureLabel.add(pointLabel.depthFrameID(), label);
     updateStatus();
   }
   
