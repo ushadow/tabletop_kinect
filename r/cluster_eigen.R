@@ -86,7 +86,8 @@ SaveClusterMean1 <- function(prefix, G, nfet) {
   data <- data[, 1 : nfet]
   cluster <- Mclust(data, G)
   prefix <- unlist(strsplit(prefix, '-'))
-  output.filename <- paste(prefix[1], nfet, prefix[3], 'mean', G, sep = '-')
+  output.filename <- paste(prefix[1], prefix[2], nfet, prefix[4], 'mean', G, 
+                           sep = '-')
   output.filename <- paste(output.filename, '.csv', sep = '')
   print(output.filename)
   write.csv(cluster$parameters[[3]], output.filename, row.names = FALSE)
