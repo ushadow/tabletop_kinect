@@ -40,6 +40,9 @@ inter = zeros(ss);
 inter(G1, G1) = 1; % Node G1 in slice t - 1 connects to node G1 in slice t.
 inter(F1, G1) = 1;
 inter(S1, S1) = 1;
+if param.resetS
+  inter(F1, S1) = 1;
+end
  
 nodeSize = double([param.nG param.nS param.nF param.nX]);
 dnodes = [G1 S1 F1];
@@ -78,5 +81,11 @@ ahmm.CPD{G2} = hhmm2Q_CPD(ahmm, G2, 'Fself', [], 'Fbelow', F1, 'Qps', ...
 % Tablular CPD are stored as multidimentional arrays where the dimensions
 % are arranged in the same order as the nodes. Nodes in the 2nd slice is 
 % is after the ndoes in the 1st slice.
-ahmm.CPD{S2} = tabular_CPD(ahmm, S2, param.Stransprob);
+if param.resetS
+  ahmm.CPD{S2} = hhmmQ_CPD(ahmm, S2, 'Fself', F1, 'Fbelow', [], ...
+                            'Qps', G2, 'startprob', param.Sstartprob, ...
+                            'transprob', param.Stransprob);
+else
+  ahmm.CPD{S2} = tabular_CPD(ahmm, S2, param.Stransprob);
+end
 end

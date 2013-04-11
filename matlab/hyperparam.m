@@ -4,12 +4,14 @@ function hyperParam = hyperparam(paramFromData, varargin)
 hyperParam.nS = 11;
 hyperParam.nhandFet = 3;
 hyperParam.cov_type = 'diag';
-hyperParam.userId = paramFromData.userId;
+hyperParam.resetS = true;
 
 for i = 1 : 2 : length(varargin)
   switch varargin{i}
     case 'nS'
       hyperParam.nS = varargin{i + 1};
+    case 'resetS'
+      hyperParam.resetS = varargin{i + 1};
     otherwise
       error(['Unrecognized parameter: ' varargin{i}]);
   end
@@ -32,6 +34,7 @@ for i = 1 : nmodel
   param.dir = hyperParam.dir;
   param.maxIter = hyperParam.maxIter;
   param.cov_type = hyperParam.cov_type;
+  param.resetS = hyperParam.resetS;
   hyperParam.model{i} = param;
 end
 end

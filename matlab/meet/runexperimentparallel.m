@@ -1,4 +1,4 @@
-function R = runexperimentparallel(data, split, modelParam, jobParam)
+function R = runexperimentparallel(data, modelParam, jobParam)
 %
 % Args
 % - modelParam: a cell array of model parameter.
@@ -13,7 +13,7 @@ function R = runexperimentparallel(data, split, modelParam, jobParam)
             distributed = false;
     end
     
-    
+    split = data.split;
     R = cell(numel(modelParam),size(split, 2));    
     nargout = 1; % to be returned from each task 
  

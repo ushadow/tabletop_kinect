@@ -34,9 +34,10 @@ for i = 1 : length(files)
       imageWidth = header{5};
       dataParam.imageSize = imageWidth * imageWidth; 
       dataParam.dir = dirname;
-      dataParam.userId = userId;  
       [data, segFrameId] = combinelabelfeature(label.data, feature.data, ...
                                                dataParam);
+      data.userId = userId;
+      data.split = getnfoldindex(numel(data.X), 0, 10);
     end
   end
 end
