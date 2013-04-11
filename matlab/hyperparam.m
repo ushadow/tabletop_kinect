@@ -4,7 +4,8 @@ function hyperParam = hyperparam(paramFromData, varargin)
 hyperParam.nS = 11;
 hyperParam.nhandFet = 3;
 hyperParam.cov_type = 'diag';
-hyperParam.resetS = true;
+hyperParam.resetS = false;
+hyperParam.inferMethod = 'viterbi';
 
 for i = 1 : 2 : length(varargin)
   switch varargin{i}
@@ -27,6 +28,7 @@ hyperParam.model = cell(1, nmodel);
 for i = 1 : nmodel
   param = paramFromData;
   param.learner = 'ahmm';
+  param.inferMethod = hyperParam.inferMethod;
   param.preprocess = {@denoise @eigenhand @standardizefeature};
   param.nS = hyperParam.nS(i);
   param.nhandFet = hyperParam.nhandFet;

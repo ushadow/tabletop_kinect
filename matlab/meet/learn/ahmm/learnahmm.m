@@ -24,10 +24,12 @@ finalAhmm = sethiddenbit(finalAhmm, param.onodes);
 checkahmm(finalAhmm);
 
 trainData = createInputData(Y.train, X.train, param);
-R.train = inferenceahmm(finalAhmm, trainData, predictNode);
+R.train = inferenceahmm(finalAhmm, trainData, predictNode, ...
+                        param.inferMethod);
 
 validateData = createInputData(Y.validate, X.validate, param);
-R.validate = inferenceahmm(finalAhmm, validateData, predictNode);
+R.validate = inferenceahmm(finalAhmm, validateData, predictNode, ...
+                           param.inferMethod);
 end
 
 function data = createInputData(Y, X, param)
