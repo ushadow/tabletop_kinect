@@ -1,45 +1,48 @@
-function cvstat = aggregatecv(R)
+function stat = aggregatecv(R)
 % 
 % Args:
 % - R: cell array.
 ST = dbstack;
 fname = ST.name;
 
-nfold = length(R);
+[nmodel, nfold] = size(R);
 
 memo = containers.Map();
-
-for f = 1 : nfold
-  memo = computeonefold(R{f}, memo, nfold, f);
-end
-
-key = keys(memo);
-cvstat = containers.Map();
-for i = 1 : length(key)
-  datatype = key{i};
-  logdebug(fname, 'datatype', datatype);
-  quantity = memo(datatype);
-  quantname = keys(quantity);
-  aggregate = containers.Map();
-  for j = 1 : length(quantname)
-    name = quantname{j};
-    aggrname = [name '-mean'];
-    aggregate(aggrname) = ignoreNaN(quantity(name), @mean, 2);
-    logdebug(fname, aggrname, aggregate(aggrname));
-    aggrname = [name '-std'];
-    aggregate(aggrname) = ignoreNaN(quantity(name), @std, 2);
-    logdebug(fname, aggrname, aggregate(aggrname));
+stat = cell(nmodel, 1);
+for n = 1 : nmodel
+  for f = 1 : nfold
+    memo = computeonefold(R{n, f}, memo, nfold, f);
   end
-  
-  if (isKey(aggregate, 'precision-mean')) && ...
-     (isKey(aggregate, 'recall-mean'))
-    precision = aggregate('precision-mean');
-    recall = aggregate('recall-mean');
-    fscore = 2 * precision * recall / (precision + recall);
-    aggregate('fscore') = fscore;
-    logdebug(fname, 'fscore', fscore);
+
+  key = keys(memo);
+  cvstat = containers.Map();
+  for i = 1 : length(key)
+    datatype = key{i};
+    logdebug(fname, 'datatype', datatype);
+    quantity = memo(datatype);
+    quantname = keys(quantity);
+    aggregate = containers.Map();
+    for j = 1 : length(quantname)
+      name = quantname{j};
+      aggrname = [name '-mean'];
+      aggregate(aggrname) = ignoreNaN(quantity(name), @mean, 2);
+      logdebug(fname, aggrname, aggregate(aggrname));
+      aggrname = [name '-std'];
+      aggregate(aggrname) = ignoreNaN(quantity(name), @std, 2);
+      logdebug(fname, aggrname, aggregate(aggrname));
+    end
+
+    if (isKey(aggregate, 'precision-mean')) && ...
+       (isKey(aggregate, 'recall-mean'))
+      precision = aggregate('precision-mean');
+      recall = aggregate('recall-mean');
+      fscore = 2 * precision * recall / (precision + recall);
+      aggregate('fscore') = fscore;
+      logdebug(fname, 'fscore', fscore);
+    end
+    cvstat(datatype) = aggregate;
   end
-  cvstat(datatype) = aggregate;
+  stat{n} = cvstat;
 end
 end
 

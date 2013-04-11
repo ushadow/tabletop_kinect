@@ -1,4 +1,6 @@
-function R = inferenceahmm(ahmm, data, predictNode, method)
+function R = inferenceahmm(ahmm, data, predictNode, param)
+
+method = param.inferMethod;
 
 switch method
   case 'fixed-interval-smoothing'
@@ -6,6 +8,8 @@ switch method
     engine = smoother_engine(jtree_2TBN_inf_engine(ahmm));
   case 'filtering'
     engine = filter_engine(jtree_2TBN_inf_engine(ahmm));
+  case 'fixed-lag-smoothing'
+    engine = fixed_lag_smoother_engine(jtree_2TBN_inf_engine(ahmm), param.L);
   otherwise
     error(['Inference method not implemented: ' method]);
 end
@@ -16,6 +20,7 @@ for i = 1 : nseq
   evidence = data{i};
   switch method
     case 'fixed-interval-smoothing'
+    case 'fixed-lag-smoothing'
       engine = enter_evidence(engine, evidence);
       R{i} = mapest(engine, predictNode, length(evidence));
     case 'filtering'
@@ -24,7 +29,7 @@ for i = 1 : nseq
       mapEst = cell(nhnode, T);
       for t = 1 : T
         for n = 1 : nhnode
-          engine = enter_evidence(engine, evidence, t);
+          engine = enter_evidence(engine, evidence(:, t), t);
           m = marginal_nodes(engine, predictNode, t);
           [~, ndx] = max(m.T);
           mapEst{n, t} = ndx;
