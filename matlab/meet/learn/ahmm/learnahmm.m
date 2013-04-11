@@ -18,7 +18,7 @@ param = initahmmparam(param, mean);
 trainData = createInputData(Y.train, X.train, param);
 finalAhmm = trainahmm(param, trainData);
 
-predictNode = [param.G1 param.F1];
+predictNode = [param.G1];
 param.onodes = [param.X1];
 finalAhmm = sethiddenbit(finalAhmm, param.onodes);
 checkahmm(finalAhmm);
