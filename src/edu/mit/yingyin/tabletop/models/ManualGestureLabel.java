@@ -9,8 +9,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import javax.management.RuntimeErrorException;
-
 import edu.mit.yingyin.util.ObjectIO;
 
 public class ManualGestureLabel {
