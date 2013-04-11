@@ -7,8 +7,8 @@ function [R, finalAhmm] = learnahmm(Y, X, param)
 % case{l}{i, t} is the value of node i in slice t in sequel l, or [] if
 % unobserved.
 nfeature = param.nconFet + param.nhandFet;
-filename = sprintf('%sfeature-%d-%d-mean-%d.csv', param.dir, nfeature, ...
-                   param.fold, param.nS); 
+filename = sprintf('%s%s-feature-%d-%d-mean-%d.csv', param.dir, ...
+                   param.userId, nfeature, param.fold, param.nS);
 logdebug('learnahmm', 'read file', filename);
 imported = importdata(filename, ',', 1);
 mean = imported.data;
@@ -24,10 +24,12 @@ finalAhmm = sethiddenbit(finalAhmm, param.onodes);
 checkahmm(finalAhmm);
 
 trainData = createInputData(Y.train, X.train, param);
-R.train = inferenceahmm(finalAhmm, trainData, predictNode);
+R.train = inferenceahmm(finalAhmm, trainData, predictNode, ...
+                        param.inferMethod);
 
 validateData = createInputData(Y.validate, X.validate, param);
-R.validate = inferenceahmm(finalAhmm, validateData, predictNode);
+R.validate = inferenceahmm(finalAhmm, validateData, predictNode, ...
+                           param.inferMethod);
 end
 
 function data = createInputData(Y, X, param)

@@ -4,6 +4,7 @@ function param = initahmmparam(param, mean)
 % - param: struct with the following fields
 %   -- fold: the current fold.
 
+param.nF = 2;
 param.nX = param.nconFet + param.nhandFet;
 assert(all(size(mean) == [param.nX param.nS]));
 
@@ -30,7 +31,7 @@ param.Gtransprob(3 : param.nG, 1) = delta;
 param.Gtransprob(3 : param.nG, 2 : param.nG) = ...
     (1 - delta) / (param.nG - 1);
   
-% Parameters related to S.
+% Parameters related to S. Uniform initialization.
 param.Sstartprob = ones(param.nG, param.nS) / param.nS;
 param.Stransprob = ones(param.nS, param.nG, param.nS) / param.nS;
 param.Stermprob = ones(param.nG, param.nS, param.nF) / param.nF;

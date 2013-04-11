@@ -9,6 +9,8 @@ function R = runexperiment(param, split, data)
 %   - R      : struct, result
 
   R.split = split;
+  R.param = param;
+  param.userId = data.userId;
   
   % Step 1: Prepare data
   if exist('data','var')
@@ -47,7 +49,7 @@ function R = runexperiment(param, split, data)
     case 'svr'
       R = learn_svr(Y, X, param);
     case 'ahmm'
-      [R.prediction R.learnedModel] = learnahmm(Y, X, param);
+      [R.prediction, R.learnedModel] = learnahmm(Y, X, param);
     otherwise
         error('%s Not implemented yet', param.model);
   end
@@ -66,11 +68,10 @@ function R = runexperiment(param, split, data)
     case 'svr'
       R.stat = eval_svr(Y, R.prediction, param);
     case 'ahmm'
-      R.stat = evalclassification(Y, R.prediction, @zerooneloss);
+      R.stat = evalclassification(Y, R.prediction, @errorperframe);
     otherwise
-      error('%s Not implemented yet', param.model);
+      error('%s Not implemented yet', param.learner);
   end
-
 end
 
 
