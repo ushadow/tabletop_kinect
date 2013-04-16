@@ -1,5 +1,5 @@
 function stat = evalbyclass(Y, R, cat)
-% EVALCONTDISC evaludates continuous vs discrete gesture classification.
+% EVALBYCLASS evaludates continuous vs discrete gesture classification.
 % Args:
 % - R: cell array
 
