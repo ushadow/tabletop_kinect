@@ -1,4 +1,5 @@
 function R = runexperimentparallel(data, modelParam, jobParam)
+% RUNEXPERIMENTPARALLEL runs experiment for one batch of data in parallel.
 %
 % Args
 % - modelParam: a cell array of model parameter.
@@ -14,7 +15,7 @@ function R = runexperimentparallel(data, modelParam, jobParam)
     end
     
     split = data.split;
-    R = cell(numel(modelParam),size(split, 2));    
+    R = cell(numel(modelParam), size(split, 2));    
     nargout = 1; % to be returned from each task 
  
     % Generate tasks
@@ -43,37 +44,15 @@ function R = runexperimentparallel(data, modelParam, jobParam)
         if verbose, fprintf('Set job data...'); tid=tic(); end    
         job_data.X = data.X;
         job_data.Y = data.Y;
+        job_data.R = R;
         job_data.job_log = job_log;
         set(job, 'JobData', job_data);
         set(job, 'PathDependencies', strread(jobParam.path,'%s','delimiter',';'));
         if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end  
 
-
         % Submit and wait
         if verbose, fprintf('Submit and wait...'); tid=tic(); end    
-        submit(job);
-        waitForState(job,'finished');    
-        if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end   
-
-        % Collect results
-        if verbose, fprintf('Collect results'); tid=tic(); end    
-        rows = cellfun(@(x) getfield(x,'row'), job.JobData.job_log);
-        cols = cellfun(@(x) getfield(x,'col'), job.JobData.job_log);
-        for r = unique(rows)
-          for c = unique(cols)
-            task = rows == r & cols == c;
-            if verbose, fprintf('.'); end 
-            if ~isempty(job.Tasks(task).OutputArguments)
-              R{r,c} = job.Tasks(task).OutputArguments{1};
-            end
-          end
-        end
-        if verbose, t=toc(tid); fprintf('done (%.2f secs)\n', t); end
-        
-        % Destroy job
-        if jobParam.destroy,
-            job.destroy();
-        end
+        submit(job);  
     end
 end
 

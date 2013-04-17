@@ -30,7 +30,7 @@ for i = 1 : length(files)
                         'delimiter', ',');
       % Init parameters.
       dataParam.nconFet = header{3};
-      dataParam.nG = length(unique(label.data(:, 2)));
+      dataParam.vocabularySize = length(unique(label.data(:, 2)));
       imageWidth = header{5};
       dataParam.imageSize = imageWidth * imageWidth; 
       dataParam.dir = dirname;

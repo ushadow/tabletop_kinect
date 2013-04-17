@@ -1,9 +1,11 @@
 function param = initahmmparam(param, mean)
+% INITAHMMPARAM initializes AHMM parameters.
 %
 % Arg
 % - param: struct with the following fields
 %   -- fold: the current fold.
 
+param.nG = param.vocabularySize;
 param.nF = 2;
 param.nX = param.nconFet + param.nhandFet;
 assert(all(size(mean) == [param.nX param.nS]));
