@@ -53,9 +53,8 @@ public class ManualGestureLabel {
     PrintWriter pw = null;
     try {
       pw = new PrintWriter(csvFileName);
-      Integer lastFrame = labels.lastKey();
       // Print header.
-      pw.println(String.format("frame_id,G,F", lastFrame));
+      pw.println(String.format("frame_id,G,F"));
       Iterator<Entry<Integer, String>> iterator = labels.entrySet().iterator();
       
       Entry<Integer, String> nextEntry = iterator.next();
@@ -74,6 +73,8 @@ public class ManualGestureLabel {
       }
     } catch (FileNotFoundException e) {
       LOGGER.severe(e.getMessage());
+    } catch (IOException ioe) {
+      LOGGER.severe(ioe.getMessage());
     } finally {
       if (pw != null)
         pw.close();
@@ -88,8 +89,17 @@ public class ManualGestureLabel {
     return "null";
   }
   
-  private void println(PrintWriter pw, int frameID, String label) {
-    if (!label.startsWith("0")) {
+  /**
+   * Prints the gesture label only when it is not 0.
+   * @param pw
+   * @param frameID
+   * @param label
+   */
+  private void println(PrintWriter pw, int frameID, String label) 
+      throws IOException {
+    if (label == null) {
+      throw new IOException(String.format("Frame %d is null!")); 
+    } else if (!label.startsWith("0")) {
       pw.println(frameID + "," + label);
     }
   }
