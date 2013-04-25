@@ -49,8 +49,9 @@ import edu.mit.yingyin.util.CvUtil;
  * @author yingyin
  * 
  */
-public class HandAnalyzer {
-  private static Logger LOGGER = Logger.getLogger(HandAnalyzer.class.getName());
+public class ForelimbFeatureDetector {
+  private static Logger LOGGER = Logger.getLogger(
+      ForelimbFeatureDetector.class.getName());
 
   /**
    * Number of initial frames to ignore.
@@ -72,23 +73,30 @@ public class HandAnalyzer {
   private static final int CONTOUR_APPROX_LEVEL = 2;
   /**
    * The ratio between the perimeter of the table and the perimeter of the hand.
-   * Assumes hand's dimension is w = 15cm, h = 15cm, and the table's dimension
-   * is w = 122cm, h = 92cm.
+   * Assumes a fully extended hand's dimension is w = 15cm, h = 15cm, and the 
+   * table's dimension is w = 122cm, h = 92cm.
    */
   private static final int HAND_PERIM_SCALE = 7;
   /**
-   * The ratio between the height of the table and the minimum height of the
-   * hand. Assumes minimum height of the hand is 8cm when only part of the hand
-   * is in the view.
+   * The ratio between the height of the table and the maximum (fully extended)
+   * height of the hand. 
    */
-  private static final int HAND_HEIGHT_SCALE = 11;
+  private static final int HAND_MAX_HEIGHT_SCALE = 6;
+  /**
+   * The ratio between the height of the table and the minimum height of the
+   * hand. The minimum hand height is assumed to be 8cm. 
+   */
+  private static final int HAND_MIN_HEIGHT_SCALE = 11;
   private static final int ARM_JOINT_HEIGHT_SCALE = 20;
 
-  private Background background;
-  private IplImage tempImage;
-  private ForelimbModelEstimator forelimbModelEstimator;
-  private OpenNIDevice openni;
-
+  private static final int FORELIMB_BOTTOM_TO_IMAGE_BOTTOM_DIST_THRESH = 10;
+  
+  private final Background background;
+  private final IplImage tempImage;
+  private final ForelimbModelEstimator forelimbModelEstimator;
+  private final OpenNIDevice openni;
+  private final HandFeatureDetector hpfd;
+  
   /**
    * Initializes the data structures.
    * 
@@ -96,12 +104,12 @@ public class HandAnalyzer {
    * @param height
    * @param egnine reference to the <code>HandTrackingEngine</code>.
    */
-  public HandAnalyzer(int width, int height,
-      OpenNIDevice openni) {
+  public ForelimbFeatureDetector(int width, int height, OpenNIDevice openni) {
     tempImage = IplImage.create(width, height, IPL_DEPTH_8U, 1);
     background = Background.initInstance(width, height);
     forelimbModelEstimator = new ForelimbModelEstimator(width, height, openni);
     this.openni = openni;
+    hpfd = new HandFeatureDetector(width, height, openni);
   }
 
   /**
@@ -110,7 +118,7 @@ public class HandAnalyzer {
    * @param packet contains all the relevant data for analysis.
    * @throws StatusException
    */
-  public void analyzeData(ProcessPacket packet) throws StatusException {
+  public void detect(ProcessPacket packet) throws StatusException {
     packet.clear();
 
     if (packet.depthFrameID < BG_INGNORE_FRAMES)
@@ -137,6 +145,7 @@ public class HandAnalyzer {
     cleanUpBackground(packet);
     findConnectedComponents(packet, HAND_PERIM_SCALE);
     findHandRegions(packet);
+    hpfd.detect(packet);
     forelimbModelEstimator.updateModel(packet);
   }
 
@@ -162,7 +171,7 @@ public class HandAnalyzer {
     for (int h = 0; h < packet.height; h++)
       for (int w = 0; w < packet.width; w++) {
         int pos = h * depthWidthStep + w;
-        if ((maskBuffer.get(h * maskWidthStep + w) & 0xff) == 255) {
+        if (Background.isForeground(maskBuffer.get(h * maskWidthStep + w))) {
           byte d = (byte) (depthData[h * width + w] * 255 / 
                            background.maxDepth());
           depthBuffer.put(pos, d);
@@ -235,31 +244,35 @@ public class HandAnalyzer {
    * Finds rectangle hand regions from forelimb regions.
    * 
    * @param packet contains all the processing information.
-   * 
-   *          TODO(yingyin): find hand region based on arm orientation.
    */
   private void findHandRegions(ProcessPacket packet) {
-    int handHeight = packet.height / HAND_HEIGHT_SCALE;
+    int maxHandHeight = packet.height / HAND_MAX_HEIGHT_SCALE;
+    int minHandHeight = packet.height / HAND_MIN_HEIGHT_SCALE;
     int armJointHeight = packet.height / ARM_JOINT_HEIGHT_SCALE;
 
     for (ForelimbFeatures ff : packet.forelimbFeatures) {
       CvRect rect = ff.boundingBox;
-      if (rect.height() >= handHeight) {
-        int ymid = packet.height / 2;
+      if (rect.height() < maxHandHeight)
+        maxHandHeight = rect.height();
+      if (rect.height() >= minHandHeight) {
         int y1 = rect.y();
         int y2 = y1 + rect.height();
         int yhand = y1, yarm = y2 - armJointHeight;
-        if (Math.abs(y1 - ymid) > Math.abs(y2 - ymid)) {
-          yhand = y2 - handHeight;
+        if (!isForelimbAtBottom(y2, packet.height)) {
+          yhand = y2 - maxHandHeight;
           yarm = y1;
         }
-        ff.handRegion = cvRect(rect.x(), yhand, rect.width(), handHeight);
-
-        if (rect.height() - handHeight >= armJointHeight) {
+        ff.handRegion = cvRect(rect.x(), yhand, rect.width(), maxHandHeight);
+        if (rect.height() - maxHandHeight >= armJointHeight) {
           ff.armJointRegion =
               cvRect(rect.x(), yarm, rect.width(), armJointHeight);
         }
       }
     }
+  }
+  
+  private boolean isForelimbAtBottom(int forelimbBottom, int imageBottom) {
+    return Math.abs(forelimbBottom - imageBottom) < 
+           FORELIMB_BOTTOM_TO_IMAGE_BOTTOM_DIST_THRESH;
   }
 }

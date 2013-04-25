@@ -19,7 +19,7 @@ import edu.mit.yingyin.util.ObjectIO;
  * @author yingyin
  *
  */
-public class ManualLabelModel {
+public class ManualPointLabel {
   /**
    * Points at each frame. Multiple points at each frame for tracking multiple
    * fingers. 
@@ -38,7 +38,7 @@ public class ManualLabelModel {
   private float[] histogram;
 
   /**
-   * Creates the ManualLabelModel object.
+   * Creates an {@code ManualPointLabel} object.
    * 
    * @param configFile OpenNI configuration file.
    * @param replayFilename Recorded file with tracked points at each frame.  
@@ -46,7 +46,7 @@ public class ManualLabelModel {
    * @throws GeneralException If initialization from OpenNI device fails.
    */
   @SuppressWarnings("unchecked")
-  public ManualLabelModel(String configFile, String replayFilename, 
+  public ManualPointLabel(String configFile, String replayFilename, 
       int maxDepth) throws IOException, GeneralException {
     openni = new OpenNIDevice(configFile);
     depthWidth = openni.getDepthWidth();
@@ -59,8 +59,8 @@ public class ManualLabelModel {
                                    BufferedImage.TYPE_USHORT_GRAY);
     depthRawData = new short[depthWidth * depthHeight];
     if (replayFilename != null) 
-      points = ((HashMap<Integer, List<Point>>)
-          ObjectIO.readObject(replayFilename));
+      points = (HashMap<Integer, List<Point>>)
+          ObjectIO.readObject(replayFilename);
     else
       points = new HashMap<Integer, List<Point>>();
   
@@ -104,23 +104,18 @@ public class ManualLabelModel {
   
   // Mutators
   /**
-   * Returns the next image from OpenNI and updates the related information.
+   * Returns the next or previous image from OpenNI and updates the related 
+   * information.
    * 
+   * @param forward if true seeks forward, otherwise seeks backward.
    * @return a gray image with brightness inversely related to depth value.
    * @throws GeneralException 
    */
   public void update(boolean forward) throws GeneralException {
     openni.seekFrameBy(forward ? skip : -skip);
-    openni.waitAndUpdateAll();
+    openni.waitDepthUpdateAll();
     depthFrameID = openni.getDepthFrameID();
     rgbFrameID = openni.getImageFrameID();
-    while (rgbFrameID != depthFrameID) {
-      if (rgbFrameID < depthFrameID)
-        openni.waitImageUpdateAll();
-      else openni.waitDepthUpdateAll();
-      depthFrameID = openni.getDepthFrameID();
-      rgbFrameID = openni.getImageFrameID();
-    }
     
     openni.getDepthArray(depthRawData);
     ImageConvertUtils.arrayToHistogram(depthRawData, histogram);
@@ -128,8 +123,6 @@ public class ManualLabelModel {
         depthImage);
     ImageConvertUtils.byteBuffer2BufferedImage(openni.getImageBuffer(), 
         rgbImage);
-    depthFrameID = openni.getDepthFrameID();
-    rgbFrameID = openni.getImageFrameID();
   }
 
   /**

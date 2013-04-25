@@ -5,25 +5,16 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 
 /**
- * Information for a forelimb model.
+ * An immutable model for forelimb.
  * @author yingyin
  *
  */
 public class Forelimb {
  
-  static public class ValConfiPair<T> {
-    public T value;
-    public float confidence;
-    
-    public ValConfiPair(T v, float c) {
-      value = v;
-      confidence = c;
-    }
-  }
-
-  private static final Logger logger = Logger.getLogger(
+  private static final Logger LOGGER = Logger.getLogger(
       Forelimb.class.getName());
   
   /**
@@ -40,20 +31,23 @@ public class Forelimb {
    * Arm joint location in the image coordinate. Can be null;
    */
   private Point3f armJointI;
+  private Hand hand;
   
   /**
    * Creates a forelimb model from the parameters. The model references the 
    * parameters.
-   * @param fingertipsI
-   * @param armJoints
+   * @param fingertipsI can be null;
+   * @param fingertipsW can be null;
+   * @param armJoints list of 2 arm joints. The first on is in the image 
+   *    coordinates and the second one is in the world coordinates.
    */
-  public Forelimb(List<Point3f> fingertipsI, 
-      List<Point3f> fingertipsW, List<Point3f> armJoints) {
+  public Forelimb(List<Point3f> fingertipsI, List<Point3f> fingertipsW, 
+                  List<Point3f> armJoints, Hand hand) {
     if (fingertipsI == null) {
       fingertipsI = new ArrayList<Point3f>();
       fingertipsW = new ArrayList<Point3f>();
     } else if (fingertipsI.size() != fingertipsW.size()) {
-      logger.severe("Number of fingertips in fingertipsI and fingertipsW are" +
+      LOGGER.severe("Number of fingertips in fingertipsI and fingertipsW are" +
       		"not equal.");
       System.exit(-1);
     }
@@ -64,14 +58,7 @@ public class Forelimb {
       this.armJointI = armJoints.get(0);
       this.armJointW = armJoints.get(1);
     }
-  }
-  
-  public Forelimb(Forelimb other) {
-    armJointW = new Point3f(other.armJointW);
-    fingertipsI.clear();
-    for (Point3f p : other.fingertipsI) {
-      fingertipsI.add(new Point3f(p));
-    }
+    this.hand = hand;
   }
   
   /**
@@ -79,7 +66,7 @@ public class Forelimb {
    * @return a list of fingertips in image coordinates. Empty if there are no
    *    fingertips.
    */
-  public List<Point3f> getFingertipsI() {
+  public List<Point3f> fingertipsI() {
     List<Point3f> res = new ArrayList<Point3f>();
     for (Point3f p : fingertipsI) {
       res.add(new Point3f(p));
@@ -92,7 +79,7 @@ public class Forelimb {
    * @return a list of fingertips in world coordinates. Empty if there are not 
    *    fingertips.
    */
-  public List<Point3f> getFingertipsW() {
+  public List<Point3f> fingertipsW() {
     List<Point3f> res = new ArrayList<Point3f>();
     for (Point3f p : fingertipsW)
       res.add(p);
@@ -122,4 +109,9 @@ public class Forelimb {
       return null;
     return new Point3f(armJointW);
   }
+  
+  /**
+   * @return the reference of the hand.
+   */
+  public Hand hand() { return hand; }
 }

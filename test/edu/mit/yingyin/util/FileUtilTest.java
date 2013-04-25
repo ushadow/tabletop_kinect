@@ -19,4 +19,23 @@ public class FileUtilTest {
     logger.info(actual);
   }
 
+  @Test
+  public void testBasename() {
+    String fileName = "/path/file.ext";
+    String actual = FileUtil.basename(fileName);
+    assertEquals("file.ext", actual);
+    
+    fileName = "file.ext";
+    assertEquals("file.ext", FileUtil.basename(fileName));
+  }
+  
+  @Test
+  public void testBasenameWithoutSuffix() {
+    String fileName = "/path/file.ext";
+    String actual = FileUtil.basename(fileName, ".ext");
+    assertEquals("file", actual);
+    
+    fileName = "file.ext";
+    assertEquals("file", FileUtil.basename(fileName, ".ext"));
+  }
 }

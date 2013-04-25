@@ -13,6 +13,8 @@ import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
+import com.googlecode.javacv.cpp.opencv_core.CvMat;
+
 public class Geometry {
   private static final double EPS = 1e-8;
   private static final Logger logger = Logger.getLogger(
@@ -237,4 +239,57 @@ public class Geometry {
     res.add(p0);
     return res;
   }
+  
+  /**
+   * Implementation based on 
+   * http://www.soi.city.ac.uk/~sbbh653/publications/euler.pdf
+   * 
+   * psi is rotation about x axis
+   * theta is rotation about y axis
+   * phi is rotation about z axis
+   * 
+   * @param rot
+   * @return
+   */
+  public static Tuple3f rotMatrixToEuler(CvMat rot) {
+    float r31 = (float) rot.get(2, 0);
+    Tuple3f euler = new Point3f();
+    if (r31 != 1 && r31 != -1) {
+      // between -pi / 2 and pi / 2.
+      euler.y = (float) -Math.asin(r31);
+      float cosy = (float) Math.cos(euler.y);
+      float r32 = (float) rot.get(2, 1);
+      float r33 = (float) rot.get(2, 2);
+      float r21 = (float) rot.get(1, 0);
+      float r11 = (float) rot.get(0, 0);
+      euler.x = (float) Math.atan2(r32 / cosy, r33 / cosy);
+      euler.z = (float) Math.atan2(r21 / cosy, r11 / cosy);
+    } else {
+      euler.z = 0;
+      float r12 = (float) rot.get(0, 1);
+      float r13 = (float) rot.get(0, 2);
+      euler.x = (float) Math.atan2(r12, r13);
+      if (r31 == -1) {
+        euler.y = (float) Math.PI / 2;
+      } else {
+        euler.y = (float) -Math.PI / 2;
+      }
+    }
+    return euler;
+  }
+
+  /**
+   * Singed perpendicular distance of a point to a plane.
+   * @param normal
+   * @param pointOnPlane
+   * @param point
+   * @return
+   */
+  public static float distancePointToPlane(Vector3f normal, 
+      Point3f pointOnPlane, Point3f point) {
+    Vector3f v = new Vector3f();
+    v.sub(point, pointOnPlane);
+    return normal.dot(v) / normal.length();
+  }
 }
+

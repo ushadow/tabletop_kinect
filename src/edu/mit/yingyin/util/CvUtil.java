@@ -13,9 +13,12 @@ import java.awt.Point;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.vecmath.Point2f;
+import javax.vecmath.Point3f;
 
 import com.googlecode.javacv.cpp.opencv_core.CvFont;
 import com.googlecode.javacv.cpp.opencv_core.CvMat;
@@ -179,5 +182,17 @@ public class CvUtil {
         pw.print(fb.get(h * widthStep * 8 / depth + w) + " ");
       pw.println();
     }
+  }
+  
+  public static List<Point3f> cvMatToLinkedList(CvMat mat) {
+    List<Point3f> list = new LinkedList<Point3f>();
+    float[] p = new float[3];
+    FloatBuffer fb = mat.getFloatBuffer();
+    fb.rewind();
+    while (fb.remaining() > 0) {
+      fb.get(p);
+      list.add(new Point3f(p[0], p[1], p[2]));
+    }
+    return list;
   }
 }

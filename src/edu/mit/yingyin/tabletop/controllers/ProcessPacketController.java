@@ -1,20 +1,16 @@
 package edu.mit.yingyin.tabletop.controllers;
 
-import	 java.awt.Point;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.OpenNI.GeneralException;
-
-import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 import edu.mit.yingyin.tabletop.models.HandTracker.DiecticEvent;
 import edu.mit.yingyin.tabletop.models.HandTracker.ManipulativeEvent;
@@ -33,13 +29,15 @@ import edu.mit.yingyin.util.Option.Some;
  *
  */
 public class ProcessPacketController extends KeyAdapter 
-    implements MouseListener, IHandEventListener {
+    implements IHandEventListener {
+  public static enum Options {LABEL, CLASSIFICATION};
+  
   private static final Logger LOGGER = Logger.getLogger(
       ProcessPacketController.class.getName());
   private FPSCounter fpsCounter;
   private Option<HashMap<Integer, List<Point>>> allLabels;
+  private Option<HashMap<Integer, Integer>> classifications;
   private ProcessPacketView packetView;
-  private ProcessPacket packet;
   
   /**
    * Initializes the models and the view.
@@ -47,24 +45,31 @@ public class ProcessPacketController extends KeyAdapter
    * @param height height of the stream data frame.
    * @param lables ground truth label. Can be null.
    */
+  @SuppressWarnings("unchecked")
   public ProcessPacketController(int width, int height, 
-      HashMap<Integer, List<Point>> labels) {
-    if (labels == null)
+      HashMap<Options, Object> options) {
+    Object o = options.get(Options.LABEL);
+    if (o == null) {
       allLabels = new None<HashMap<Integer, List<Point>>>();
+    } else {
+      allLabels = new Some<HashMap<Integer, List<Point>>>(
+          (HashMap<Integer, List<Point>>) o);
+    }
+    o = options.get(Options.CLASSIFICATION);
+    if (o == null)
+      classifications = new None<HashMap<Integer, Integer>>();
     else
-      allLabels = new Some<HashMap<Integer, List<Point>>>(labels);
+      classifications = new Some<HashMap<Integer, Integer>>(
+          (HashMap<Integer, Integer>) o);
+      
     packetView = new ProcessPacketView(width, height);
-    fpsCounter = new FPSCounter("Processed", packetView.analysisFrame());
+    fpsCounter = new FPSCounter(ProcessPacketView.ANALYSIS_FRAME_TITLE, 
+                                packetView.analysisFrame());
     packetView.addKeyListener(this);
-    packetView.addMouseListener(this);
-  }
-  
-  public void showDiagnosticImage(boolean show) {
-    packetView.setToggle(Toggles.SHOW_DIAGNOSTIC_IMAGE, show);
   }
   
   public void showDepthImage(boolean show) {
-    packetView.setToggle(Toggles.SHOW_DEPTH_IMAGE,show);
+    packetView.setToggle(Toggles.SHOW_DEPTH_VIEW,show);
   }
   
   public void keyPressed(KeyEvent ke) {
@@ -88,10 +93,6 @@ public class ProcessPacketController extends KeyAdapter
     case KeyEvent.VK_L:
       packetView.toggle(Toggles.SHOW_LABELS);
       break;
-    case KeyEvent.VK_R:
-      // Showing RGB image.
-      packetView.setToggle(Toggles.SHOW_RGB_IMAGE, true);
-      break;
     default: 
       break;
     }
@@ -103,10 +104,16 @@ public class ProcessPacketController extends KeyAdapter
    * @throws GeneralException 
    */
   public void show(ProcessPacket packet) throws GeneralException {
-    this.packet = packet;
     List<Point> labels = allLabels.isSome() ? 
         allLabels.value().get(packet.depthFrameID) : null;
-    packetView.show(packet, labels);
+    
+    Integer classLabel = -1;
+    if (classifications.isSome()) {
+      classLabel = classifications.value().get(packet.depthFrameID);
+      if (classLabel == null)
+        classLabel = -1;
+    }
+    packetView.show(packet, labels, classLabel);
     fpsCounter.computeFPS();
   }
   
@@ -145,38 +152,6 @@ public class ProcessPacketController extends KeyAdapter
   
   public BufferedImage depthImage() {
     return packetView.depthImage();
-  }
-  
-  @Override
-  public void mouseClicked(MouseEvent me) {
-    Point p = me.getPoint();
-    IplImage image = packet.derivative;
-    float value = image.getFloatBuffer().get(p.y * image.widthStep() / 4 + p.x);
-    packetView.setStatus("x = " + p.x + " y = " + p.y + " value = " + value);
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mouseExited(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mousePressed(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent arg0) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override

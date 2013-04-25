@@ -54,6 +54,10 @@ public class DoubleExpFilter {
       b.sub(s2, s1);
     }
     res.add(s2);
+
+    for (int i = 1; i < ff.fingertips.size(); i++) {
+      res.add(ff.fingertips.get(i).value);
+    }
     
     return res;
   }

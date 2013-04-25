@@ -11,7 +11,7 @@
 %       rate. Defaults to be every other 10 columns.
 %   frameSampleRate (optional): plots the data every frame sample rate.
 %       Defaults to be every other 10 frames.
-function analyze_lines(filename, columnStart, columnEnd, ...
+function analyzeline(filename, columnStart, columnEnd, ...
                        columnSampleRate, frameSampleRate)
   depth_range = [1150 1200];
   M = dlmread(filename);

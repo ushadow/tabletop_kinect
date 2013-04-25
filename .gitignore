@@ -11,3 +11,6 @@ Log
 .cache
 .log
 doc
+data/descriptor
+*.RData
+*.Rhistory
