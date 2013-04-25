@@ -2,8 +2,8 @@
 <project basedir="." default="build" name="tabletop_kinect">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.6"/>
-    <property name="source" value="1.6"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
     <path id="tabletop_kinect.classpath">
         <pathelement location="bin"/>
         <pathelement location="lib/vecmath.jar"/>
@@ -14,6 +14,7 @@
         <pathelement location="lib/commons-cli-1.2.jar"/>
         <pathelement location="lib/j3dcore.jar"/>
         <pathelement location="lib/j3dutils.jar"/>
+	<pathelement location="lib/j3dcore-ogl.dll"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
