@@ -48,20 +48,20 @@ public class ProcessPacketController extends KeyAdapter
   @SuppressWarnings("unchecked")
   public ProcessPacketController(int width, int height, 
       HashMap<Options, Object> options) {
-    Object o = options.get(Options.LABEL);
-    if (o == null) {
-      allLabels = new None<HashMap<Integer, List<Point>>>();
-    } else {
-      allLabels = new Some<HashMap<Integer, List<Point>>>(
-          (HashMap<Integer, List<Point>>) o);
-    }
-    o = options.get(Options.CLASSIFICATION);
-    if (o == null)
-      classifications = new None<HashMap<Integer, Integer>>();
-    else
-      classifications = new Some<HashMap<Integer, Integer>>(
-          (HashMap<Integer, Integer>) o);
+    allLabels = new None<HashMap<Integer, List<Point>>>();
+    classifications = new None<HashMap<Integer, Integer>>();
+    
+    if (options != null) {
+      Object o = options.get(Options.LABEL);
+      if (o != null)
+        allLabels = new Some<HashMap<Integer, List<Point>>>(
+            (HashMap<Integer, List<Point>>) o);
       
+      o = options.get(Options.CLASSIFICATION);
+      if (o != null)
+        classifications = new Some<HashMap<Integer, Integer>>(
+            (HashMap<Integer, Integer>) o);
+    }
     packetView = new ProcessPacketView(width, height);
     fpsCounter = new FPSCounter(ProcessPacketView.ANALYSIS_FRAME_TITLE, 
                                 packetView.analysisFrame());
