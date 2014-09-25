@@ -55,3 +55,4 @@ This code is part of the research project for gestural input on a tabletop displ
 * The main class for hand tracking is `edu.mit.yingyin.tabletop.apps.HandTrackingApp`. To run it, type `ant HandTrackingApp`. The program assumes the *config* and *data* directories are under the main project direcotry.
 * For a sample .oni file, you can download it from [here](http://people.csail.mit.edu/yingyin/resources/share/sample.oni), and put it in the *data* directory. The default configuration for OpenNI is to run from the recording file *./data/sample.oni*. 
 * The OpenNI config file *config.xml* in *config* folder is currently set to run from the actual sensor. 
+* For more information, please refer to the [wiki page](https://github.com/uShadow/tabletop_kinect/wiki).
